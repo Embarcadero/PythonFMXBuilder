@@ -65,7 +65,8 @@ type
     procedure ConfigurePython();
     procedure DisableComponents();
     procedure EnableComponents();
-    procedure TryLoadingMainScript();
+    function TryLoadingMainScript(): boolean;
+    procedure RunMainScript();
   public
     { Public declarations }
   end;
@@ -102,10 +103,16 @@ begin
   FAppEnv.Free();
 end;
 
-procedure TPyMainForm.TryLoadingMainScript;
+procedure TPyMainForm.RunMainScript;
+begin
+  PythonEngine1.ExecString(AnsiString(mmMainScript.Lines.Text));
+end;
+
+function TPyMainForm.TryLoadingMainScript: boolean;
 begin
   var LScript := TPath.Combine(TPath.GetDocumentsPath(), 'main.py');
-  if TFile.Exists(LScript) then
+  Result := TFile.Exists(LScript);
+  if Result then
     mmMainScript.Lines.LoadFromFile(LScript);
 end;
 
@@ -130,7 +137,10 @@ begin
       TThread.Synchronize(nil,
         procedure begin
           if AInitialized then begin
-            TryLoadingMainScript();
+            if TryLoadingMainScript() then
+              RunMainScript()
+            else
+              ShowMessage('Unabled to run the script.');
             EnableComponents();
           end else
             ShowMessage(ALastErrorMsg);

@@ -7,6 +7,10 @@ inherited MainForm: TMainForm
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignerMasterStyle = 0
+  inherited StyleBook1: TStyleBook
+    Left = 720
+    Top = 0
+  end
   object loFooter: TLayout
     Align = Bottom
     Position.Y = 701.000000000000000000
@@ -83,6 +87,27 @@ inherited MainForm: TMainForm
           object mmEditor: TMemo
             Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
             DataDetectorTypes = []
+            Lines.Strings = (
+              '#-----------------------------------------------'
+              '# Name:        Simplest.py'
+              '# Purpose:     The simplest demo of Delphi FMX'
+              '#'
+              '# Author:      Jim McKeeth'
+              '#'
+              '# Created:     21/01/2022'
+              '# Copyright:   (c) Embarcadero Technologies 2022'
+              '#-----------------------------------------------'
+              ''
+              'from delphifmx import *'
+              ''
+              'MainForm = Form(Application)'
+              'MainForm.SetProps(Caption = "Hello World")'
+              'msg = Label(MainForm)'
+              'msg.SetProps(Parent = MainForm,'
+              '    Text = "Hello Python from Delphi FMX",'
+              '    Position = Position(PointF(50, 50)),'
+              '    Width = 300)'
+              'MainForm.Show()')
             Align = Client
             Size.Width = 969.000000000000000000
             Size.Height = 631.000000000000000000
