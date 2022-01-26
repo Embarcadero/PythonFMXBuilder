@@ -160,7 +160,6 @@ begin
   var LAppService := TServiceSimpleFactory.CreateApp();
 
   frmLoading.Start();
-  Application.ProcessMessages();
   TTask.Run(procedure begin
     try
       //Create and sign the APK file
