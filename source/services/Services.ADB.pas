@@ -38,25 +38,25 @@ uses
 function TADBService.BuildApk(const AAppBasePath, AAppName: string;
   const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
 const
-  CMD_1 = '$AAPT package -f -m -J . -M AndroidManifest.xml -S res -I $ANDROIDJAR';
+  CMD_1 = '"$AAPT" package -f -m -J . -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
 
-  CMD_2 = '$AAPT package -f -m -F bin\$APPNAME.unaligned.apk -M AndroidManifest.xml -S res -I $ANDROIDJAR ';
+  CMD_2 = '"$AAPT" package -f -m -F bin\$APPNAME.unaligned.apk -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
 
-  CMD_3 = 'xcopy $APPBASEPATH\classes\classes.dex $APPBASEPATH\bin\ /y';
+  CMD_3 = 'xcopy "$APPBASEPATH\classes\classes.dex" "$APPBASEPATH\bin\" /y';
 
-  CMD_4 = '$AAPT add $APPNAME.unaligned.apk classes.dex';
+  CMD_4 = '"$AAPT" add $APPNAME.unaligned.apk classes.dex';
 
-  CMD_5 = 'xcopy $APPBASEPATH\assets $APPBASEPATH\bin\assets /y /E /H /C /I';
+  CMD_5 = 'xcopy "$APPBASEPATH\assets" "$APPBASEPATH\bin\assets" /y /E /H /C /I';
 
-  CMD_6 = '$AAPT add $APPNAME.unaligned.apk $FILE';
+  CMD_6 = '"$AAPT" add $APPNAME.unaligned.apk $FILE';
 
-  CMD_7 = 'xcopy $APPBASEPATH\library\lib $APPBASEPATH\bin\lib /y /E /H /C /I';
+  CMD_7 = 'xcopy "$APPBASEPATH\library\lib" "$APPBASEPATH\bin\lib" /y /E /H /C /I';
 
-  CMD_8 = '$AAPT add $APPNAME.unaligned.apk $FILE';
+  CMD_8 = '"$AAPT" add $APPNAME.unaligned.apk $FILE';
 
-  CMD_9 = '$JARSIGNER -keystore cert\PyApp.keystore -storepass delphirocks bin\$APPNAME.unaligned.apk PyApp';
+  CMD_9 = '"$JARSIGNER" -keystore cert\PyApp.keystore -storepass delphirocks bin\$APPNAME.unaligned.apk PyApp';
 
-  CMD_10 = '$ZIPALIGN -f 4 bin\$APPNAME.unaligned.apk bin\$APPNAME.apk';
+  CMD_10 = '"$ZIPALIGN" -f 4 bin\$APPNAME.unaligned.apk bin\$APPNAME.apk';
 begin
   var LCmd := CMD_1
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
@@ -88,28 +88,30 @@ begin
 
   ExecCmd(LCmd, String.Empty, AResult);
 
-  EnumAssets(TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), 'assets'), procedure(AFile: string) begin
-    LCmd := CMD_6
-      .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-      .Replace('$APPNAME', AAppName)
-      .Replace('$FILE', AFile);
+  EnumAssets(TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), 'assets'),
+    procedure(AFile: string) begin
+      LCmd := CMD_6
+        .Replace('$AAPT', AEnvironmentModel.AAptLocation)
+        .Replace('$APPNAME', AAppName)
+        .Replace('$FILE', AFile);
 
-    ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
-  end);
+      ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
+    end);
 
   LCmd := CMD_7
     .Replace('$APPBASEPATH', AAppBasePath);
 
   ExecCmd(LCmd, String.Empty, AResult);
 
-  EnumLibraries(TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), 'lib'), procedure(AFile: string) begin
-    LCmd := CMD_8
-      .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-      .Replace('$APPNAME', AAppName)
-      .Replace('$FILE', AFile);
+  EnumLibraries(TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), 'lib'),
+    procedure(AFile: string) begin
+      LCmd := CMD_8
+        .Replace('$AAPT', AEnvironmentModel.AAptLocation)
+        .Replace('$APPNAME', AAppName)
+        .Replace('$FILE', AFile);
 
-    ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
-  end);
+      ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
+    end);
 
   LCmd := CMD_9
     .Replace('$JARSIGNER', AEnvironmentModel.JarSignerLocation)
