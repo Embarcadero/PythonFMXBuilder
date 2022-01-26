@@ -12,21 +12,21 @@ type
     recLoading: TRectangle;
     aiLoading: TAniIndicator;
   public
-    procedure Start();
-    procedure Stop();
+    procedure StartAni();
+    procedure StopAni();
   end;
 
 implementation
 
 {$R *.fmx}
 
-procedure TLoadingFrame.Start;
+procedure TLoadingFrame.StartAni;
 begin
   aiLoading.Enabled := true;
   Visible := true;
 end;
 
-procedure TLoadingFrame.Stop;
+procedure TLoadingFrame.StopAni;
 begin
   Visible := false;
   aiLoading.Enabled := false;

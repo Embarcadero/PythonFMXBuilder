@@ -52,6 +52,9 @@ type
     procedure CheckSelectedDevice();
     function LoadModels(const AValidate: boolean = true): boolean;
     function BuildApk(): boolean;
+
+    procedure DoBuild();
+    procedure DoDeploy();
   public
     procedure Log(const AString: string);
   end;
@@ -99,6 +102,76 @@ begin
     raise Exception.Create('Select a device.');
 end;
 
+procedure TMainForm.DoBuild;
+begin
+  mmLog.Lines.Clear();
+  frmLoading.StartAni();
+  TTask.Run(procedure begin
+    try
+      try
+        var LResult := BuildApk();
+        TThread.Synchronize(nil, procedure begin
+          frmLoading.StopAni();
+          if LResult then
+            TDialogService.MessageDialog('Build process done.',
+              TMsgDlgType.mtInformation, [TMsgDlgBtn.mbOK], TMsgDlgBtn.mbOK, -1, nil)
+          else
+            raise Exception.Create('Build process failed. Check log for details.');
+        end);
+      finally
+        TThread.Synchronize(nil, procedure begin
+          frmLoading.StopAni();
+        end);
+      end;
+    except
+      on E: exception do begin
+        Application.ShowException(E);
+      end;
+    end;
+  end);
+end;
+
+procedure TMainForm.DoDeploy;
+begin
+  CheckSelectedDevice();
+  mmLog.Lines.Clear();
+  frmLoading.StartAni();
+  TTask.Run(procedure begin
+    try
+      var LErrors := String.Empty;
+      try
+        var LAppService := TServiceSimpleFactory.CreateApp();
+        //Create and sign the APK file
+        if BuildApk() then begin
+          //Install the APK on the device
+          if LAppService.InstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]) then begin
+            var LAdbService := TServiceSimpleFactory.CreateAdb();
+            var LResult := TStringList.Create();
+            try
+              LAdbService.RunApp(FEnvironmentModel.AdbLocation, FProjectModel.PackageName,
+                FDevices.Names[cbDevice.ItemIndex], LResult);
+            finally
+              LResult.Free();
+            end;
+          end else
+            LErrors := 'Install process failed. Check log for details.';
+        end else
+          LErrors := 'Build process failed. Check log for details.';
+      finally
+        TThread.Synchronize(nil, procedure begin
+          frmLoading.StopAni();
+          if not LErrors.IsEmpty() then
+            raise Exception.Create(LErrors);
+        end);
+      end;
+    except
+      on E: Exception do begin
+        Application.ShowException(E);
+      end;
+    end;
+  end);
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   FDevices := TStringList.Create();
@@ -129,69 +202,13 @@ end;
 procedure TMainForm.lbiBuildClick(Sender: TObject);
 begin
   inherited;
-  mmLog.Lines.Clear();
-
-  frmLoading.Start();
-  TTask.Run(procedure begin
-    try
-      var LResult := BuildApk();
-      TThread.Synchronize(nil, procedure begin
-        frmLoading.Stop();
-        if LResult then
-          TDialogService.MessageDialog('Build process done.',
-            TMsgDlgType.mtInformation, [TMsgDlgBtn.mbOK], TMsgDlgBtn.mbOK, -1, nil)
-        else
-          raise Exception.Create('Build process failed. Check log for details.');
-      end);
-    finally
-      TThread.Synchronize(nil, procedure begin
-        frmLoading.Stop();
-      end);
-    end;
-  end);
+  DoBuild();
 end;
 
 procedure TMainForm.lbiDeployClick(Sender: TObject);
 begin
   inherited;
-  CheckSelectedDevice();
-  mmLog.Lines.Clear();
-
-  var LAppService := TServiceSimpleFactory.CreateApp();
-
-  frmLoading.Start();
-  TTask.Run(procedure begin
-    try
-      //Create and sign the APK file
-      if BuildApk() then begin
-        //Install the APK on the device
-        if LAppService.InstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]) then begin
-          var LAdbService := TServiceSimpleFactory.CreateAdb();
-          var LResult := TStringList.Create();
-          try
-            LAdbService.RunApp(FEnvironmentModel.AdbLocation, FProjectModel.PackageName,
-              FDevices.Names[cbDevice.ItemIndex], LResult);
-          finally
-            LResult.Free();
-          end;
-        end else begin
-          TThread.Synchronize(nil, procedure begin
-            frmLoading.Stop();
-            raise Exception.Create('Install process failed. Check log for details.');
-          end);
-        end;
-      end else begin
-        TThread.Synchronize(nil, procedure begin
-          frmLoading.Stop();
-          raise Exception.Create('Build process failed. Check log for details.');
-        end);
-      end;
-    finally
-      TThread.Synchronize(nil, procedure begin
-        frmLoading.Stop();
-      end);
-    end;
-  end);
+  DoDeploy();
 end;
 
 procedure TMainForm.lbiProjectClick(Sender: TObject);
