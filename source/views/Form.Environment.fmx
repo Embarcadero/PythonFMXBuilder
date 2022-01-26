@@ -1,0 +1,301 @@
+inherited EnvironmentForm: TEnvironmentForm
+  Caption = 'Environment'
+  ClientHeight = 550
+  ClientWidth = 449
+  DesignerMasterStyle = 0
+  inherited StyleBook1: TStyleBook
+    Left = 400
+    Top = 8
+  end
+  inherited lnHeaderSeparator: TLine
+    Size.Width = 449.000000000000000000
+  end
+  inherited loBody: TLayout
+    Size.Width = 449.000000000000000000
+    Size.Height = 450.000000000000000000
+    inherited lbProject: TListBox
+      Size.Width = 449.000000000000000000
+      Size.Height = 450.000000000000000000
+      Viewport.Width = 445.000000000000000000
+      Viewport.Height = 446.000000000000000000
+      object ListBoxGroupHeader1: TListBoxGroupHeader
+        TextSettings.Font.Size = 13.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        StyledSettings = [Family, Other]
+        Size.Width = 445.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'listboxplainheader'
+        TabOrder = 0
+        Text = 'SDK Settings:'
+      end
+      object ListBoxItem1: TListBoxItem
+        Position.Y = 24.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object edtSdkBasePath: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 0
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'SDK base path'
+        end
+        object lblSdkBasePath: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'SDK base path:'
+          TabOrder = 40
+        end
+      end
+      object ListBoxItem2: TListBoxItem
+        Position.Y = 84.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object edtJarSignerLocation: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 1
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'jarsigner.exe location'
+        end
+        object lblJarSigner: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'JARSigner location:'
+          TabOrder = 40
+        end
+      end
+      object ListBoxItem3: TListBoxItem
+        Position.Y = 144.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        object edtAdbLocation: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'adb.exe location'
+        end
+        object lblAdb: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ADB location:'
+          TabOrder = 40
+        end
+      end
+      object ListBoxItem4: TListBoxItem
+        Position.Y = 204.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object edtAaptLocation: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 3
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'aapt.exe location'
+        end
+        object lblAapt: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'AAPT location:'
+          TabOrder = 40
+        end
+      end
+      object ListBoxItem5: TListBoxItem
+        Position.Y = 264.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 5
+        object edtSdkAPILocation: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 4
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'SDK API Level location'
+        end
+        object lblSdkApi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'SDK API location:'
+          TabOrder = 40
+        end
+      end
+      object ListBoxItem6: TListBoxItem
+        Position.Y = 324.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 6
+        object edtZipAlign: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 5
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'zipalign.exe location'
+        end
+        object lblZipAlign: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ZipAlign location:'
+          TabOrder = 40
+        end
+      end
+      object ListBoxItem7: TListBoxItem
+        Position.Y = 384.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 7
+        object edtKeyTool: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 6
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'keytool.exe location'
+        end
+        object lblKeyTool: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'KeyTool location:'
+          TabOrder = 40
+        end
+      end
+    end
+  end
+  inherited loFooter: TLayout
+    Position.Y = 500.000000000000000000
+    Size.Width = 449.000000000000000000
+    inherited loLeftActions: TLayout
+      inherited btnSave: TButton
+        TabOrder = 0
+      end
+      inherited btnCancel: TButton
+        TabOrder = 1
+      end
+    end
+  end
+  inherited loHeader: TLayout
+    Size.Width = 449.000000000000000000
+    inherited lblProject: TLabel
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+    end
+    inherited imgHeader: TGlyph
+      ImageIndex = 2
+    end
+  end
+  inherited actBase: TActionList
+    inherited actSave: TAction
+      ImageIndex = 3
+    end
+    inherited actCancel: TAction
+      ImageIndex = 4
+    end
+  end
+end

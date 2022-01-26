@@ -1,0 +1,127 @@
+inherited DataForm: TDataForm
+  Border.Styling = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object lnHeaderSeparator: TLine
+    Align = Top
+    LineType = Top
+    Position.Y = 50.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 2.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+  end
+  object loBody: TLayout
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 380.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object lbProject: TListBox
+      Align = Client
+      Size.Width = 640.000000000000000000
+      Size.Height = 380.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      DisableFocusEffect = True
+      DefaultItemStyles.ItemStyle = ''
+      DefaultItemStyles.GroupHeaderStyle = ''
+      DefaultItemStyles.GroupFooterStyle = ''
+      Viewport.Width = 640.000000000000000000
+      Viewport.Height = 380.000000000000000000
+    end
+  end
+  object loFooter: TLayout
+    Align = Bottom
+    Position.Y = 430.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object loLeftActions: TLayout
+      Align = Left
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 182.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object btnSave: TButton
+        Action = actSave
+        Align = Left
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 3
+        Margins.Left = 10.000000000000000000
+        Position.X = 10.000000000000000000
+        Size.Width = 76.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+      end
+      object btnCancel: TButton
+        Action = actCancel
+        Align = Left
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 4
+        Margins.Left = 10.000000000000000000
+        Position.X = 96.000000000000000000
+        Size.Width = 76.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+      end
+    end
+  end
+  object loHeader: TLayout
+    Align = Top
+    Size.Width = 640.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object lblProject: TLabel
+      Align = Left
+      StyledSettings = [FontColor]
+      Margins.Left = 10.000000000000000000
+      Position.X = 60.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'labelstyle'
+      TextSettings.Font.Family = 'Verdana'
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'Environment'
+      TabOrder = 1
+    end
+    object imgHeader: TGlyph
+      Align = Left
+      Size.Width = 50.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      Images = ImageContainer.images
+    end
+  end
+  object actBase: TActionList
+    Images = ImageContainer.images
+    Left = 592
+    Top = 8
+    object actSave: TAction
+      Text = 'Save'
+      ImageIndex = 3
+      OnExecute = actSaveExecute
+      ImageIndex = 3
+    end
+    object actCancel: TAction
+      Text = 'Cancel'
+      ImageIndex = 4
+      OnExecute = actCancelExecute
+      ImageIndex = 4
+    end
+  end
+end

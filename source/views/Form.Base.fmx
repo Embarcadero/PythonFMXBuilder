@@ -1,0 +1,17 @@
+object BaseForm: TBaseForm
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  StyleBook = StyleBook1
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object StyleBook1: TStyleBook
+    Styles = <>
+    Left = 304
+    Top = 224
+  end
+end
