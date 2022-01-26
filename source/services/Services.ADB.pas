@@ -58,6 +58,10 @@ const
 
   CMD_10 = '"$ZIPALIGN" -f 4 bin\$APPNAME.unaligned.apk bin\$APPNAME.apk';
 begin
+  var LAppBinPath := TPath.Combine(AAppBasePath, 'bin');
+  if not TDirectory.Exists(LAppBinPath) then
+    TDirectory.CreateDirectory(LAppBinPath);
+
   var LCmd := CMD_1
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
     .Replace('$APPNAME', AAppName)
@@ -81,21 +85,21 @@ begin
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
     .Replace('$APPNAME', AAppName);
 
-  ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
+  ExecCmd(LCmd, LAppBinPath, AResult);
 
   LCmd := CMD_5
     .Replace('$APPBASEPATH', AAppBasePath);
 
   ExecCmd(LCmd, String.Empty, AResult);
 
-  EnumAssets(TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), 'assets'),
+  EnumAssets(TPath.Combine(LAppBinPath, 'assets'),
     procedure(AFile: string) begin
       LCmd := CMD_6
         .Replace('$AAPT', AEnvironmentModel.AAptLocation)
         .Replace('$APPNAME', AAppName)
         .Replace('$FILE', AFile);
 
-      ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
+      ExecCmd(LCmd, LAppBinPath, AResult);
     end);
 
   LCmd := CMD_7
@@ -103,14 +107,14 @@ begin
 
   ExecCmd(LCmd, String.Empty, AResult);
 
-  EnumLibraries(TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), 'lib'),
+  EnumLibraries(TPath.Combine(LAppBinPath, 'lib'),
     procedure(AFile: string) begin
       LCmd := CMD_8
         .Replace('$AAPT', AEnvironmentModel.AAptLocation)
         .Replace('$APPNAME', AAppName)
         .Replace('$FILE', AFile);
 
-      ExecCmd(LCmd, TPath.Combine(AAppBasePath, 'bin'), AResult);
+      ExecCmd(LCmd, LAppBinPath, AResult);
     end);
 
   LCmd := CMD_9
@@ -125,7 +129,7 @@ begin
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
-  var LApkPath := TPath.Combine(TPath.Combine(AAppBasePath, 'bin'), ChangeFileExt(AAppName, '.apk'));
+  var LApkPath := TPath.Combine(LAppBinPath, ChangeFileExt(AAppName, '.apk'));
   Result := TFile.Exists(LApkPath)
     and not AResult.Text.Contains('Failure');
 end;
