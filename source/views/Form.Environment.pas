@@ -34,6 +34,9 @@ type
     lblSdkApi: TLabel;
     lblZipAlign: TLabel;
     lblKeyTool: TLabel;
+    ListBoxItem8: TListBoxItem;
+    edtApkSigner: TEdit;
+    Label1: TLabel;
   protected
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
@@ -61,6 +64,7 @@ begin
     edtSdkAPILocation.Text := SdkApiLocation;
     edtZipAlign.Text := ZipAlignLocation;
     edtKeyTool.Text := KeyToolLocation;
+    edtApkSigner.Text := ApkSignerLocation;
   end;
 end;
 
@@ -74,6 +78,7 @@ begin
     SdkApiLocation := edtSdkAPILocation.Text;
     ZipAlignLocation := edtZipAlign.Text;
     KeyToolLocation := edtKeyTool.Text;
+    ApkSignerLocation := edtApkSigner.Text;
   end;
 end;
 

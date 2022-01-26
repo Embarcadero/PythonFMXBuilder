@@ -11,7 +11,7 @@ type
   private
     [JSONName('sdk_base_path')]
     FSdkBasePath: string;
-    [JSONName('apk_signer_location')]
+    [JSONName('jar_signer_location')]
     FJarSignerLocation: string;
     [JSONName('adb_location')]
     FAdbLocation: string;
@@ -23,6 +23,8 @@ type
     FZipAlignLocation: string;
     [JSONName('key_tool_location')]
     FKeyToolLocation: string;
+    [JSONName('apk_signer_location')]
+    FApkSignerLocation: string;
   public
     function Validate(const AErrors: TStrings): boolean; override;
   public
@@ -33,6 +35,7 @@ type
     property SdkApiLocation: string read FSdkApiLocation write FSdkApiLocation;
     property ZipAlignLocation: string read FZipAlignLocation write FZipAlignLocation;
     property KeyToolLocation: string read FKeyToolLocation write FKeyToolLocation;
+    property ApkSignerLocation: string read FApkSignerLocation write FApkSignerLocation;
   end;
 
 implementation

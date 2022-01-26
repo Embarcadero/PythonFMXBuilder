@@ -1,6 +1,6 @@
 inherited EnvironmentForm: TEnvironmentForm
   Caption = 'Environment'
-  ClientHeight = 550
+  ClientHeight = 618
   ClientWidth = 449
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook
@@ -12,12 +12,12 @@ inherited EnvironmentForm: TEnvironmentForm
   end
   inherited loBody: TLayout
     Size.Width = 449.000000000000000000
-    Size.Height = 450.000000000000000000
+    Size.Height = 518.000000000000000000
     inherited lbProject: TListBox
       Size.Width = 449.000000000000000000
-      Size.Height = 450.000000000000000000
+      Size.Height = 518.000000000000000000
       Viewport.Width = 445.000000000000000000
-      Viewport.Height = 446.000000000000000000
+      Viewport.Height = 514.000000000000000000
       object ListBoxGroupHeader1: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
@@ -267,10 +267,44 @@ inherited EnvironmentForm: TEnvironmentForm
           TabOrder = 40
         end
       end
+      object ListBoxItem8: TListBoxItem
+        Position.Y = 444.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 9
+        object edtApkSigner: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 1
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'apksigner.exe location'
+        end
+        object Label1: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'APKSigner location:'
+          TabOrder = 40
+        end
+      end
     end
   end
   inherited loFooter: TLayout
-    Position.Y = 500.000000000000000000
+    Position.Y = 568.000000000000000000
     Size.Width = 449.000000000000000000
     inherited loLeftActions: TLayout
       inherited btnSave: TButton

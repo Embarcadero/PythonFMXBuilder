@@ -57,6 +57,8 @@ const
   CMD_9 = '"$JARSIGNER" -keystore cert\PyApp.keystore -storepass delphirocks bin\$APPNAME.unaligned.apk PyApp';
 
   CMD_10 = '"$ZIPALIGN" -f 4 bin\$APPNAME.unaligned.apk bin\$APPNAME.apk';
+
+  CMD_11 = '"$APKSIGNER" sign --ks-key-alias PyApp --ks cert\PyApp.keystore --ks-pass pass:delphirocks --key-pass pass:delphirocks bin\$APPNAME.apk';
 begin
   var LAppBinPath := TPath.Combine(AAppBasePath, 'bin');
   if not TDirectory.Exists(LAppBinPath) then
@@ -125,6 +127,16 @@ begin
 
   LCmd := CMD_10
     .Replace('$ZIPALIGN', AEnvironmentModel.ZipAlignLocation)
+    .Replace('$APPNAME', AAppName);
+
+  ExecCmd(LCmd, AAppBasePath, AResult);
+
+  //This is the jar file... we want the bat on the parent dir
+  var LApkSignerBatDir := TDirectory.GetParent(ExtractFileDir(AEnvironmentModel.ApkSignerLocation));
+  var LApkSignerBatPath := TPath.Combine(LApkSignerBatDir, ChangeFileExt(ExtractFileName(AEnvironmentModel.ApkSignerLocation), '.bat'));
+
+  LCmd := CMD_11
+    .Replace('$APKSIGNER', LApkSignerBatPath)
     .Replace('$APPNAME', AAppName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
