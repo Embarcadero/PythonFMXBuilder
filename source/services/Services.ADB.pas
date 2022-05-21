@@ -17,6 +17,7 @@ type
   public
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
     function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
+    function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
 
     function BuildApk(const AAppBasePath, AAppName: string;
@@ -237,7 +238,20 @@ function TADBService.InstallApk(const AAdbPath, AApkPath, ADevice: string; const
 begin
   var LStrings := TStringList.Create();
   try
-    ExecCmd(AAdbPath + Format(' -s %s install -r ', [ADevice]) + AApkPath, String.Empty, LStrings);
+    ExecCmd(AAdbPath + Format(' -s %s install ', [ADevice]) + AApkPath, String.Empty, LStrings);
+    AResult.AddStrings(LStrings);
+    Result := (not LStrings.Text.Contains('failure')) and (not LStrings.Text.Contains('failed'));
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TADBService.UnInstallApk(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings): boolean;
+begin
+  var LStrings := TStringList.Create();
+  try
+    ExecCmd(AAdbPath + Format(' -s %s uninstall ', [ADevice]) + APkgName, String.Empty, LStrings);
     AResult.AddStrings(LStrings);
     Result := (not LStrings.Text.Contains('failure')) and (not LStrings.Text.Contains('failed'));
   finally

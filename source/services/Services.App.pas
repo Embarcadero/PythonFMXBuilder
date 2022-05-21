@@ -32,6 +32,8 @@ type
       const AEnvironmentModel: TEnvironmentModel): boolean;
     function InstallApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+    function UnInstallApk(const AProjectModel: TProjectModel;
+      const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 
 implementation
@@ -152,6 +154,19 @@ begin
   try
     Result := LService.InstallApk(AEnvironmentModel.AdbLocation, LApkPath,
       ADevice, LStrings);
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TAppService.UnInstallApk(const AProjectModel: TProjectModel;
+  const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+begin
+  var LService := TServiceSimpleFactory.CreateAdb();
+  var LStrings := TStringList.Create();
+  try
+    Result := LService.UnInstallApk(AEnvironmentModel.AdbLocation,
+      AProjectModel.PackageName, ADevice, LStrings);
   finally
     LStrings.Free();
   end;

@@ -23,6 +23,8 @@ type
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
     function InstallApk(const AAdbPath, AApkPath, ADevice: string;
       const AResult: TStrings): boolean;
+    function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
+      const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
   end;
 
@@ -33,6 +35,8 @@ type
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
     function InstallApk(const AProjectModel: TProjectModel;
+      const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+    function UnInstallApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
     procedure AddScriptFile(const AModel: TProjectModel; const AFileName: string;
       const AStream: TStream);

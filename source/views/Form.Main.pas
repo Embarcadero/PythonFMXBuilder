@@ -144,6 +144,7 @@ begin
         //Create and sign the APK file
         if BuildApk() then begin
           //Install the APK on the device
+          LAppService.UnInstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]);
           if LAppService.InstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]) then begin
             var LAdbService := TServiceSimpleFactory.CreateAdb();
             var LResult := TStringList.Create();
