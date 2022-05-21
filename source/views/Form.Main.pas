@@ -68,6 +68,11 @@ uses
   System.Threading, FMX.DialogService,
   Container.Images, Form.Factory, Form.Slider, Services.Factory, Services.ADB;
 
+const
+  CMD_DETAILS_REF_LINK =
+    'Check out for more command details:' + #13#10
+  + 'http://delphi.org/2013/11/installing-and-running-android-apps-from-command-line/';
+
 {$R *.fmx}
 
 procedure TMainForm.btnRefreshDeviceClick(Sender: TObject);
@@ -296,6 +301,11 @@ end;
 procedure TMainForm.Log(const AString: string);
 begin
   TThread.Synchronize(nil, procedure begin
+    if mmLog.Lines.Count = 0 then begin
+      mmLog.Lines.Add(CMD_DETAILS_REF_LINK);
+      mmLog.Lines.Add(String.Empty);
+    end;
+
     mmLog.Lines.Add(AString);
     mmLog.GoToTextEnd();
     mmLog.GoToLineBegin();
