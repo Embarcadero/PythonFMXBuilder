@@ -61,6 +61,53 @@ inherited MainForm: TMainForm
       Size.Height = 522.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
+      object loDevice: TLayout
+        Anchors = [akTop, akRight]
+        Position.X = 455.000000000000000000
+        Position.Y = 1.000000000000000000
+        Size.Width = 225.000000000000000000
+        Size.Height = 35.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object aiDevice: TAniIndicator
+          Align = Left
+          Margins.Left = 10.000000000000000000
+          Margins.Top = 10.000000000000000000
+          Margins.Right = 10.000000000000000000
+          Margins.Bottom = 10.000000000000000000
+          Position.X = 10.000000000000000000
+          Position.Y = 10.000000000000000000
+          Size.Width = 18.000000000000000000
+          Size.Height = 15.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object cbDevice: TComboBox
+          Align = Client
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 139.000000000000000000
+          Size.Height = 25.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 59
+        end
+        object btnRefreshDevice: TSpeedButton
+          Align = Right
+          Margins.Left = 10.000000000000000000
+          Margins.Top = 10.000000000000000000
+          Margins.Right = 10.000000000000000000
+          Margins.Bottom = 10.000000000000000000
+          Position.X = 197.000000000000000000
+          Position.Y = 10.000000000000000000
+          Size.Width = 18.000000000000000000
+          Size.Height = 15.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'refreshtoolbutton'
+          Text = 'refreshtoolbutton'
+          OnClick = btnRefreshDeviceClick
+        end
+      end
       object tbScripts: TTabControl
         Align = Client
         Size.Width = 680.000000000000000000
@@ -117,53 +164,6 @@ inherited MainForm: TMainForm
             Viewport.Width = 676.000000000000000000
             Viewport.Height = 482.000000000000000000
           end
-        end
-      end
-      object loDevice: TLayout
-        Anchors = [akTop, akRight]
-        Position.X = 455.000000000000000000
-        Position.Y = 1.000000000000000000
-        Size.Width = 225.000000000000000000
-        Size.Height = 35.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        object aiDevice: TAniIndicator
-          Align = Left
-          Margins.Left = 10.000000000000000000
-          Margins.Top = 10.000000000000000000
-          Margins.Right = 10.000000000000000000
-          Margins.Bottom = 10.000000000000000000
-          Position.X = 10.000000000000000000
-          Position.Y = 10.000000000000000000
-          Size.Width = 18.000000000000000000
-          Size.Height = 15.000000000000000000
-          Size.PlatformDefault = False
-        end
-        object cbDevice: TComboBox
-          Align = Client
-          Margins.Left = 5.000000000000000000
-          Margins.Top = 5.000000000000000000
-          Margins.Right = 5.000000000000000000
-          Margins.Bottom = 5.000000000000000000
-          Size.Width = 139.000000000000000000
-          Size.Height = 25.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 59
-        end
-        object btnRefreshDevice: TSpeedButton
-          Align = Right
-          Margins.Left = 10.000000000000000000
-          Margins.Top = 10.000000000000000000
-          Margins.Right = 10.000000000000000000
-          Margins.Bottom = 10.000000000000000000
-          Position.X = 197.000000000000000000
-          Position.Y = 10.000000000000000000
-          Size.Width = 18.000000000000000000
-          Size.Height = 15.000000000000000000
-          Size.PlatformDefault = False
-          StyleLookup = 'refreshtoolbutton'
-          Text = 'refreshtoolbutton'
-          OnClick = btnRefreshDeviceClick
         end
       end
     end
@@ -267,5 +267,20 @@ inherited MainForm: TMainForm
     Filter = 'Python source file|*.py|All files|*.*'
     Left = 376
     Top = 272
+  end
+  object MainMenu1: TMainMenu
+    Left = 326
+    object File_Options: TMenuItem
+      Text = 'File'
+      object Open: TMenuItem
+        Locked = True
+        Text = 'Open'
+        OnClick = OpenClick
+      end
+    end
+    object About: TMenuItem
+      Text = 'About'
+      OnClick = AboutClick
+    end
   end
 end

@@ -36,6 +36,10 @@ type
     cbDevice: TComboBox;
     btnRefreshDevice: TSpeedButton;
     OpenDialog1: TOpenDialog;
+    MainMenu1: TMainMenu;
+    File_Options: TMenuItem;
+    Open: TMenuItem;
+    About: TMenuItem;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -44,6 +48,8 @@ type
     procedure FormShow(Sender: TObject);
     procedure lbiDeployClick(Sender: TObject);
     procedure lbiBuildClick(Sender: TObject);
+    procedure AboutClick(Sender: TObject);
+    procedure OpenClick(Sender: TObject);
   private
     FDevices: TStrings;
     FEnvironmentModel: TEnvironmentModel;
@@ -52,6 +58,7 @@ type
     procedure CheckSelectedDevice();
     function LoadModels(const AValidate: boolean = true): boolean;
     function BuildApk(): boolean;
+    procedure AddPyFile(const APath: string);
 
     procedure DoBuild();
     procedure DoDeploy();
@@ -74,6 +81,13 @@ const
   + 'http://delphi.org/2013/11/installing-and-running-android-apps-from-command-line/';
 
 {$R *.fmx}
+
+procedure TMainForm.AboutClick(Sender: TObject);
+begin
+  // We should add some info of the app as pop up display on clicking this About button
+  // We can add license details also
+
+end;
 
 procedure TMainForm.btnRefreshDeviceClick(Sender: TObject);
 begin
@@ -311,5 +325,17 @@ begin
     mmLog.GoToLineBegin();
   end);
 end;
+
+procedure TMainForm.AddPyFile(const APath: string);
+begin
+  tiMainScript.Text := ExtractFileName(APath);
+  mmEditor.lines.LoadFromFile(APath)
+end;
+procedure TMainForm.OpenClick(Sender: TObject);
+begin
+  if OpenDialog1.Execute then
+    AddPyFile(OpenDialog1.FileName);
+end;
+
 
 end.
