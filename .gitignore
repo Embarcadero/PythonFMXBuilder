@@ -68,3 +68,13 @@ Debug/
 
 # Boss dependency manager vendor folder https://github.com/HashLoad/boss
 modules/
+
+# Exceptions
+!Win32/Debug/data/environment/environment.json
+!Win64/Debug/data/environment/environment.json
+!Win32/Release/data/environment/environment.json
+!Win64/Release/data/environment/environment.json
+!Win32/Debug/data/project/project.json
+!Win64/Debug/data/project/project.json
+!Win32/Release/data/project/project.json
+!Win64/Release/data/project/project.json
