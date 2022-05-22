@@ -8,7 +8,7 @@ uses
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
   FMX.Objects, Form.Base, Services, Storage.Factory, Storage.Default,
-  Model.Project, Model.Environment, Model, Frame.Loading;
+  Model.Project, Model.Environment, Model, Frame.Loading, FMX.Menus;
 
 type
   TMainForm = class(TBaseForm, IServices, ILogServices)
@@ -24,11 +24,6 @@ type
     tiMainScript: TTabItem;
     ListBoxGroupHeader3: TListBoxGroupHeader;
     lbiDeploy: TListBoxItem;
-    loDevice: TLayout;
-    aiDevice: TAniIndicator;
-    cbDevice: TComboBox;
-    btnRefreshDevice: TSpeedButton;
-    tbUpperMenu: TToolBar;
     loFooter: TLayout;
     spLog: TSplitter;
     rrSpliterGrip: TRoundRect;
@@ -36,6 +31,11 @@ type
     lbiBuild: TListBoxItem;
     frmLoading: TLoadingFrame;
     loMain: TLayout;
+    loDevice: TLayout;
+    aiDevice: TAniIndicator;
+    cbDevice: TComboBox;
+    btnRefreshDevice: TSpeedButton;
+    OpenDialog1: TOpenDialog;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
