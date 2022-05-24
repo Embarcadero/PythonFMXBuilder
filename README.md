@@ -13,14 +13,17 @@ While PythonFMXBuilder is made with Delphi, it does not require Delphi to use.
 4. Install the [Android SDK](https://developer.android.com/studio#downloads)
    * If you don't alreayd have it, then you only need the **Command line tools** from the bottom of the list and not the full Android Studio.
    * You can use the [sdkmanager command-line](https://developer.android.com/studio/command-line/sdkmanager) tool to install as follows
-      * `sdkmanager "cmdline-tools;latest" "platform-tools" "platforms;android-30"`
+     
+     ```
+     sdkmanager "cmdline-tools;latest" "platform-tools" "platforms;android-30"
+     ```
    * The installed package list should look something like the following
 
-      **Path**             | **Version** | **Description**                         | **Location**
-      -------              | ------------| -------                                 | -------
-      cmdline-tools;latest | 7.0         | Android SDK Command-line Tools (latest) | cmdline-tools\latest\
-      platform-tools       | 33.0.1      | Android SDK Platform-Tools              | platform-tools\
-      platforms;android-30 | 3           | Android SDK Platform 30                 | platforms\android-30\
+      **Path**               | **Version** | **Description**                           | **Location**
+      -------                | ------------| -------                                   | -------
+      `cmdline-tools;latest` | `7.0`       | `Android SDK Command-line Tools (latest)` | `cmdline-tools\latest\`
+      `platform-tools`       | `33.0.1`    | `Android SDK Platform-Tools`              | `platform-tools\`
+      `platforms;android-30` | `3`         | `Android SDK Platform 30`                 | `platforms\android-30\`
 
 
 Wraps a Python script into an Android application for using on device.
