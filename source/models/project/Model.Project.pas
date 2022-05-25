@@ -26,7 +26,7 @@ type
     [JSONName('icons')]
     FIcons: TProjectIconModel;
   public
-    constructor Create();
+    constructor Create(); override;
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
