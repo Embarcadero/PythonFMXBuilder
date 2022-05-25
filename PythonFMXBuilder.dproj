@@ -82,8 +82,8 @@
         <AUP_READ_EXTERNAL_STORAGE>true</AUP_READ_EXTERNAL_STORAGE>
         <AUP_READ_PHONE_STATE>true</AUP_READ_PHONE_STATE>
         <AUP_WRITE_EXTERNAL_STORAGE>true</AUP_WRITE_EXTERNAL_STORAGE>
-        <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
-        <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
+        <DCC_DcuOutput>.\out\$(Platform)\$(Config)</DCC_DcuOutput>
+        <DCC_ExeOutput>.\out\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
@@ -160,6 +160,8 @@ $(PreBuildEvent)]]>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
