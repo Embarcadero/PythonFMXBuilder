@@ -303,7 +303,7 @@ inherited ProjectForm: TProjectForm
           Size.Width = 392.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
-          Text = 'Drawable Small:'
+          Text = 'Drawable Small (splash):'
           TabOrder = 40
         end
       end
@@ -345,7 +345,7 @@ inherited ProjectForm: TProjectForm
           Size.Width = 392.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
-          Text = 'Drawable Normal:'
+          Text = 'Drawable Normal (splash):'
           TabOrder = 40
         end
       end
@@ -387,7 +387,7 @@ inherited ProjectForm: TProjectForm
           Size.Width = 392.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
-          Text = 'Drawable Large:'
+          Text = 'Drawable Large (splash):'
           TabOrder = 40
         end
       end
@@ -429,7 +429,7 @@ inherited ProjectForm: TProjectForm
           Size.Width = 392.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
-          Text = 'Drawable XLarge:'
+          Text = 'Drawable XLarge (splash):'
           TabOrder = 40
         end
       end
