@@ -25,6 +25,7 @@ type
     procedure AddAssetsInternalFileToDeployInfo(const AAppName: string; const AFileName: string);
   public
     procedure CopyAppFiles(const AModel: TProjectModel);
+    procedure CopyIcons(const AModel: TProjectModel);
     procedure AddScriptFile(const AModel: TProjectModel; const AFileName: string;
       const AStream: TStream);
     procedure UpdateManifest(const AModel: TProjectModel);
@@ -310,6 +311,51 @@ begin
 
   //Copy the python interpreter to the app library/lib/{arch}
   TFile.Copy(LPythonInterpreterFile, LAppPythonInterpreterPath);
+end;
+
+procedure TAppService.CopyIcons(const AModel: TProjectModel);
+begin
+  var LAppResPath := TPath.Combine(GetAppPath(AModel.ApplicationName), 'res');
+
+  if TFile.Exists(AModel.Icons.DrawableSmall) then
+    TFile.Copy(AModel.Icons.DrawableSmall,
+      TPath.Combine(LAppResPath, 'drawable-small' + TPath.DirectorySeparatorChar + 'splash_image.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableNormal) then
+    TFile.Copy(AModel.Icons.DrawableNormal,
+      TPath.Combine(LAppResPath, 'drawable-normal' + TPath.DirectorySeparatorChar +'splash_image.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableLarge) then
+    TFile.Copy(AModel.Icons.DrawableLarge,
+      TPath.Combine(LAppResPath, 'drawable-large' + TPath.DirectorySeparatorChar +'splash_image.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableXlarge) then
+    TFile.Copy(AModel.Icons.DrawableXlarge,
+      TPath.Combine(LAppResPath, 'drawable-xlarge' + TPath.DirectorySeparatorChar +'splash_image.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableLdpi) then
+    TFile.Copy(AModel.Icons.DrawableLdpi,
+      TPath.Combine(LAppResPath, 'drawable-ldpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableMdpi) then
+    TFile.Copy(AModel.Icons.DrawableMdpi,
+      TPath.Combine(LAppResPath, 'drawable-mdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableHdpi) then
+    TFile.Copy(AModel.Icons.DrawableHdpi,
+      TPath.Combine(LAppResPath, 'drawable-hdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableXhdpi) then
+    TFile.Copy(AModel.Icons.DrawableXhdpi,
+      TPath.Combine(LAppResPath, 'drawable-xhdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableXxhdpi) then
+    TFile.Copy(AModel.Icons.DrawableXxhdpi,
+      TPath.Combine(LAppResPath, 'drawable-xxhdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
+
+  if TFile.Exists(AModel.Icons.DrawableXxxHdpi) then
+    TFile.Copy(AModel.Icons.DrawableXxxHdpi,
+      TPath.Combine(LAppResPath, 'drawable-xxxhdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
 end;
 
 end.

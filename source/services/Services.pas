@@ -31,6 +31,7 @@ type
   IAppServices = interface
     ['{0F669CC6-DB3A-437E-8724-8831719A3E9B}']
     procedure CopyAppFiles(const AModel: TProjectModel);
+    procedure CopyIcons(const AModel: TProjectModel);
     procedure UpdateManifest(const AModel: TProjectModel);
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
