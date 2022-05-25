@@ -108,16 +108,16 @@ begin
     cbArchitecture.ItemIndex := ARCH[Architecture];
 
     with Icons do begin
-      DrawableSmall := edtDrawableSmall.Text;
-      DrawableNormal := edtDrawableNormal.Text;
-      DrawableLarge := edtDrawableLarge.Text;
-      DrawableXlarge := edtDrawableXLarge.Text;
-      DrawableLdpi := edtDrawableLDpi.Text;
-      DrawableMdpi := edtDrawableMDpi.Text;
-      DrawableHdpi := edtDrawableHDpi.Text;
-      DrawableXhdpi := edtDrawableXHdpi.Text;
-      DrawableXxhdpi := edtDrawableXxhdpi.Text;
-      DrawableXxxHdpi := edtDrawableXxxHDpi.Text;
+      edtDrawableSmall.Text := DrawableSmall;
+      edtDrawableNormal.Text := DrawableNormal;
+      edtDrawableLarge.Text := DrawableLarge;
+      edtDrawableXLarge.Text := DrawableXlarge;
+      edtDrawableLDpi.Text := DrawableLdpi;
+      edtDrawableMDpi.Text := DrawableMdpi;
+      edtDrawableHDpi.Text := DrawableHdpi;
+      edtDrawableXHdpi.Text := DrawableXhdpi;
+      edtDrawableXxhdpi.Text := DrawableXxhdpi;
+      edtDrawableXxxHDpi.Text := DrawableXxxHdpi;
     end;
   end;
 end;
@@ -141,16 +141,16 @@ begin
     Architecture := ARCH[cbArchitecture.ItemIndex];
 
     with Icons do begin
-      edtDrawableSmall.Text := DrawableSmall;
-      edtDrawableNormal.Text := DrawableNormal;
-      edtDrawableLarge.Text := DrawableLarge;
-      edtDrawableXLarge.Text := DrawableXlarge;
-      edtDrawableLDpi.Text := DrawableLdpi;
-      edtDrawableMDpi.Text := DrawableMdpi;
-      edtDrawableHDpi.Text := DrawableHdpi;
-      edtDrawableXHdpi.Text := DrawableXhdpi;
-      edtDrawableXxhdpi.Text := DrawableXxhdpi;
-      edtDrawableXxxHDpi.Text := DrawableXxxHdpi;
+      DrawableSmall := edtDrawableSmall.Text;
+      DrawableNormal := edtDrawableNormal.Text;
+      DrawableLarge := edtDrawableLarge.Text;
+      DrawableXlarge := edtDrawableXLarge.Text;
+      DrawableLdpi := edtDrawableLDpi.Text;
+      DrawableMdpi := edtDrawableMDpi.Text;
+      DrawableHdpi := edtDrawableHDpi.Text;
+      DrawableXhdpi := edtDrawableXHdpi.Text;
+      DrawableXxhdpi := edtDrawableXxhdpi.Text;
+      DrawableXxxHdpi := edtDrawableXxxHDpi.Text;
     end;
   end;
 end;
@@ -159,7 +159,7 @@ procedure TProjectForm.sebDrawableClick(Sender: TObject);
 begin
   inherited;
   if odIcon.Execute then
-    ((Sender as TComponent).Owner as TEdit).Text := odIcon.FileName;
+    (Sender as TSearchEditButton).GetEdit().Text := odIcon.FileName;
 end;
 
 end.
