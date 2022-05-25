@@ -1,6 +1,15 @@
 # <a href="https://github.com/Embarcadero/PythonFMXBuilder">PythonFMXBuilder<img src="https://github.com/Embarcadero/PythonFMXBuilder/blob/main/images/PythonFMXBuilder(256px).png" align="right" /></a>
 An application builder for Python using [DelphiFMX for Python](https://github.com/Embarcadero/DelphiFMX4Python)
  for targeting Android. Allows you to bundle a custom Python script into an Android app, deploy it to your phone, or submit it to the app store.
+<<<<<<< HEAD
+=======
+ 
+* [Requirements](#requirements)
+* [Screenshots](#screenshots)
+* [Releases](https://github.com/Embarcadero/PythonFMXBuilder/releases)
+ 
+ <a href="https://embt.co/PythonGUIBundle"><img alt="Download the free eBook and Python styles bundle." src="https://github.com/Embarcadero/PythonFMXBuilder/blob/main/images/30_Banner_Ebook_GGetting Started with Python GUI_830x256.jpg"></a>
+>>>>>>> c073a7e9eb09826d44a489adc4523578aa727dad
  
 ## Requirements
 While PythonFMXBuilder is made with Delphi, it does not require Delphi to use. 
@@ -25,8 +34,6 @@ While PythonFMXBuilder is made with Delphi, it does not require Delphi to use.
       `platform-tools`       | `33.0.1`    | `Android SDK Platform-Tools`              | `platform-tools\`
       `platforms;android-30` | `3`         | `Android SDK Platform 30`                 | `platforms\android-30\`
 
-
-Wraps a Python script into an Android application for using on device.
 
 ## Screenshots
 The application has a GUI to simplify navigation and usage. Consult the following screenshots for a brief overview of it's functions.

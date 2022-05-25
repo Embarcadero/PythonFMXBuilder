@@ -40,6 +40,7 @@ type
     File_Options: TMenuItem;
     Open: TMenuItem;
     About: TMenuItem;
+    loEditorHeader: TLayout;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
