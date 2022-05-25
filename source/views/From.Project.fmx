@@ -1,6 +1,6 @@
 inherited ProjectForm: TProjectForm
   Caption = 'Project'
-  ClientHeight = 542
+  ClientHeight = 1209
   ClientWidth = 406
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook
@@ -12,12 +12,12 @@ inherited ProjectForm: TProjectForm
   end
   inherited loBody: TLayout
     Size.Width = 406.000000000000000000
-    Size.Height = 442.000000000000000000
+    Size.Height = 1109.000000000000000000
     inherited lbProject: TListBox
       Size.Width = 406.000000000000000000
-      Size.Height = 442.000000000000000000
+      Size.Height = 1109.000000000000000000
       Viewport.Width = 402.000000000000000000
-      Viewport.Height = 438.000000000000000000
+      Viewport.Height = 1105.000000000000000000
       object ListBoxGroupHeader5: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
@@ -26,7 +26,7 @@ inherited ProjectForm: TProjectForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 6
+        TabOrder = 16
         Text = 'Application Name:'
       end
       object ListBoxItem6: TListBoxItem
@@ -59,7 +59,7 @@ inherited ProjectForm: TProjectForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 7
+        TabOrder = 17
         Text = 'Package Settings'
       end
       object ListBoxItem1: TListBoxItem
@@ -104,7 +104,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 9
+        TabOrder = 20
         Text = 'Version Info:'
       end
       object ListBoxItem2: TListBoxItem
@@ -112,7 +112,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 2
+        TabOrder = 12
         object edtVersionCode: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -146,7 +146,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 3
+        TabOrder = 13
         object edtVersionName: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -183,7 +183,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 8
+        TabOrder = 19
         Text = 'Python Settings:'
       end
       object ListBoxItem4: TListBoxItem
@@ -191,7 +191,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 4
+        TabOrder = 14
         object cbPythonVersion: TComboBox
           Align = Client
           Items.Strings = (
@@ -229,7 +229,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 10
+        TabOrder = 21
         Text = 'App Architecture:'
       end
       object ListBoxItem5: TListBoxItem
@@ -237,7 +237,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 402.000000000000000000
         Size.Height = 38.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 5
+        TabOrder = 15
         object cbArchitecture: TComboBox
           Align = Client
           Items.Strings = (
@@ -254,10 +254,441 @@ inherited ProjectForm: TProjectForm
           TabOrder = 5
         end
       end
+      object lbghAppIcons: TListBoxGroupHeader
+        TextSettings.Font.Size = 13.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        StyledSettings = [Family, FontColor, Other]
+        Position.Y = 436.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 18
+        Text = 'Application Icons:'
+      end
+      object lbiDrawableSmall: TListBoxItem
+        Position.Y = 460.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 11
+        object edtDrawableSmall: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(426x320).png'
+          object sebDrawableSmall: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableSmall: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Small:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableNormal: TListBoxItem
+        Position.Y = 520.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 10
+        object edtDrawableNormal: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(470x320).png'
+          object sebDrawableNormal: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableNormal: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Normal:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableLarge: TListBoxItem
+        Position.Y = 580.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 9
+        object edtDrawableLarge: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(640x480).png'
+          object sebDrawableLarge: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableLarge: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Large:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableXLarge: TListBoxItem
+        Position.Y = 640.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 8
+        object edtDrawableXLarge: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(960x720).png'
+          object sebDrawableXLarge: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableXLarge: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable XLarge:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableLDpi: TListBoxItem
+        Position.Y = 700.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 7
+        object edtDrawableLDpi: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(36x36).png'
+          object sebDrawableLDpi: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableLDpi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Ldpi:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableMDpi: TListBoxItem
+        Position.Y = 760.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 6
+        object edtDrawableMDpi: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(48x48).png'
+          object sebDrawableMDpi: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableMDpi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Mdpi:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableHDpi: TListBoxItem
+        Position.Y = 820.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 5
+        object edtDrawableHDpi: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(72x72).png'
+          object sebDrawableHDpi: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableHDpi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Hdpi:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableXHdpi: TListBoxItem
+        Position.Y = 880.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object edtDrawableXHdpi: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(96x96).png'
+          object sebDrawableXHDpi: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableXHdpi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Xhdpi:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableXxHdpi: TListBoxItem
+        Position.Y = 940.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        object edtDrawableXxhdpi: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(144x144).png'
+          object sebDrawableXxHDpi: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableXxHDpi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Xxhdpi:'
+          TabOrder = 40
+        end
+      end
+      object lbiDrawableXxxHdpi: TListBoxItem
+        Position.Y = 1000.000000000000000000
+        Size.Width = 402.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object edtDrawableXxxHDpi: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 2
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '(192x192).png'
+          object sebDrawableXxxHDpi: TSearchEditButton
+            CanFocus = False
+            Cursor = crArrow
+            Size.Width = 28.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+          end
+        end
+        object lblDrawableXxxHDpi: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 392.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Drawable Xxxhpdi:'
+          TabOrder = 40
+        end
+      end
     end
   end
   inherited loFooter: TLayout
-    Position.Y = 492.000000000000000000
+    Position.Y = 1159.000000000000000000
     Size.Width = 406.000000000000000000
     inherited loLeftActions: TLayout
       inherited btnSave: TButton
