@@ -4,28 +4,27 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Objects, FMX.ListBox, FMX.Controls.Presentation, FMX.Edit, FMX.Layouts,
-  FMX.ImgList, System.Actions, FMX.ActnList, Form.Data, Model.Environment,
-  FMX.Ani;
+  System.Threading, System.Generics.Collections, FMX.Types, FMX.Controls, FMX.Forms,
+  FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Objects, FMX.ListBox, FMX.Ani,
+  FMX.Controls.Presentation, FMX.Edit, FMX.Layouts, FMX.ImgList, System.Actions,
+  FMX.ActnList, Form.Data, Model.Environment;
 
 type
   [Entity(TEnvironmentModel)]
   TEnvironmentForm = class(TDataForm)
-    ListBoxGroupHeader1: TListBoxGroupHeader;
-    ListBoxItem1: TListBoxItem;
+    lbghSdkttings: TListBoxGroupHeader;
+    lbiSdkBasePath: TListBoxItem;
     edtSdkBasePath: TEdit;
-    ListBoxItem2: TListBoxItem;
+    lbiJarSigner: TListBoxItem;
     edtJarSignerLocation: TEdit;
-    ListBoxItem3: TListBoxItem;
+    lbiAdbLocation: TListBoxItem;
     edtAdbLocation: TEdit;
-    ListBoxItem4: TListBoxItem;
+    lbiAaptLocation: TListBoxItem;
     edtAaptLocation: TEdit;
-    ListBoxItem5: TListBoxItem;
-    edtSdkAPILocation: TEdit;
-    ListBoxItem6: TListBoxItem;
+    lbiSdkApiLocation: TListBoxItem;
+    lbiZipAlign: TListBoxItem;
     edtZipAlign: TEdit;
-    ListBoxItem7: TListBoxItem;
+    lbiKeytoolLocation: TListBoxItem;
     edtKeyTool: TEdit;
     lblSdkBasePath: TLabel;
     lblJarSigner: TLabel;
@@ -34,9 +33,26 @@ type
     lblSdkApi: TLabel;
     lblZipAlign: TLabel;
     lblKeyTool: TLabel;
-    ListBoxItem8: TListBoxItem;
+    lbiApkSignerLocation: TListBoxItem;
     edtApkSigner: TEdit;
-    Label1: TLabel;
+    lblApkSigner: TLabel;
+    lbghJdkSettings: TListBoxGroupHeader;
+    lbiJdkBasePath: TListBoxItem;
+    edtJdkBasePath: TEdit;
+    lblJdkBasePath: TLabel;
+    edtSdkApiLocation: TEdit;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure edtSdkBasePathChange(Sender: TObject);
+    procedure edtJdkBasePathChange(Sender: TObject);
+  private
+    FTasks: TList<ITask>;
+    function CreateAni(const AControl: TPresentedControl): TAniIndicator;
+    procedure LoadEditContent(const AEdit: TEdit; ATask: TFunc<string>);
+    procedure LoadToolPath(const ABasePath, ATool: string; const AEdit: TEdit);
+    procedure LoadSdkToolsPath(const ABasePath: string);
+    procedure LoadJdkToolsPath(const ABasePath: string);
   protected
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
@@ -48,23 +64,177 @@ var
 implementation
 
 uses
+  System.IOUtils,
   Container.Images;
 
 {$R *.fmx}
 
 { TEnvironmentForm }
 
+procedure TEnvironmentForm.FormCreate(Sender: TObject);
+begin
+  inherited;
+  FTasks := TList<ITask>.Create();
+end;
+
+procedure TEnvironmentForm.FormDestroy(Sender: TObject);
+begin
+  inherited;
+  FTasks.Free();
+end;
+
+procedure TEnvironmentForm.FormCloseQuery(Sender: TObject;
+  var CanClose: Boolean);
+begin
+  inherited;
+  TTask.WaitForAll(FTasks.ToArray());
+end;
+
+procedure TEnvironmentForm.edtSdkBasePathChange(Sender: TObject);
+begin
+  inherited;
+  if not HasLoaded then
+    Exit;
+
+  if not edtSdkBasePath.Text.IsEmpty() then
+    LoadSdkToolsPath(edtSdkBasePath.Text);
+end;
+
+procedure TEnvironmentForm.edtJdkBasePathChange(Sender: TObject);
+begin
+  inherited;
+  if not HasLoaded then
+    Exit;
+
+  if not edtJdkBasePath.Text.IsEmpty() then
+    LoadJdkToolsPath(edtJdkBasePath.Text);
+end;
+
+function TEnvironmentForm.CreateAni(
+  const AControl: TPresentedControl): TAniIndicator;
+begin
+  Result := TAniIndicator.Create(nil);
+  Result.Visible := false;
+  Result.Enabled := false;
+  Result.Align := TAlignLayout.Right;
+  with Result.Margins do begin
+    Top := 1;
+    Left := 1;
+    Bottom := 1;
+    Right := 1;
+  end;
+  Result.Parent := AControl;
+  Result.Visible := true;
+  Result.Enabled := true;
+end;
+
+procedure TEnvironmentForm.LoadEditContent(const AEdit: TEdit; ATask: TFunc<string>);
+begin
+  var LAni := CreateAni(AEdit);
+  try
+    AEdit.Enabled := false;
+    FTasks.Add(
+      TTask.Run(
+        procedure()
+        var
+          LText: string;
+        begin
+          try
+            try
+              LText := ATask();
+            finally
+              TThread.Queue(nil, procedure() begin
+                AEdit.Text := LText;
+                LAni.Visible := false;
+                LAni.Enabled := false;
+                AEdit.Enabled := true;
+              end);
+            end;
+          finally
+            TThread.Queue(nil, procedure() begin
+              LAni.Free();
+            end);
+          end;
+        end));
+  except
+    on E: Exception do begin
+      LAni.Free();
+      raise;
+    end;
+  end;
+end;
+
+procedure TEnvironmentForm.LoadToolPath(const ABasePath, ATool: string;
+  const AEdit: TEdit);
+begin
+  if not AEdit.Text.IsEmpty() then
+    Exit;
+
+  LoadEditContent(AEdit, function(): string begin
+    var LFiles := TDirectory.GetFiles(ABasePath, ATool, TSearchOption.soAllDirectories, nil);
+    if Length(LFiles) > 0 then
+      Result := LFiles[0]
+    else
+      Result := String.Empty;
+  end);
+end;
+
+procedure TEnvironmentForm.LoadSdkToolsPath(const ABasePath: string);
+begin
+  if not TDirectory.Exists(ABasePath) then
+    Exit;
+
+  LoadToolPath(edtSdkBasePath.Text, 'apksigner.jar', edtApkSigner);
+  LoadToolPath(edtSdkBasePath.Text, 'adb.exe', edtAdbLocation);
+  LoadToolPath(edtSdkBasePath.Text, 'aapt.exe', edtAaptLocation);
+  LoadToolPath(edtSdkBasePath.Text, 'zipalign.exe', edtZipAlign);
+
+  if edtSdkApiLocation.Text.IsEmpty() then
+    LoadEditContent(edtSdkAPILocation, function(): string begin
+      var LPlatforms := TPath.Combine(ABasePath, 'platforms');
+      var LFolders := TDirectory.GetDirectories(
+        LPlatforms, 'android-*', TSearchOption.soTopDirectoryOnly, nil);
+
+      Result := String.Empty;
+      if Length(LFolders) > 0 then begin
+        var LGreater := 0;
+        for var LFolder in LFolders do begin
+          var LAndroid :=
+            TPath.GetFileName(ExcludeTrailingPathDelimiter(LFolder))
+              .Replace('android-', String.Empty, []);
+
+          var LApi := 0;
+          if TryStrToInt(LAndroid, LApi) then
+            if (LApi > LGreater) then begin
+              LGreater := LApi;
+              Result := LFolder;
+            end;
+        end;
+      end;
+    end);
+end;
+
+procedure TEnvironmentForm.LoadJdkToolsPath(const ABasePath: string);
+begin
+  if not TDirectory.Exists(ABasePath) then
+    Exit;
+
+  LoadToolPath(edtJdkBasePath.Text, 'keytool.exe', edtKeyTool);
+  LoadToolPath(edtJdkBasePath.Text, 'jarsigner.exe', edtJarSignerLocation);
+end;
+
 procedure TEnvironmentForm.FormUpdate;
 begin
   with Model as TEnvironmentModel do begin
     edtSdkBasePath.Text := SdkBasePath;
-    edtJarSignerLocation.Text := JarSignerLocation;
+    edtApkSigner.Text := ApkSignerLocation;
     edtAdbLocation.Text := AdbLocation;
     edtAaptLocation.Text := AAptLocation;
     edtSdkAPILocation.Text := SdkApiLocation;
     edtZipAlign.Text := ZipAlignLocation;
+    edtJdkBasePath.Text := JdkBasePath;
     edtKeyTool.Text := KeyToolLocation;
-    edtApkSigner.Text := ApkSignerLocation;
+    edtJarSignerLocation.Text := JarSignerLocation;
   end;
 end;
 
@@ -72,13 +242,14 @@ procedure TEnvironmentForm.ModelUpdate;
 begin
   with Model as TEnvironmentModel do begin
     SdkBasePath := edtSdkBasePath.Text;
-    JarSignerLocation := edtJarSignerLocation.Text;
+    ApkSignerLocation := edtApkSigner.Text;
     AdbLocation := edtAdbLocation.Text;
     AAptLocation := edtAaptLocation.Text;
     SdkApiLocation := edtSdkAPILocation.Text;
     ZipAlignLocation := edtZipAlign.Text;
+    JdkBasePath := edtJdkBasePath.Text;
     KeyToolLocation := edtKeyTool.Text;
-    ApkSignerLocation := edtApkSigner.Text;
+    JarSignerLocation := edtJarSignerLocation.Text;
   end;
 end;
 

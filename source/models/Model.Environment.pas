@@ -11,8 +11,8 @@ type
   private
     [JSONName('sdk_base_path')]
     FSdkBasePath: string;
-    [JSONName('jar_signer_location')]
-    FJarSignerLocation: string;
+    [JSONName('apk_signer_location')]
+    FApkSignerLocation: string;
     [JSONName('adb_location')]
     FAdbLocation: string;
     [JSONName('apt_location')]
@@ -21,21 +21,26 @@ type
     FSdkApiLocation: string;
     [JSONName('zip_align_location')]
     FZipAlignLocation: string;
+    [JSONName('jdk_base_path')]
+    FJdkBasePath: string;
     [JSONName('key_tool_location')]
     FKeyToolLocation: string;
-    [JSONName('apk_signer_location')]
-    FApkSignerLocation: string;
+    [JSONName('jar_signer_location')]
+    FJarSignerLocation: string;
   public
     function Validate(const AErrors: TStrings): boolean; override;
   public
+    //SDK
     property SdkBasePath: string read FSdkBasePath write FSdkBasePath;
-    property JarSignerLocation: string read FJarSignerLocation write FJarSignerLocation;
+    property ApkSignerLocation: string read FApkSignerLocation write FApkSignerLocation;
     property AdbLocation: string read FAdbLocation write FAdbLocation;
     property AAptLocation: string read FAAptLocation write FAAptLocation;
     property SdkApiLocation: string read FSdkApiLocation write FSdkApiLocation;
     property ZipAlignLocation: string read FZipAlignLocation write FZipAlignLocation;
+    //JDK
+    property JdkBasePath: string read FJdkBasePath write FJdkBasePath;
     property KeyToolLocation: string read FKeyToolLocation write FKeyToolLocation;
-    property ApkSignerLocation: string read FApkSignerLocation write FApkSignerLocation;
+    property JarSignerLocation: string read FJarSignerLocation write FJarSignerLocation;
   end;
 
 implementation
@@ -53,7 +58,7 @@ begin
   if FSdkBasePath.Trim().IsEmpty() then
     AErrors.Add('* The SDK base location can not be empty.');
 
-  if FJarSignerLocation.Trim().IsEmpty() then
+  if FApkSignerLocation.Trim().IsEmpty() then
     AErrors.Add('* The APK signer location can not be empty.');
 
   if FAdbLocation.Trim().IsEmpty() then
@@ -68,12 +73,20 @@ begin
   if FZipAlignLocation.Trim().IsEmpty() then
     AErrors.Add('* The ZipAlign location can not be empty.');
 
+  if FJdkBasePath.Trim().IsEmpty() then
+    AErrors.Add('* The JDK base location can not be empty.');
+
   if FKeyToolLocation.Trim().IsEmpty() then
     AErrors.Add('* The KeyTool location can not be empty.');
 
+  if FJarSignerLocation.Trim().IsEmpty() then
+    AErrors.Add('* The JAR signer location can not be empty.');
+
+
   {|||||| CHECK FOR VALID FILES |||||||}
-  if not TFile.Exists(FJarSignerLocation) then
-    AErrors.Add('* JARSigner tool not found.');
+
+  if not TFile.Exists(FApkSignerLocation) then
+    AErrors.Add('* APKSigner tool not found.');
 
   if not TFile.Exists(FAdbLocation) then
     AErrors.Add('* ADB tool not found.');
@@ -86,6 +99,9 @@ begin
 
   if not TFile.Exists(FKeyToolLocation) then
     AErrors.Add('* KeyTool tool not found.');
+
+  if not TFile.Exists(FJarSignerLocation) then
+    AErrors.Add('* JARSigner tool not found.');
 
   Result := (AErrors.Count = 0);
 end;

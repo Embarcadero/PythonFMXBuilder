@@ -30,6 +30,7 @@ type
     procedure FormShow(Sender: TObject);
   private
     FModel: TModel;
+    FHasLoaded: boolean;
   protected
     //Create the model that represents the form data
     function CreateModel(): TModel; virtual;
@@ -37,7 +38,6 @@ type
     //Form fields updates
     procedure FormUpdate(); virtual; abstract;
     procedure ModelUpdate(); virtual; abstract;
-
     //Model validation
     procedure ModelValidate(); virtual;
 
@@ -47,7 +47,8 @@ type
 
     property Model: TModel read FModel;
   public
-    { Public declarations }
+    //Loading status
+    property HasLoaded: boolean read FHasLoaded;
   end;
 
   EntityAttribute = class(TCustomAttribute)
@@ -128,8 +129,10 @@ end;
 procedure TDataForm.Load;
 begin
   var LStorage: IStorage := TDefaultStorage<TObject>.Make();
-  if LStorage.LoadModel(GetEntityType().ClassInfo, TObject(FModel)) then
+  if LStorage.LoadModel(GetEntityType().ClassInfo, TObject(FModel)) then begin
     FormUpdate();
+    FHasLoaded := true;
+  end;
 end;
 
 procedure TDataForm.ModelValidate;
