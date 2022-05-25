@@ -75,6 +75,8 @@ type
     sebDrawableLarge: TSearchEditButton;
     sebDrawableNormal: TSearchEditButton;
     sebDrawableSmall: TSearchEditButton;
+    odIcon: TOpenDialog;
+    procedure sebDrawableClick(Sender: TObject);
   protected
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
@@ -151,6 +153,13 @@ begin
       edtDrawableXxxHDpi.Text := DrawableXxxHdpi;
     end;
   end;
+end;
+
+procedure TProjectForm.sebDrawableClick(Sender: TObject);
+begin
+  inherited;
+  if odIcon.Execute then
+    ((Sender as TComponent).Owner as TEdit).Text := odIcon.FileName;
 end;
 
 end.
