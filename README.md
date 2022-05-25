@@ -1,7 +1,7 @@
 # <a href="https://github.com/Embarcadero/PythonFMXBuilder">PythonFMXBuilder<img src="https://github.com/Embarcadero/PythonFMXBuilder/blob/main/images/PythonFMXBuilder(256px).png" align="right" /></a>
 An application builder for Python using [DelphiFMX for Python](https://github.com/Embarcadero/DelphiFMX4Python)
  for targeting Android. Allows you to bundle a custom Python script into an Android app, deploy it to your phone, or submit it to the app store.
-<<<<<<< HEAD
+
 =======
  
 * [Requirements](#requirements)
