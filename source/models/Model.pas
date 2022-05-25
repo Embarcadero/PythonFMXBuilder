@@ -10,6 +10,8 @@ type
 
   TModel = class
   public
+    constructor Create(); virtual;
+
     function Validate(const AErrors: TStrings): boolean; virtual; abstract;
   end;
 
@@ -26,6 +28,13 @@ type
   end;
 
 implementation
+
+{ TModel }
+
+constructor TModel.Create;
+begin
+  inherited;
+end;
 
 { ModelAttribute }
 

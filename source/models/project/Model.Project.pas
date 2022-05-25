@@ -3,7 +3,9 @@ unit Model.Project;
 interface
 
 uses
-  System.Classes, REST.Json.Types, Model, Architecture, PythonVersion;
+  System.Classes, REST.Json.Types,
+  Architecture, PythonVersion,
+  Model, Model.Project.Icon;
 
 type
   [Model('project')]
@@ -21,7 +23,12 @@ type
     FPythonVersion: TPythonVersion;
     [JSONName('architecture')]
     FArchitecture: TArchitecture;
+    [JSONName('icons')]
+    FIcons: TProjectIconModel;
   public
+    constructor Create(); override;
+    destructor Destroy(); override;
+
     function Validate(const AErrors: TStrings): boolean; override;
   public
     property ApplicationName: string read FApplicationName write FApplicationName;
@@ -30,6 +37,7 @@ type
     property VersionName: string read FVersionName write FVersionName;
     property PythonVersion: TPythonVersion read FPythonVersion write FPythonVersion;
     property Architecture: TArchitecture read FArchitecture write FArchitecture;
+    property Icons: TProjectIconModel read FIcons write FIcons;
   end;
 
 implementation
@@ -38,6 +46,18 @@ uses
   System.SysUtils;
 
 { TProjectModel }
+
+constructor TProjectModel.Create;
+begin
+  inherited;
+  FIcons := TProjectIconModel.Create();
+end;
+
+destructor TProjectModel.Destroy;
+begin
+  FIcons.Free();
+  inherited;
+end;
 
 function TProjectModel.Validate(const AErrors: TStrings): boolean;
 begin
@@ -57,6 +77,8 @@ begin
     AErrors.Add('* The Version Name can not be empty.');
 
   Result := (AErrors.Count = 0);
+
+  Result := Result and FIcons.Validate(AErrors);
 end;
 
 end.

@@ -22,6 +22,7 @@ implementation
 
 procedure TLoadingFrame.StartAni;
 begin
+  BringToFront();
   aiLoading.Enabled := true;
   Visible := true;
 end;

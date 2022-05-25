@@ -34,6 +34,49 @@ type
     lblVersionName: TLabel;
     lblPackageName: TLabel;
     lblPythonVersion: TLabel;
+    lbghAppIcons: TListBoxGroupHeader;
+    lbiDrawableSmall: TListBoxItem;
+    edtDrawableSmall: TEdit;
+    lblDrawableSmall: TLabel;
+    lbiDrawableNormal: TListBoxItem;
+    edtDrawableNormal: TEdit;
+    lblDrawableNormal: TLabel;
+    lbiDrawableLarge: TListBoxItem;
+    edtDrawableLarge: TEdit;
+    lblDrawableLarge: TLabel;
+    lbiDrawableXLarge: TListBoxItem;
+    edtDrawableXLarge: TEdit;
+    lblDrawableXLarge: TLabel;
+    lbiDrawableLDpi: TListBoxItem;
+    edtDrawableLDpi: TEdit;
+    lblDrawableLDpi: TLabel;
+    lbiDrawableMDpi: TListBoxItem;
+    edtDrawableMDpi: TEdit;
+    lblDrawableMDpi: TLabel;
+    lbiDrawableHDpi: TListBoxItem;
+    edtDrawableHDpi: TEdit;
+    lblDrawableHDpi: TLabel;
+    lbiDrawableXHdpi: TListBoxItem;
+    edtDrawableXHdpi: TEdit;
+    lblDrawableXHdpi: TLabel;
+    lbiDrawableXxHdpi: TListBoxItem;
+    edtDrawableXxhdpi: TEdit;
+    lblDrawableXxHDpi: TLabel;
+    lbiDrawableXxxHdpi: TListBoxItem;
+    edtDrawableXxxHDpi: TEdit;
+    lblDrawableXxxHDpi: TLabel;
+    sebDrawableXxxHDpi: TSearchEditButton;
+    sebDrawableXxHDpi: TSearchEditButton;
+    sebDrawableXHDpi: TSearchEditButton;
+    sebDrawableHDpi: TSearchEditButton;
+    sebDrawableMDpi: TSearchEditButton;
+    sebDrawableLDpi: TSearchEditButton;
+    sebDrawableXLarge: TSearchEditButton;
+    sebDrawableLarge: TSearchEditButton;
+    sebDrawableNormal: TSearchEditButton;
+    sebDrawableSmall: TSearchEditButton;
+    odIcon: TOpenDialog;
+    procedure sebDrawableClick(Sender: TObject);
   protected
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
@@ -63,6 +106,19 @@ begin
     edtVersionName.Text := VersionName;
     cbPythonVersion.ItemIndex := PY_VER[PythonVersion];
     cbArchitecture.ItemIndex := ARCH[Architecture];
+
+    with Icons do begin
+      edtDrawableSmall.Text := DrawableSmall;
+      edtDrawableNormal.Text := DrawableNormal;
+      edtDrawableLarge.Text := DrawableLarge;
+      edtDrawableXLarge.Text := DrawableXlarge;
+      edtDrawableLDpi.Text := DrawableLdpi;
+      edtDrawableMDpi.Text := DrawableMdpi;
+      edtDrawableHDpi.Text := DrawableHdpi;
+      edtDrawableXHdpi.Text := DrawableXhdpi;
+      edtDrawableXxhdpi.Text := DrawableXxhdpi;
+      edtDrawableXxxHDpi.Text := DrawableXxxHdpi;
+    end;
   end;
 end;
 
@@ -83,7 +139,27 @@ begin
     VersionName := edtVersionName.Text;
     PythonVersion := PY_VER[cbPythonVersion.ItemIndex];
     Architecture := ARCH[cbArchitecture.ItemIndex];
+
+    with Icons do begin
+      DrawableSmall := edtDrawableSmall.Text;
+      DrawableNormal := edtDrawableNormal.Text;
+      DrawableLarge := edtDrawableLarge.Text;
+      DrawableXlarge := edtDrawableXLarge.Text;
+      DrawableLdpi := edtDrawableLDpi.Text;
+      DrawableMdpi := edtDrawableMDpi.Text;
+      DrawableHdpi := edtDrawableHDpi.Text;
+      DrawableXhdpi := edtDrawableXHdpi.Text;
+      DrawableXxhdpi := edtDrawableXxhdpi.Text;
+      DrawableXxxHdpi := edtDrawableXxxHDpi.Text;
+    end;
   end;
+end;
+
+procedure TProjectForm.sebDrawableClick(Sender: TObject);
+begin
+  inherited;
+  if odIcon.Execute then
+    (Sender as TSearchEditButton).GetEdit().Text := odIcon.FileName;
 end;
 
 end.
