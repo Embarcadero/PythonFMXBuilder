@@ -140,13 +140,6 @@ inherited MainForm: TMainForm
         end
       end
     end
-    inline frmLoading: TLoadingFrame
-      Align = Contents
-      Size.Width = 1023.000000000000000000
-      Size.Height = 695.000000000000000000
-      Size.PlatformDefault = False
-      Visible = False
-    end
     object loEditor: TLayout
       Align = Client
       Size.Width = 680.000000000000000000
@@ -261,6 +254,13 @@ inherited MainForm: TMainForm
           end
         end
       end
+    end
+    inline frmLoading: TLoadingFrame
+      Align = Contents
+      Size.Width = 734.000000000000000000
+      Size.Height = 522.000000000000000000
+      Size.PlatformDefault = False
+      Visible = False
     end
   end
   object OpenDialog1: TOpenDialog
