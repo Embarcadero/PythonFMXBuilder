@@ -104,6 +104,19 @@ begin
     edtVersionName.Text := VersionName;
     cbPythonVersion.ItemIndex := PY_VER[PythonVersion];
     cbArchitecture.ItemIndex := ARCH[Architecture];
+
+    with Icons do begin
+      DrawableSmall := edtDrawableSmall.Text;
+      DrawableNormal := edtDrawableNormal.Text;
+      DrawableLarge := edtDrawableLarge.Text;
+      DrawableXlarge := edtDrawableXLarge.Text;
+      DrawableLdpi := edtDrawableLDpi.Text;
+      DrawableMdpi := edtDrawableMDpi.Text;
+      DrawableHdpi := edtDrawableHDpi.Text;
+      DrawableXhdpi := edtDrawableXHdpi.Text;
+      DrawableXxhdpi := edtDrawableXxhdpi.Text;
+      DrawableXxxHdpi := edtDrawableXxxHDpi.Text;
+    end;
   end;
 end;
 
@@ -124,6 +137,19 @@ begin
     VersionName := edtVersionName.Text;
     PythonVersion := PY_VER[cbPythonVersion.ItemIndex];
     Architecture := ARCH[cbArchitecture.ItemIndex];
+
+    with Icons do begin
+      edtDrawableSmall.Text := DrawableSmall;
+      edtDrawableNormal.Text := DrawableNormal;
+      edtDrawableLarge.Text := DrawableLarge;
+      edtDrawableXLarge.Text := DrawableXlarge;
+      edtDrawableLDpi.Text := DrawableLdpi;
+      edtDrawableMDpi.Text := DrawableMdpi;
+      edtDrawableHDpi.Text := DrawableHdpi;
+      edtDrawableXHdpi.Text := DrawableXhdpi;
+      edtDrawableXxhdpi.Text := DrawableXxhdpi;
+      edtDrawableXxxHDpi.Text := DrawableXxxHdpi;
+    end;
   end;
 end;
 
