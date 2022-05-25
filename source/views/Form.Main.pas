@@ -102,6 +102,8 @@ begin
   var LAppService := TServiceSimpleFactory.CreateApp();
   //Copy Python and other APP files
   LAppService.CopyAppFiles(FProjectModel);
+  //Copy icons
+  LAppService.CopyIcons(FProjectModel);
   //Save the main.py script to the APP files
   var LStream := TMemoryStream.Create();
   try
