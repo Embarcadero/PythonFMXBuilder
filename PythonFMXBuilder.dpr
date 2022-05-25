@@ -8,7 +8,6 @@ uses
   Form.Environment in 'source\views\Form.Environment.pas' {EnvironmentForm},
   Container.Images in 'source\containers\Container.Images.pas' {ImageContainer: TDataModule},
   Model.Environment in 'source\models\Model.Environment.pas',
-  Model.Project in 'source\models\Model.Project.pas',
   Storage in 'source\storage\Storage.pas',
   Storage.Json in 'source\storage\Storage.Json.pas',
   Storage.Default in 'source\storage\Storage.Default.pas',
@@ -30,7 +29,9 @@ uses
   Storage.Environment in 'source\storage\Storage.Environment.pas',
   Storage.Factory in 'source\storage\Storage.Factory.pas',
   Services.Factory in 'source\services\Services.Factory.pas',
-  Frame.Loading in 'source\views\Frame.Loading.pas' {LoadingFrame: TFrame};
+  Frame.Loading in 'source\views\Frame.Loading.pas' {LoadingFrame: TFrame},
+  Model.Project.Icon in 'source\models\project\Model.Project.Icon.pas',
+  Model.Project in 'source\models\project\Model.Project.pas';
 
 {$R *.res}
 
@@ -38,6 +39,5 @@ begin
   Application.Initialize;
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TImageContainer, ImageContainer);
-  Application.CreateForm(TBaseForm, BaseForm);
   Application.Run;
 end.
