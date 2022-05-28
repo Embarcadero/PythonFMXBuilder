@@ -1,0 +1,58 @@
+object ProjectFilesFrame: TProjectFilesFrame
+  Size.Width = 254.000000000000000000
+  Size.Height = 440.000000000000000000
+  Size.PlatformDefault = False
+  object tvProjectFiles: TTreeView
+    Align = Client
+    PopupMenu = pmtvProjectFiles
+    Size.Width = 254.000000000000000000
+    Size.Height = 440.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'treeviewstyle'
+    TabOrder = 0
+    ItemHeight = 26.000000000000000000
+    Images = ImageContainer.images
+    Sorted = True
+    Viewport.Width = 250.000000000000000000
+    Viewport.Height = 436.000000000000000000
+  end
+  object pmtvProjectFiles: TPopupMenu
+    Images = ImageContainer.images
+    Left = 40
+    Top = 16
+    object miAddFile: TMenuItem
+      Action = actAddFile
+      Enabled = True
+      ImageIndex = 13
+    end
+    object miRemoveFile: TMenuItem
+      Action = actRemoveFile
+      Enabled = True
+      ImageIndex = 14
+    end
+  end
+  object odtvProjectFiles: TOpenDialog
+    Filter = 'Python Script File|*.py'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 40
+    Top = 184
+  end
+  object altvProjectFiles: TActionList
+    Images = ImageContainer.images
+    OnUpdate = altvProjectFilesUpdate
+    Left = 40
+    Top = 72
+    object actAddFile: TAction
+      Text = 'Add file'
+      ImageIndex = 13
+      OnExecute = actAddFileExecute
+      ImageIndex = 13
+    end
+    object actRemoveFile: TAction
+      Text = 'Remove file'
+      ImageIndex = 14
+      OnExecute = actRemoveFileExecute
+      ImageIndex = 14
+    end
+  end
+end

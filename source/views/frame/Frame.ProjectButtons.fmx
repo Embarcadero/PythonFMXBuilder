@@ -1,0 +1,29 @@
+object ProjectButtonsFrame: TProjectButtonsFrame
+  Size.Width = 234.000000000000000000
+  Size.Height = 33.000000000000000000
+  Size.PlatformDefault = False
+  object btnCreate: TButton
+    Align = Left
+    Images = ImageContainer.images
+    ImageIndex = 1
+    Size.Width = 100.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'New project'
+    OnClick = btnCreateClick
+  end
+  object btnOpen: TButton
+    Align = Right
+    Images = ImageContainer.images
+    ImageIndex = 10
+    Margins.Left = 1.000000000000000000
+    Position.X = 134.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'Open project'
+    OnClick = btnOpenClick
+  end
+end
