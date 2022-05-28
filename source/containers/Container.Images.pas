@@ -8,14 +8,14 @@ uses
 type
   TImageContainer = class(TDataModule)
     images: TImageList;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 var
   ImageContainer: TImageContainer;
+
+const
+  PROJECT_ICON_INDEX = 11;
+  MODULE_ICON_INDEX = 12;
 
 implementation
 

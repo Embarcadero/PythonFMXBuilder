@@ -3,7 +3,8 @@ unit Storage.Json;
 interface
 
 uses
-  REST.JsonReflect, System.TypInfo, Storage, Model;
+  REST.JsonReflect, System.TypInfo, Storage, Model,
+  System.Generics.Collections;
 
 type
   TJsonStorage<ModelType : class> = class(TInterfacedObject, IStorage, IStorage<ModelType>)
@@ -13,16 +14,24 @@ type
     function GetEntityPath(const AEntity: string): string;
     function GetModelName(const ATypeInfo: PTypeInfo): string;
     function GetModelPath(const AEntity, AModel: string): string;
+    function GetModelId(const AEntity: string; const AModel: TObject): string;
+    function MakeEntityName(const AEntity: string; const ATypeInfo: PTypeInfo): string;
   public
     constructor Create();
     destructor Destroy(); override;
 
     //IStorageModel interface
-    procedure SaveModel(const ATypeInfo: PTypeInfo; const AModel: TObject; const AEntity: string = ''); overload;
-    function LoadModel(const ATypeInfo: PTypeInfo; var AModel: TObject; const AEntity: string = ''): boolean; overload;
+    procedure SaveModel(const ATypeInfo: PTypeInfo; const AModel: TObject;
+      const AEntity: string = ''); overload;
+    function LoadModel(const ATypeInfo: PTypeInfo; var AModel: TObject;
+      const AEntity: string = ''; const AId: string = ''): boolean; overload;
+    function ListModels(const ATypeInfo: PTypeInfo;
+      const AEntity: string = ''): TArray<TObject>; overload;
     //IStorageModel<Model> interface
     procedure SaveModel(const AModel: ModelType; const AEntity: string); overload;
-    function LoadModel(var AModel: ModelType; const AEntity: string): boolean; overload;
+    function LoadModel(var AModel: ModelType; const AEntity: string = '';
+      const AId: string = ''): boolean; overload;
+    function ListModels(const AEntity: string = ''): TArray<ModelType>; overload;
   end;
 
 implementation
@@ -53,6 +62,22 @@ begin
   Result := TPath.Combine(GetBasePath(), AEntity);
 end;
 
+function TJsonStorage<ModelType>.GetModelId(const AEntity: string;
+  const AModel: TObject): string;
+begin
+  var LRttiCtx := TRttiContext.Create();
+  try
+    var LRttiType := LRttiCtx.GetType(AModel.ClassInfo);
+    var LRttiProp := LRttiType.GetProperty('Id');
+    if Assigned(LRttiProp) then
+      Result := LRttiProp.GetValue(AModel).AsString()
+    else
+      Result := AEntity;
+  finally
+    LRttiCtx.Free();
+  end;
+end;
+
 function TJsonStorage<ModelType>.GetModelName(const ATypeInfo: PTypeInfo): string;
 begin
   var LRttiCtx := TRttiContext.Create();
@@ -73,19 +98,29 @@ begin
   Result := ChangeFileExt(TPath.Combine(GetEntityPath(AEntity), AModel), '.json');
 end;
 
-function TJsonStorage<ModelType>.LoadModel(const ATypeInfo: PTypeInfo;
-  var AModel: TObject; const AEntity: string): boolean;
+function TJsonStorage<ModelType>.MakeEntityName(const AEntity: string;
+  const ATypeInfo: PTypeInfo): string;
 begin
-  var LEntity: string;
   if not AEntity.IsEmpty() then
-    LEntity := AEntity
+    Result := AEntity
   else
-    LEntity := GetModelName(ATypeInfo);
+    Result := GetModelName(ATypeInfo);
 
-  if LEntity.IsEmpty then
-    LEntity := ATypeInfo^.TypeData^.ClassType.ClassName;
+  if Result.IsEmpty then
+    Result := ATypeInfo^.TypeData^.ClassType.ClassName;
+end;
 
-  var LEntityPath := GetModelPath(LEntity, LEntity);
+function TJsonStorage<ModelType>.LoadModel(const ATypeInfo: PTypeInfo;
+  var AModel: TObject; const AEntity: string; const AId: string): boolean;
+begin
+  var LEntity := MakeEntityName(AEntity, ATypeInfo);
+
+  var LId := AId;
+  if LId.IsEmpty then
+    LId := LEntity;
+
+  //Each model has its own file
+  var LEntityPath := GetModelPath(LEntity, LId);
 
   if not TFile.Exists(LEntityPath) then
     Exit(false);
@@ -104,28 +139,49 @@ begin
   end;
 end;
 
-function TJsonStorage<ModelType>.LoadModel(var AModel: ModelType; const AEntity: string): boolean;
+function TJsonStorage<ModelType>.ListModels(
+  const ATypeInfo: PTypeInfo; const AEntity: string): TArray<TObject>;
 begin
-  Result := LoadModel(TypeInfo(ModelType), TObject(AModel), AEntity);
+  var LEntity := MakeEntityName(AEntity, ATypeInfo);
+  var LPath := GetEntityPath(LEntity);
+
+  if not TDirectory.Exists(LPath) then
+    Exit(TArray<TObject>.Create());
+
+  var LJsonFiles := TDirectory.GetFiles(LPath, '*.json', TSearchOption.soTopDirectoryOnly, nil);
+  var LModels := TList<TObject>.Create();
+  try
+    for var LJsonFile in LJsonFiles do begin
+      var LModel: TObject := nil;
+      var LFile := TPath.GetFileName(LJsonFile);
+      if LoadModel(ATypeInfo, LModel, AEntity, LFile.Replace('.json', String.Empty, [])) then
+        LModels.Add(LModel);
+    end;
+    Result := LModels.ToArray();
+  finally
+    LModels.Free();
+  end;
+end;
+
+function TJsonStorage<ModelType>.ListModels(const AEntity: string): TArray<ModelType>;
+begin
+  Result := TArray<ModelType>(ListModels(TypeInfo(ModelType), AEntity));
+end;
+
+function TJsonStorage<ModelType>.LoadModel(var AModel: ModelType;
+  const AEntity: string; const AId: string): boolean;
+begin
+  Result := LoadModel(TypeInfo(ModelType), TObject(AModel), AEntity, AId);
 end;
 
 procedure TJsonStorage<ModelType>.SaveModel(const ATypeInfo: PTypeInfo;
   const AModel: TObject; const AEntity: string);
 begin
-  var LEntity: string;
-  if not AEntity.IsEmpty() then
-    LEntity := AEntity
-  else
-    LEntity := GetModelName(ATypeInfo);
-
-  if LEntity.IsEmpty then
-    LEntity := ATypeInfo^.TypeData^.ClassType.ClassName;
-
-
+  var LEntity := MakeEntityName(AEntity, ATypeInfo);
   var LJsonValue := FConverters.GetJSONMarshaler().Marshal(AModel);
   try
     if Assigned(LJsonValue) then begin
-      var LEntityPath := GetModelPath(LEntity, LEntity);
+      var LEntityPath := GetModelPath(LEntity, GetModelId(LEntity, AModel));
 
       if not TDirectory.Exists(ExtractFilePath(LEntityPath)) then
         TDirectory.CreateDirectory(ExtractFilePath(LEntityPath));

@@ -9,19 +9,25 @@ type
   TServiceSimpleFactory = class
   public
     class function CreateAdb(): IADBServices;
+    class function CreateProject(): IProjectServices;
     class function CreateApp(): IAppServices;
   end;
 
 implementation
 
 uses
-  Services.ADB, Services.App;
+  Services.ADB, Services.Project, Services.App;
 
 { TServiceSimpleFactory }
 
 class function TServiceSimpleFactory.CreateAdb: IADBServices;
 begin
   Result := TADBService.Create();
+end;
+
+class function TServiceSimpleFactory.CreateProject: IProjectServices;
+begin
+  Result := TProjectService.Create();
 end;
 
 class function TServiceSimpleFactory.CreateApp: IAppServices;

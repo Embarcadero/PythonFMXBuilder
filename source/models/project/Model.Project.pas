@@ -5,9 +5,10 @@ interface
 uses
   System.Classes, REST.Json.Types,
   Architecture, PythonVersion,
-  Model, Model.Project.Icon;
+  Model, Model.Project.Icon, Model.Project.Files;
 
 type
+  PProjectModel = ^TProjectModel;
   [Model('project')]
   TProjectModel = class(TModel)
   private
@@ -25,12 +26,18 @@ type
     FArchitecture: TArchitecture;
     [JSONName('icons')]
     FIcons: TProjectIconModel;
+    [JSONName('files')]
+    FFiles: TProjectFilesModel;
+  private
+    function GetId(): string;
   public
-    constructor Create(); override;
+    constructor Create(); overload; override;
+    constructor Create(const AApplicationName: string); reintroduce; overload;
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
   public
+    property Id: string read GetId;
     property ApplicationName: string read FApplicationName write FApplicationName;
     property PackageName: string read FPackageName write FPackageName;
     property VersionCode: integer read FVersionCode write FVersionCode;
@@ -38,6 +45,7 @@ type
     property PythonVersion: TPythonVersion read FPythonVersion write FPythonVersion;
     property Architecture: TArchitecture read FArchitecture write FArchitecture;
     property Icons: TProjectIconModel read FIcons write FIcons;
+    property Files: TProjectFilesModel read FFiles write FFiles;
   end;
 
 implementation
@@ -51,12 +59,30 @@ constructor TProjectModel.Create;
 begin
   inherited;
   FIcons := TProjectIconModel.Create();
+  FFiles := TProjectFilesModel.Create();
+end;
+
+constructor TProjectModel.Create(const AApplicationName: string);
+begin
+  Create();
+  FApplicationName := AApplicationName;
+  FPackageName := 'com.embarcadero.' + AApplicationName;
+  FVersionCode := 1;
+  FVersionName := '1.0.0';
+  FPythonVersion := TPythonVersion.cp39;
+  FArchitecture := TArchitecture.aarch64;
 end;
 
 destructor TProjectModel.Destroy;
 begin
+  FFiles.Free();
   FIcons.Free();
   inherited;
+end;
+
+function TProjectModel.GetId: string;
+begin
+  Result := FApplicationName;
 end;
 
 function TProjectModel.Validate(const AErrors: TStrings): boolean;
@@ -78,7 +104,9 @@ begin
 
   Result := (AErrors.Count = 0);
 
-  Result := Result and FIcons.Validate(AErrors);
+  Result := Result
+    and FIcons.Validate(AErrors)
+      and FFiles.Validate(AErrors);
 end;
 
 end.
