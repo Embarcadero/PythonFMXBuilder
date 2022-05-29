@@ -48,12 +48,16 @@ type
     procedure edtJdkBasePathChange(Sender: TObject);
   private
     FTasks: TList<ITask>;
+    FIsReady: boolean;
     function CreateAni(const AControl: TPresentedControl): TAniIndicator;
     procedure LoadEditContent(const AEdit: TEdit; ATask: TFunc<string>);
     procedure LoadToolPath(const ABasePath, ATool: string; const AEdit: TEdit);
     procedure LoadSdkToolsPath(const ABasePath: string);
     procedure LoadJdkToolsPath(const ABasePath: string);
+    function CanUpdatePaths(): boolean;
   protected
+    procedure Load(); override;
+
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
   end;
@@ -93,7 +97,7 @@ end;
 procedure TEnvironmentForm.edtSdkBasePathChange(Sender: TObject);
 begin
   inherited;
-  if not HasLoaded then
+  if not CanUpdatePaths() then
     Exit;
 
   if not edtSdkBasePath.Text.IsEmpty() then
@@ -103,11 +107,16 @@ end;
 procedure TEnvironmentForm.edtJdkBasePathChange(Sender: TObject);
 begin
   inherited;
-  if not HasLoaded then
+  if not CanUpdatePaths() then
     Exit;
 
   if not edtJdkBasePath.Text.IsEmpty() then
     LoadJdkToolsPath(edtJdkBasePath.Text);
+end;
+
+function TEnvironmentForm.CanUpdatePaths: boolean;
+begin
+  Result := FIsReady;
 end;
 
 function TEnvironmentForm.CreateAni(
@@ -126,6 +135,12 @@ begin
   Result.Parent := AControl;
   Result.Visible := true;
   Result.Enabled := true;
+end;
+
+procedure TEnvironmentForm.Load;
+begin
+  inherited;
+  FIsReady := true;
 end;
 
 procedure TEnvironmentForm.LoadEditContent(const AEdit: TEdit; ATask: TFunc<string>);

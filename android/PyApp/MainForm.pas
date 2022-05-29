@@ -65,6 +65,7 @@ type
     procedure ConfigurePython();
     procedure DisableComponents();
     procedure EnableComponents();
+    procedure IncludeAppModulesToPath();
     function TryLoadingMainScript(): boolean;
     procedure RunMainScript();
   public
@@ -103,6 +104,16 @@ begin
   FAppEnv.Free();
 end;
 
+procedure TPyMainForm.IncludeAppModulesToPath;
+begin
+  PythonEngine1.ExecString(AnsiString(Format(
+    'import sys'
+    + #13#10 +
+    'sys.path.append("%s")'
+    + #13#10
+  , [TPath.GetDocumentsPath()])));
+end;
+
 procedure TPyMainForm.RunMainScript;
 begin
   PythonEngine1.ExecString(AnsiString(mmMainScript.Lines.Text));
@@ -137,6 +148,7 @@ begin
       TThread.Synchronize(nil,
         procedure begin
           if AInitialized then begin
+            IncludeAppModulesToPath();
             if TryLoadingMainScript() then
               RunMainScript()
             else

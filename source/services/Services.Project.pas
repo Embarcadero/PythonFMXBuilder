@@ -79,6 +79,7 @@ end;
 
 function TProjectService.LoadProject(const AApplicationName: string): TProjectModel;
 begin
+  Result := nil;
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   if not LStorage.LoadModel(Result, String.Empty, AApplicationName) then
     raise Exception.CreateFmt('Project %s not found.', [AApplicationName]);

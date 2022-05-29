@@ -3,6 +3,7 @@ inherited MainForm: TMainForm
   ClientHeight = 791
   ClientWidth = 988
   Position = MainFormCenter
+  WindowState = wsMaximized
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -26,8 +27,8 @@ inherited MainForm: TMainForm
       Size.Height = 112.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      Viewport.Width = 988.000000000000000000
-      Viewport.Height = 112.000000000000000000
+      Viewport.Width = 984.000000000000000000
+      Viewport.Height = 108.000000000000000000
     end
   end
   object spLog: TSplitter
@@ -199,8 +200,8 @@ inherited MainForm: TMainForm
             Size.Height = 612.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 0
-            Viewport.Width = 693.000000000000000000
-            Viewport.Height = 612.000000000000000000
+            Viewport.Width = 689.000000000000000000
+            Viewport.Height = 608.000000000000000000
           end
         end
       end
