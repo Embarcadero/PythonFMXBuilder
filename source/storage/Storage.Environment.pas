@@ -37,9 +37,13 @@ end;
 function TEnvironmentStorage.GetAdbPath: string;
 begin
   var LModel: TEnvironmentModel := nil;
-  if FStorage.LoadModel(LModel) then
-    Result := LModel.AdbLocation
-  else
+  if FStorage.LoadModel(LModel) then begin
+    try
+      Result := LModel.AdbLocation
+    finally
+      LModel.Free();
+    end;
+  end else
     Result := String.Empty;
 end;
 

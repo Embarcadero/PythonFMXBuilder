@@ -719,6 +719,13 @@ inherited ProjectForm: TProjectForm
       ImageIndex = 1
     end
   end
+  object odIcon: TOpenDialog [5]
+    DefaultExt = '*.png'
+    Filter = 'PNG images|*.png'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 368
+    Top = 1120
+  end
   inherited actBase: TActionList
     inherited actSave: TAction
       ImageIndex = 3
@@ -726,12 +733,5 @@ inherited ProjectForm: TProjectForm
     inherited actCancel: TAction
       ImageIndex = 4
     end
-  end
-  object odIcon: TOpenDialog
-    DefaultExt = '*.png'
-    Filter = 'PNG images|*.png'
-    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 368
-    Top = 1120
   end
 end

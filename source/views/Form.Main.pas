@@ -8,7 +8,8 @@ uses
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
   FMX.Objects, Form.Base, Services, Storage.Factory, Storage.Default,
-  Model.Project, Model.Environment, Model, Frame.Loading, FMX.Menus;
+  Model.Project, Model.Environment, Model, Frame.Loading, FMX.Menus,
+  Frame.ProjectFiles, Frame.ProjectButtons;
 
 type
   TMainForm = class(TBaseForm, IServices, ILogServices)
@@ -41,6 +42,11 @@ type
     Open: TMenuItem;
     About: TMenuItem;
     loEditorHeader: TLayout;
+    frmProjectFiles: TProjectFilesFrame;
+    spProjectFIles: TSplitter;
+    RoundRect1: TRoundRect;
+    loProjectOptions: TLayout;
+    frmProjectButtons: TProjectButtonsFrame;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -51,13 +57,17 @@ type
     procedure lbiBuildClick(Sender: TObject);
     procedure AboutClick(Sender: TObject);
     procedure OpenClick(Sender: TObject);
+    procedure frmProjectButtonsbtnCreateClick(Sender: TObject);
+    procedure frmProjectButtonsbtnOpenClick(Sender: TObject);
   private
     FDevices: TStrings;
     FEnvironmentModel: TEnvironmentModel;
     FProjectModel: TProjectModel;
     procedure LoadDevices();
     procedure CheckSelectedDevice();
+    procedure CheckLoadedProject();
     function LoadModels(const AValidate: boolean = true): boolean;
+    procedure LoadProjectFiles();
     function BuildApk(): boolean;
     procedure AddPyFile(const APath: string);
 
@@ -87,7 +97,6 @@ procedure TMainForm.AboutClick(Sender: TObject);
 begin
   // We should add some info of the app as pop up display on clicking this About button
   // We can add license details also
-
 end;
 
 procedure TMainForm.btnRefreshDeviceClick(Sender: TObject);
@@ -112,10 +121,18 @@ begin
   finally
     LStream.Free();
   end;
+  //Save aditional scripts to the APP files
+  LAppService.CopyScriptFiles(FProjectModel);
   //Update the manifest with the custom APP settings
   LAppService.UpdateManifest(FProjectModel);
   //Create and sign the APK file
   Result := LAppService.BuildApk(FProjectModel, FEnvironmentModel);
+end;
+
+procedure TMainForm.CheckLoadedProject;
+begin
+  if not Assigned(FProjectModel) then
+    raise Exception.Create('Open/Create a project before continue.');
 end;
 
 procedure TMainForm.CheckSelectedDevice;
@@ -199,17 +216,39 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   FDevices := TStringList.Create();
   GlobalServices := Self;
+  frmProjectButtons.ProjectRef := @FProjectModel;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   GlobalServices := nil;
   FDevices.Free();
+  FEnvironmentModel.Free();
+  FProjectModel.Free();
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
   LoadDevices();
+  LoadModels(false);
+end;
+
+procedure TMainForm.frmProjectButtonsbtnCreateClick(Sender: TObject);
+begin
+  inherited;
+  FreeAndNil(FProjectModel);
+  frmProjectButtons.btnCreateClick(Sender);
+  if Assigned(FProjectModel) then
+    LoadProjectFiles();
+end;
+
+procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
+begin
+  inherited;
+  FreeAndNil(FProjectModel);
+  frmProjectButtons.btnOpenClick(Sender);
+  if Assigned(FProjectModel) then
+    LoadProjectFiles();
 end;
 
 procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
@@ -225,20 +264,25 @@ end;
 procedure TMainForm.lbiBuildClick(Sender: TObject);
 begin
   inherited;
+  CheckLoadedProject();
   DoBuild();
 end;
 
 procedure TMainForm.lbiDeployClick(Sender: TObject);
 begin
   inherited;
+  CheckLoadedProject();
   DoDeploy();
 end;
 
 procedure TMainForm.lbiProjectClick(Sender: TObject);
 begin
+  CheckLoadedProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
+    LForm.Id := FProjectModel.Id;
     TFormSlider.ShowModal(Self, LForm);
+    LoadModels(false);
   finally
     LForm.Free();
   end;
@@ -277,16 +321,15 @@ end;
 
 function TMainForm.LoadModels(const AValidate: boolean): boolean;
 begin
-  var LProjectStorage := TDefaultStorage<TProjectModel>.Make();
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-
+  FreeAndNil(FEnvironmentModel);
   if not LEnvironmentStorage.LoadModel(FEnvironmentModel) then
     if AValidate then
       raise Exception.Create('The Environment Settings are empty.')
     else
       Exit(false);
 
-  if not LProjectStorage.LoadModel(FProjectModel) then
+  if not Assigned(FProjectModel) then
     if AValidate then
       raise Exception.Create('The Project Settings are empty.')
     else
@@ -313,6 +356,11 @@ begin
   end;
 
   Result := true;
+end;
+
+procedure TMainForm.LoadProjectFiles;
+begin
+  frmProjectFiles.LaodProject(FProjectModel);
 end;
 
 procedure TMainForm.Log(const AString: string);

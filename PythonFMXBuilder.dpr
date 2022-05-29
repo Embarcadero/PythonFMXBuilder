@@ -29,15 +29,21 @@ uses
   Storage.Environment in 'source\storage\Storage.Environment.pas',
   Storage.Factory in 'source\storage\Storage.Factory.pas',
   Services.Factory in 'source\services\Services.Factory.pas',
-  Frame.Loading in 'source\views\Frame.Loading.pas' {LoadingFrame: TFrame},
   Model.Project.Icon in 'source\models\project\Model.Project.Icon.pas',
-  Model.Project in 'source\models\project\Model.Project.pas';
+  Model.Project in 'source\models\project\Model.Project.pas',
+  Frame.ProjectFiles in 'source\views\frame\Frame.ProjectFiles.pas' {ProjectFilesFrame: TFrame},
+  Frame.ProjectButtons in 'source\views\frame\Frame.ProjectButtons.pas' {ProjectButtonsFrame: TFrame},
+  Services.Project in 'source\services\Services.Project.pas',
+  Model.Project.Files in 'source\models\project\Model.Project.Files.pas',
+  Frame.Loading in 'source\views\frame\Frame.Loading.pas' {LoadingFrame: TFrame},
+  Form.SelectProject in 'source\views\Form.SelectProject.pas' {SelectProjectForm};
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TImageContainer, ImageContainer);
+  Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TSelectProjectForm, SelectProjectForm);
   Application.Run;
 end.

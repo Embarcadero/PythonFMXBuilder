@@ -4,7 +4,7 @@ interface
 
 uses
   Services, Architecture, PythonVersion, Model.Project, Model.Environment, 
-  System.Classes;
+  System.Classes, FMX.ListView.Types, System.IOUtils;
 
 type
   TAppService = class(TInterfacedObject, IAppServices)
@@ -23,14 +23,23 @@ type
     function GetAppDeployInfoFolder(const AAppName: string): string;
     procedure ClearDeployInfo(const AAppName: string);
     procedure AddAssetsInternalFileToDeployInfo(const AAppName: string; const AFileName: string);
+    procedure RemoveAssetsInternalFileToDeployInfo(const AAppName: string; const AFileName: string);
   public
     procedure CopyAppFiles(const AModel: TProjectModel);
     procedure CopyIcons(const AModel: TProjectModel);
-    procedure AddScriptFile(const AModel: TProjectModel; const AFileName: string;
-      const AStream: TStream);
+    //App script files
+    procedure CopyScriptFiles(const AModel: TProjectModel);
+    function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
+      const AStream: TStream): string;
+    procedure RemoveScriptFile(const AModel: TProjectModel; const AFilePath: string);
+    function GetScriptFiles(const AModel: TProjectModel;
+      const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
+    //App basic info
     procedure UpdateManifest(const AModel: TProjectModel);
+    //App builder
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
+    //App installation
     function InstallApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
     function UnInstallApk(const AProjectModel: TProjectModel;
@@ -40,7 +49,7 @@ type
 implementation
 
 uses
-  System.IOUtils, System.SysUtils, Services.Factory;
+  System.SysUtils, Services.Factory;
 
 const
   APPS_FOLDER = 'apps';
@@ -210,8 +219,36 @@ begin
     TFile.AppendAllText(LDelpoyedDataSetsFile, LDeployedFilePath);
 end;
 
-procedure TAppService.AddScriptFile(const AModel: TProjectModel;
-  const AFileName: string; const AStream: TStream);
+
+procedure TAppService.RemoveAssetsInternalFileToDeployInfo(const AAppName,
+  AFileName: string);
+begin
+  var LDeployInfoFolder := GetAppDeployInfoFolder(AAppName);
+  if not TDirectory.Exists(LDeployInfoFolder) then
+    Exit;
+
+  var LDelpoyedDataSetsFile := TPath.Combine(LDeployInfoFolder, 'deployedassets.txt');
+  if not TFile.Exists(LDelpoyedDataSetsFile) then
+    Exit;
+
+  if not TFile.Exists(LDelpoyedDataSetsFile) then
+    Exit;
+
+  var LDeployedFile := '.\assets\internal\' + AFileName;
+  var LData := TStringList.Create();
+  try
+    LData.LoadFromFile(LDelpoyedDataSetsFile);
+    var LIndex := -1;
+    if LData.Find(LDeployedFile, LIndex) then
+      LData.Delete(LIndex);
+    LData.SaveToFile(LDelpoyedDataSetsFile);
+  finally
+    LData.Free();
+  end;
+end;
+
+function TAppService.AddScriptFile(const AModel: TProjectModel;
+  const AFileName: string; const AStream: TStream): string;
 var
   LBytes: TBytes;
 begin
@@ -226,6 +263,30 @@ begin
   TFile.WriteAllBytes(LFilePath, LBytes);
 
   AddAssetsInternalFileToDeployInfo(AModel.ApplicationName, AFileName);
+
+  Result := LFilePath
+end;
+
+procedure TAppService.RemoveScriptFile(const AModel: TProjectModel;
+  const AFilePath: string);
+begin
+  var LScriptFolder := GetAppAssetsInternal(AModel.ApplicationName);
+  if not TDirectory.Exists(LScriptFolder) then
+    raise Exception.CreateFmt('Script folder not found at: %s', [LScriptFolder]);
+  //Remove from the dataset file
+  RemoveAssetsInternalFileToDeployInfo(AModel.ApplicationName, TPath.GetFileName(AFilePath));
+  //Physically delete file
+  TFile.Delete(AFilePath);
+end;
+
+function TAppService.GetScriptFiles(
+  const AModel: TProjectModel; const AFilter: TDirectory.TFilterPredicate): TArray<string>;
+begin
+  var LScriptFolder := GetAppAssetsInternal(AModel.ApplicationName);
+  if not TDirectory.Exists(LScriptFolder) then
+    raise Exception.CreateFmt('Script folder not found at: %s', [LScriptFolder]);
+
+  Result := TDirectory.GetFiles(LScriptFolder, '*', TSearchOption.soTopDirectoryOnly, AFilter);
 end;
 
 function TAppService.BuildApk(const AProjectModel: TProjectModel;
@@ -356,6 +417,18 @@ begin
   if TFile.Exists(AModel.Icons.DrawableXxxHdpi) then
     TFile.Copy(AModel.Icons.DrawableXxxHdpi,
       TPath.Combine(LAppResPath, 'drawable-xxxhdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
+end;
+
+procedure TAppService.CopyScriptFiles(const AModel: TProjectModel);
+begin
+  for var LScript in AModel.Files.ScriptFiles do begin
+    var LStream := TFileStream.Create(LScript, fmOpenRead);
+    try
+      AddScriptFile(AModel, TPath.GetFileName(LScript), LStream);
+    finally
+      LStream.Free();
+    end;
+  end;
 end;
 
 end.

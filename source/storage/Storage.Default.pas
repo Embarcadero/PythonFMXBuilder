@@ -6,12 +6,7 @@ uses
   Storage;
 
 type
-  TDefaultStorage<Model: class> = class(TInterfacedObject, IStorage<Model>)
-  private
-     FDefaultStorage: IStorage<Model>;
-  protected
-    constructor Create();
-    property Storage: IStorage<Model> read FDefaultStorage implements IStorage<Model>;
+  TDefaultStorage<Model: class> = class
   public
     class function Make(): IStorage<Model>;    
   end;
@@ -23,14 +18,9 @@ uses
 
 { TDefaultStorage<Model> }
 
-constructor TDefaultStorage<Model>.Create;
-begin
-  FDefaultStorage := TJsonStorage<Model>.Create();
-end;
-
 class function TDefaultStorage<Model>.Make: IStorage<Model>;
 begin
-  Result := TDefaultStorage<Model>.Create();
+  Result := TJsonStorage<Model>.Create();
 end;
 
 end.

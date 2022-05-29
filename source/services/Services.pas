@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, Architecture, PythonVersion, Model.Project,
-  Model.Environment;
+  Model.Environment, System.IOUtils;
 
 type
   IServices = interface
@@ -28,19 +28,45 @@ type
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
   end;
 
+  IProjectServices = interface
+    ['{4C39B307-4536-4832-972D-0DEB0319509A}']
+    function CreateProject(const AApplicationName: string): TProjectModel;
+    procedure SaveProject(const AProject: TProjectModel);
+    function LoadProject(const AApplicationName: string): TProjectModel;
+    function ListProjects(): TArray<string>;
+    function HasProject(const AApplicationName: string): boolean;
+
+    function AddScriptFile(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemoveScriptFile(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetScriptFiles(const AModel: TProjectModel): TArray<string>;
+  end;
+
   IAppServices = interface
     ['{0F669CC6-DB3A-437E-8724-8831719A3E9B}']
+    //Creates a snapshot from the image project
     procedure CopyAppFiles(const AModel: TProjectModel);
-    procedure CopyIcons(const AModel: TProjectModel);
+    //Defines the app package name, version and etc.
     procedure UpdateManifest(const AModel: TProjectModel);
+    //assets/internal dataset
+    procedure CopyScriptFiles(const AModel: TProjectModel);
+    function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
+      const AStream: TStream): string;
+    procedure RemoveScriptFile(const AModel: TProjectModel; const AFilePath: string);
+    function GetScriptFiles(const AModel: TProjectModel;
+      const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
+    //Send the user icons to the deployable folder
+    procedure CopyIcons(const AModel: TProjectModel);
+    //Generate the new APK
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
+    //Launch APK to user's device
     function InstallApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+    //Remove APK from user's device
     function UnInstallApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
-    procedure AddScriptFile(const AModel: TProjectModel; const AFileName: string;
-      const AStream: TStream);
   end;
 
 var
