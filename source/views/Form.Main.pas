@@ -36,11 +36,6 @@ type
     aiDevice: TAniIndicator;
     cbDevice: TComboBox;
     btnRefreshDevice: TSpeedButton;
-    OpenDialog1: TOpenDialog;
-    MainMenu1: TMainMenu;
-    File_Options: TMenuItem;
-    Open: TMenuItem;
-    About: TMenuItem;
     loEditorHeader: TLayout;
     frmProjectFiles: TProjectFilesFrame;
     spProjectFIles: TSplitter;
@@ -56,7 +51,6 @@ type
     procedure lbiDeployClick(Sender: TObject);
     procedure lbiBuildClick(Sender: TObject);
     procedure AboutClick(Sender: TObject);
-    procedure OpenClick(Sender: TObject);
     procedure frmProjectButtonsbtnCreateClick(Sender: TObject);
     procedure frmProjectButtonsbtnOpenClick(Sender: TObject);
   private
@@ -382,11 +376,4 @@ begin
   tiMainScript.Text := ExtractFileName(APath);
   mmEditor.lines.LoadFromFile(APath)
 end;
-procedure TMainForm.OpenClick(Sender: TObject);
-begin
-  if OpenDialog1.Execute then
-    AddPyFile(OpenDialog1.FileName);
-end;
-
-
 end.
