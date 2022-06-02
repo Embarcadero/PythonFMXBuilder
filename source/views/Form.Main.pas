@@ -63,7 +63,6 @@ type
     function LoadModels(const AValidate: boolean = true): boolean;
     procedure LoadProjectFiles();
     function BuildApk(): boolean;
-    procedure AddPyFile(const APath: string);
 
     procedure DoBuild();
     procedure DoDeploy();
@@ -371,9 +370,4 @@ begin
   end);
 end;
 
-procedure TMainForm.AddPyFile(const APath: string);
-begin
-  tiMainScript.Text := ExtractFileName(APath);
-  mmEditor.lines.LoadFromFile(APath)
-end;
 end.

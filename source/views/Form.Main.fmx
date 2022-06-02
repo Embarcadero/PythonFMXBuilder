@@ -174,16 +174,6 @@ inherited MainForm: TMainForm
             Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
             DataDetectorTypes = []
             Lines.Strings = (
-              '#-----------------------------------------------'
-              '# Name:        Simplest.py'
-              '# Purpose:     The simplest demo of Delphi FMX'
-              '#'
-              '# Author:      Jim McKeeth'
-              '#'
-              '# Created:     21/01/2022'
-              '# Copyright:   (c) Embarcadero Technologies 2022'
-              '#-----------------------------------------------'
-              ''
               'from delphifmx import *'
               ''
               'MainForm = Form(Application)'
@@ -194,6 +184,8 @@ inherited MainForm: TMainForm
               '    Position = Position(PointF(50, 50)),'
               '    Width = 300)'
               'MainForm.Show()')
+            StyledSettings = [Size, Style, FontColor]
+            TextSettings.Font.Family = 'Cascadia Code'
             Align = Client
             Size.Width = 424.000000000000000000
             Size.Height = 433.000000000000000000
