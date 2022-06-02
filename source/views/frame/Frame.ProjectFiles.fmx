@@ -32,10 +32,9 @@ object ProjectFilesFrame: TProjectFilesFrame
     end
   end
   object odtvProjectFiles: TOpenDialog
-    Filter = 'Python Script File|*.py'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 40
-    Top = 184
+    Top = 128
   end
   object altvProjectFiles: TActionList
     Images = ImageContainer.images
