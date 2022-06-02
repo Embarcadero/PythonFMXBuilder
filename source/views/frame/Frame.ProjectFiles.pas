@@ -10,7 +10,7 @@ uses
   Container.Images;
 
 type
-  TNodeType = (ntProject, ntModule);
+  TNodeType = (ntProject, ntModule, ntOther);
 
   TProjectFilesFrame = class(TFrame)
     tvProjectFiles: TTreeView;
@@ -41,6 +41,8 @@ type
     function NodeIsType(const AItem: TTreeViewItem; const ANodeType: TNodeType): boolean;
     function AddProjectNode(): TTreeViewItem;
     procedure AddDirectoryModuleNodes(const ARoot: TTreeViewItem);
+    function FileIsScriptFile(const AFileName: string): boolean;
+    function GetNodeTypeByFileName(const AFileName: string): TNodeType;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -120,6 +122,19 @@ begin
   FFileExt := ['.py'];
 end;
 
+function TProjectFilesFrame.FileIsScriptFile(const AFileName: string): boolean;
+begin
+  Result := MatchStr(TPath.GetExtension(AFileName), ['.py', '.pydfm', '.pyfmx']);
+end;
+
+function TProjectFilesFrame.GetNodeTypeByFileName(
+  const AFileName: string): TNodeType;
+begin
+  Result := TNodeType.ntOther;
+  if FileIsScriptFile(AFileName) then
+    Result := ntModule;
+end;
+
 function TProjectFilesFrame.GetProjectServices: IProjectServices;
 begin
   if not Assigned(FProjectServices) then
@@ -132,6 +147,8 @@ begin
   case AItem.Data.AsType<TNodeInfo>().NodeType of
     ntProject: AItem.ImageIndex := PROJECT_ICON_INDEX;
     ntModule : AItem.ImageIndex := MODULE_ICON_INDEX;
+    else
+      AItem.ImageIndex := ANY_FILE_ICON_INDEX;
   end;
 end;
 
@@ -197,7 +214,9 @@ begin
         FProjectModel, odtvProjectFiles.FileName) then
       begin
         //Creates the tree item
-        var LItem := BuildNode(FRoot, ntModule, odtvProjectFiles.FileName);
+        var LItem := BuildNode(FRoot,
+          GetNodeTypeByFileName(odtvProjectFiles.FileName),
+          odtvProjectFiles.FileName);
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
         SaveChanges();
       end;
@@ -231,7 +250,7 @@ begin
   var LFiles := GetProjectServices().GetScriptFiles(FProjectModel);
 
   for var LFile in LFiles do begin
-    var LItem := BuildNode(ARoot, ntModule, LFile);
+    var LItem := BuildNode(ARoot, GetNodeTypeByFileName(LFile), LFile);
     LItem.Text := TPath.GetFileName(LFile);
   end;
 end;
