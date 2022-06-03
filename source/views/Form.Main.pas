@@ -9,20 +9,18 @@ uses
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
   FMX.Objects, Form.Base, Services, Storage.Factory, Storage.Default,
   Model.Project, Model.Environment, Model, Frame.Loading, FMX.Menus,
-  Frame.ProjectFiles, Frame.ProjectButtons;
+  Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
+  Frame.ScriptEditor, FMX.TreeView;
 
 type
   TMainForm = class(TBaseForm, IServices, ILogServices)
     loEditor: TLayout;
-    mmEditor: TMemo;
     pnlLeftMenu: TPanel;
     lbLeftMenu: TListBox;
     ListBoxGroupHeader1: TListBoxGroupHeader;
     lbiEnvironment: TListBoxItem;
     ListBoxGroupHeader2: TListBoxGroupHeader;
     lbiProject: TListBoxItem;
-    tbScripts: TTabControl;
-    tiMainScript: TTabItem;
     ListBoxGroupHeader3: TListBoxGroupHeader;
     lbiDeploy: TListBoxItem;
     loFooter: TLayout;
@@ -42,6 +40,7 @@ type
     RoundRect1: TRoundRect;
     loProjectOptions: TLayout;
     frmProjectButtons: TProjectButtonsFrame;
+    frmScriptEditor: TScriptEditorFrame;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -53,6 +52,7 @@ type
     procedure AboutClick(Sender: TObject);
     procedure frmProjectButtonsbtnCreateClick(Sender: TObject);
     procedure frmProjectButtonsbtnOpenClick(Sender: TObject);
+    procedure tviDblClick(Sender: TObject);
   private
     FDevices: TStrings;
     FEnvironmentModel: TEnvironmentModel;
@@ -106,14 +106,14 @@ begin
   LAppService.CopyAppFiles(FProjectModel);
   //Copy icons
   LAppService.CopyIcons(FProjectModel);
-  //Save the main.py script to the APP files
-  var LStream := TMemoryStream.Create();
-  try
-    mmEditor.Lines.SaveToStream(LStream);
-    LAppService.AddScriptFile(FProjectModel, 'main.py', LStream);
-  finally
-    LStream.Free();
-  end;
+//  //Save the main.py script to the APP files
+//  var LStream := TMemoryStream.Create();
+//  try
+//    mmEditor.Lines.SaveToStream(LStream);
+//    LAppService.AddScriptFile(FProjectModel, 'main.py', LStream);
+//  finally
+//    LStream.Free();
+//  end;
   //Save aditional scripts to the APP files
   LAppService.CopyScriptFiles(FProjectModel);
   //Update the manifest with the custom APP settings
@@ -210,6 +210,7 @@ begin
   FDevices := TStringList.Create();
   GlobalServices := Self;
   frmProjectButtons.ProjectRef := @FProjectModel;
+  frmProjectFiles.OnScriptFileDblClick := tviDblClick;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -368,6 +369,13 @@ begin
     mmLog.GoToTextEnd();
     mmLog.GoToLineBegin();
   end);
+end;
+
+procedure TMainForm.tviDblClick(Sender: TObject);
+begin
+  inherited;
+  frmScriptEditor.OpenEditor(
+    frmProjectFiles.GetItemFilePath(TTreeViewItem(Sender)));
 end;
 
 end.
