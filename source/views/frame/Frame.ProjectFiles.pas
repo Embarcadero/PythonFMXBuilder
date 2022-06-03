@@ -31,11 +31,13 @@ type
     FProjectServices: IProjectServices;
     FRoot: TTreeViewItem;
   private
+    FOnScriptFileDblClick: TNotifyEvent;
     function GetProjectServices: IProjectServices;
     procedure SaveChanges();
     // TreeView operations
     procedure LoadIcon(const AItem: TTreeViewItem);
     procedure LoadStyles(const AItem: TTreeViewItem);
+    procedure LoadEvents(const AItem: TTreeViewItem);
     function BuildNode(const AParent: TFmxObject; const ANodeType: TNodeType;
       const AFilePath: string = ''): TTreeViewItem;
     function NodeIsType(const AItem: TTreeViewItem; const ANodeType: TNodeType): boolean;
@@ -48,7 +50,10 @@ type
 
     procedure LaodProject(const AProjectModel: TProjectModel);
 
+    function GetItemFilePath(const AItem: TTreeViewItem): string;
+
     property FileExt: TArray<string> read FFileExt write FFileExt;
+    property OnScriptFileDblClick: TNotifyEvent read FOnScriptFileDblClick write FOnScriptFileDblClick;
   end;
 
 implementation
@@ -127,6 +132,11 @@ begin
   Result := MatchStr(TPath.GetExtension(AFileName), ['.py', '.pydfm', '.pyfmx']);
 end;
 
+function TProjectFilesFrame.GetItemFilePath(const AItem: TTreeViewItem): string;
+begin
+  Result := String(AItem.Data.AsType<TNodeInfo>().FilePath);
+end;
+
 function TProjectFilesFrame.GetNodeTypeByFileName(
   const AFileName: string): TNodeType;
 begin
@@ -140,6 +150,12 @@ begin
   if not Assigned(FProjectServices) then
     FProjectServices := TServiceSimpleFactory.CreateProject();
   Result := FProjectServices;
+end;
+
+procedure TProjectFilesFrame.LoadEvents(const AItem: TTreeViewItem);
+begin
+  if AItem.Data.AsType<TNodeInfo>().NodeType = TNodeType.ntModule then
+    AItem.OnDblClick := OnScriptFileDblClick;
 end;
 
 procedure TProjectFilesFrame.LoadIcon(const AItem: TTreeViewItem);
@@ -185,6 +201,7 @@ begin
   Result.Data := TNodeInfo.Create(ANodeType, AFilePath);
   LoadStyles(Result);
   LoadIcon(Result);
+  LoadEvents(Result);
 end;
 
 function TProjectFilesFrame.AddProjectNode: TTreeViewItem;
