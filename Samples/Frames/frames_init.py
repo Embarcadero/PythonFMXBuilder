@@ -24,4 +24,3 @@ Application.MainForm = myForm
 
 myForm.show()
 Application.Run()
-myForm.Destroy()
