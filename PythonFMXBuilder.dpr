@@ -36,7 +36,8 @@ uses
   Services.Project in 'source\services\Services.Project.pas',
   Model.Project.Files in 'source\models\project\Model.Project.Files.pas',
   Frame.Loading in 'source\views\frame\Frame.Loading.pas' {LoadingFrame: TFrame},
-  Form.SelectProject in 'source\views\Form.SelectProject.pas' {SelectProjectForm};
+  Form.SelectProject in 'source\views\Form.SelectProject.pas' {SelectProjectForm},
+  Frame.ScriptEditor in 'source\views\frame\Frame.ScriptEditor.pas' {ScriptEditorFrame: TFrame};
 
 {$R *.res}
 
