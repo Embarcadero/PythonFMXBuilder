@@ -1,0 +1,56 @@
+object ScriptEditorFrame: TScriptEditorFrame
+  Align = Client
+  Size.Width = 747.000000000000000000
+  Size.Height = 540.000000000000000000
+  Size.PlatformDefault = False
+  object tbScripts: TTabControl
+    Align = Client
+    Size.Width = 747.000000000000000000
+    Size.Height = 540.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'tbScriptsStyle1'
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = PlatformDefault
+    Sizes = (
+      747s
+      514s)
+    object tiMainScript: TTabItem
+      AutoSize = False
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 120.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'tabitemclosebutton'
+      TabOrder = 0
+      Text = 'main.py'
+      object mmEditor: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        Lines.Strings = (
+          'from delphifmx import *'
+          ''
+          'MainForm = Form(Application)'
+          'MainForm.SetProps(Caption = "Hello World")'
+          'msg = Label(MainForm)'
+          'msg.SetProps(Parent = MainForm,'
+          '    Text = "Hello Python from Delphi FMX",'
+          '    Position = Position(PointF(50, 50)),'
+          '    Width = 300)'
+          'MainForm.Show()')
+        StyledSettings = [Size, Style, FontColor]
+        TextSettings.Font.Family = 'Cascadia Code'
+        Align = Client
+        Size.Width = 747.000000000000000000
+        Size.Height = 514.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Viewport.Width = 747.000000000000000000
+        Viewport.Height = 514.000000000000000000
+      end
+    end
+  end
+end
