@@ -11,8 +11,6 @@ uses
 type
   TScriptEditorFrame = class(TFrame)
     tbScripts: TTabControl;
-    tiMainScript: TTabItem;
-    mmEditor: TMemo;
   private
     function DoCreateTab(const AText: string;
       const ACanCloes: boolean = true): TTabItem;
@@ -23,6 +21,7 @@ type
   public
     procedure OpenEditor(const AFilePath: string);
     procedure CloseEditor(const AFilePath: string);
+    procedure CloseAll();
   end;
 
 implementation
@@ -44,6 +43,7 @@ type
     procedure SetData(const Value: TValue); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
     
     property Editor: TMemo read FEditor;
     property OnCloseClick: TNotifyEvent read GetOnCloseClick write SetOnCloseClick;
@@ -59,6 +59,16 @@ begin
   FEditor := TMemo.Create(Self);
   FEditor.Parent := Self;
   FEditor.Align := TAlignLayout.Client;  
+  FEditor.StyledSettings := [TStyledSetting.Size,
+    TStyledSetting.Style, TStyledSetting.FontColor];
+  FEditor.TextSettings.Font.Family := 'Cascadia Code';
+  FEditor.TextSettings.Font.Size := 14;
+end;
+
+destructor TScriptEditorTabItem.Destroy;
+begin
+  FEditor.Lines.SaveToFile(Self.Data.AsString());
+  inherited;
 end;
 
 function TScriptEditorTabItem.GetCloseControl: TControl;
@@ -121,7 +131,7 @@ begin
     Exit;    
 
   tbScripts.GetTabList().Remove(AItem);
-  AItem.Destroy();  
+  AItem.Destroy();
   tbScripts.ActiveTab := tbScripts.Tabs[tbScripts.TabCount - 1];  
 end;
 
@@ -146,7 +156,7 @@ begin
   Result.AutoSize := false;
   Result.StyleLookup := 'tabitemclosebutton';
   Result.Text := AText;  
-  Result.Height := 20;
+  Result.Height := 26;
   if ACanCloes then
     TScriptEditorTabItem(Result).OnCloseClick := DoCloseTab;    
 end;
@@ -161,6 +171,9 @@ end;
 
 procedure TScriptEditorFrame.OpenEditor(const AFilePath: string);
 begin
+  if not TFile.Exists(AFilePath) then
+    raise Exception.Create('File not found.');
+
   var LItem := GetEditorTab(AFilePath);
   if Assigned(LItem) then begin
     tbScripts.ActiveTab := LItem;
@@ -172,6 +185,12 @@ begin
   LoadEditorFile(LItem);
 
   tbScripts.ActiveTab := LItem;
+end;
+
+procedure TScriptEditorFrame.CloseAll;
+begin
+  for var I := tbScripts.TabCount -1 downto 0 do
+    tbScripts.Tabs[I].Destroy(); 
 end;
 
 procedure TScriptEditorFrame.CloseEditor(const AFilePath: string);
