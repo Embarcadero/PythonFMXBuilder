@@ -5,13 +5,12 @@ An application builder for Python using [DelphiFMX for Python](https://github.co
 * [Screenshots](#screenshots)
 * [Releases](https://github.com/Embarcadero/PythonFMXBuilder/releases)
  
-## eBook, Webinar, and Styles Bundle
+## eBook and Styles Bundle
 
 There is an free [eBook and styles bundle](https://embt.co/PythonGUIBundle) with 29 custom styles and 50 pages of content.
  <a href="https://embt.co/PythonGUIBundle"><img alt="Download the free eBook and Python styles bundle." width="750" src="https://github.com/Embarcadero/PythonFMXBuilder/blob/main/images/30_Banner_Ebook_GGetting Started with Python GUI_830x256.jpg"></a>
  
- **Webinar:** <a href="https://attendee.gotowebinar.com/register/3633463041072258318?source=github">Tkinter vs. DelphiFMX for Python GUI - Embarcadero Open Source Live Stream</a> - Thursday, Jun 2, 2022 at 10:00 AM CDT
-<a href="https://attendee.gotowebinar.com/register/3633463041072258318?source=github"><img src="https://i0.wp.com/blogs.embarcadero.com/wp-content/uploads/2022/05/38_Banner_webina_Tkinter-vs.-DelphiFMX-for-Python-GUI_1220x330-7936856.png?resize=750%2C203&ssl=1" alt="Tkinter vs DelphiFMX in the Embarcadero Open Source Stream" width="750" ></a>
+Watch the live stream covering [PythonFMX and related projects](https://youtu.be/Ccfe0rbwgcM).
 
 ## Requirements
 While PythonFMXBuilder is made with Delphi, it does not require Delphi to use. 
