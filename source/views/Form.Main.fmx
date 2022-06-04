@@ -559,17 +559,6 @@ inherited MainForm: TMainForm
         inherited tbScripts: TTabControl
           Size.Width = 424.000000000000000000
           Size.Height = 459.000000000000000000
-          Sizes = (
-            424s
-            433s)
-          inherited tiMainScript: TTabItem
-            inherited mmEditor: TMemo
-              Size.Width = 424.000000000000000000
-              Size.Height = 433.000000000000000000
-              Viewport.Width = 420.000000000000000000
-              Viewport.Height = 429.000000000000000000
-            end
-          end
         end
       end
     end

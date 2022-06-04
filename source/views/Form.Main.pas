@@ -76,7 +76,7 @@ var
 implementation
 
 uses
-  System.Threading, FMX.DialogService,
+  System.IOUtils, System.Threading, FMX.DialogService,
   Container.Images, Form.Factory, Form.Slider, Services.Factory, Services.ADB;
 
 const
@@ -106,14 +106,6 @@ begin
   LAppService.CopyAppFiles(FProjectModel);
   //Copy icons
   LAppService.CopyIcons(FProjectModel);
-//  //Save the main.py script to the APP files
-//  var LStream := TMemoryStream.Create();
-//  try
-//    mmEditor.Lines.SaveToStream(LStream);
-//    LAppService.AddScriptFile(FProjectModel, 'main.py', LStream);
-//  finally
-//    LStream.Free();
-//  end;
   //Save aditional scripts to the APP files
   LAppService.CopyScriptFiles(FProjectModel);
   //Update the manifest with the custom APP settings
@@ -234,6 +226,8 @@ begin
   frmProjectButtons.btnCreateClick(Sender);
   if Assigned(FProjectModel) then
     LoadProjectFiles();
+  frmScriptEditor.CloseAll();
+  frmScriptEditor.OpenEditor(frmProjectFiles.GetDefaultScriptFilePath());
 end;
 
 procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
@@ -243,6 +237,10 @@ begin
   frmProjectButtons.btnOpenClick(Sender);
   if Assigned(FProjectModel) then
     LoadProjectFiles();
+  frmScriptEditor.CloseAll();
+  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
+  if TFile.Exists(LMainScript) then
+    frmScriptEditor.OpenEditor(LMainScript);
 end;
 
 procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
