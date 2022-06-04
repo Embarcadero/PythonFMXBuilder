@@ -49,7 +49,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     procedure LaodProject(const AProjectModel: TProjectModel);
-
+    function GetDefaultScriptFilePath(): string;
     function GetItemFilePath(const AItem: TTreeViewItem): string;
 
     property FileExt: TArray<string> read FFileExt write FFileExt;
@@ -135,6 +135,26 @@ end;
 function TProjectFilesFrame.GetItemFilePath(const AItem: TTreeViewItem): string;
 begin
   Result := String(AItem.Data.AsType<TNodeInfo>().FilePath);
+end;
+
+function TProjectFilesFrame.GetDefaultScriptFilePath: string;
+begin
+  if not Assigned(FProjectModel) then
+    Exit(String.Empty);
+
+  //We try to find the main script
+  for var LScriptFile in FProjectModel.Files.ScriptFiles do begin
+    if (TPath.GetFileName(LScriptFile) = 'main.py') and TFile.Exists(LScriptFile) then
+      Exit(LScriptFile);
+  end;
+
+  //If we don't have a main script, we try to get the first existent script
+  for var LScriptFile in FProjectModel.Files.ScriptFiles do begin
+    if TFile.Exists(LScriptFile) then
+      Exit(LScriptFile);
+  end;
+
+  Result := String.Empty;
 end;
 
 function TProjectFilesFrame.GetNodeTypeByFileName(
