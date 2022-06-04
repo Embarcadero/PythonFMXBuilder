@@ -30,12 +30,14 @@ type
 
   IProjectServices = interface
     ['{4C39B307-4536-4832-972D-0DEB0319509A}']
-    function CreateProject(const AApplicationName: string): TProjectModel;
+    function CreateProject(const AApplicationName: string;
+      const AAddMainScript: boolean = true): TProjectModel;
     procedure SaveProject(const AProject: TProjectModel);
     function LoadProject(const AApplicationName: string): TProjectModel;
     function ListProjects(): TArray<string>;
     function HasProject(const AApplicationName: string): boolean;
 
+    function AddMainScriptFile(const AModel: TProjectModel): string;
     function AddScriptFile(const AModel: TProjectModel;
       const AFilePath: string): boolean;
     procedure RemoveScriptFile(const AModel: TProjectModel;
