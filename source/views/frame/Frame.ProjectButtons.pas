@@ -38,9 +38,11 @@ begin
     procedure(const AResult: TModalResult; const AValues: array of string)
     begin
       if (AResult = mrOk) then begin
+        if AValues[0].Trim().IsEmpty() then
+          raise Exception.Create('Project name can''t be blank.');
         if GetProjectServices().HasProject(AValues[0]) then
           raise Exception.Create('A project with the same name already exists.');
-        FProjectRef^ := GetProjectServices().CreateProject(AValues[0]);
+        FProjectRef^ := GetProjectServices().CreateProject(AValues[0].Trim());
         GetProjectServices().SaveProject(FProjectRef^);
       end;
     end
