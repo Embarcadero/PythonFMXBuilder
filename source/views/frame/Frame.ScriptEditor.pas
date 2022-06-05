@@ -37,13 +37,14 @@ type
     function GetCloseControl(): TControl;
     function GetOnCloseClick: TNotifyEvent;
     procedure SetOnCloseClick(const Value: TNotifyEvent);
+    procedure SaveEditorText; inline;
   protected
     procedure SetText(const Value: string); override;
     function GetData: TValue; override;
     procedure SetData(const Value: TValue); override;
+    procedure OnEditorChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy(); override;
     
     property Editor: TMemo read FEditor;
     property OnCloseClick: TNotifyEvent read GetOnCloseClick write SetOnCloseClick;
@@ -63,12 +64,7 @@ begin
     TStyledSetting.Style, TStyledSetting.FontColor];
   FEditor.TextSettings.Font.Family := 'Cascadia Code';
   FEditor.TextSettings.Font.Size := 14;
-end;
-
-destructor TScriptEditorTabItem.Destroy;
-begin
-  FEditor.Lines.SaveToFile(Self.Data.AsString());
-  inherited;
+  FEditor.OnChange := OnEditorChange;
 end;
 
 function TScriptEditorTabItem.GetCloseControl: TControl;
@@ -111,6 +107,16 @@ begin
   inherited;
   CalcTextObjectSize(0, LSize);
   Self.Width := LSize.cx + CLOSE_BTN_WIDTH;
+end;
+
+procedure TScriptEditorTabItem.OnEditorChange(Sender: TObject);
+begin
+  SaveEditorText()
+end;
+
+procedure TScriptEditorTabItem.SaveEditorText;
+begin
+  FEditor.Lines.SaveToFile(Self.Data.AsString);
 end;
 
 { TScriptEditorFrame }
