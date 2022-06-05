@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{45C8994C-F369-4F39-AD70-4FABFE025F2E}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="PythonFMXBuilder.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PythonFMXBuilderCLI.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="PythonFMXBuilder">
+        <MSBuild Projects="PythonFMXBuilder.dproj"/>
+    </Target>
+    <Target Name="PythonFMXBuilder:Clean">
+        <MSBuild Projects="PythonFMXBuilder.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PythonFMXBuilder:Make">
+        <MSBuild Projects="PythonFMXBuilder.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PythonFMXBuilderCLI">
+        <MSBuild Projects="PythonFMXBuilderCLI.dproj"/>
+    </Target>
+    <Target Name="PythonFMXBuilderCLI:Clean">
+        <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PythonFMXBuilderCLI:Make">
+        <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderCLI"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderCLI:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderCLI:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

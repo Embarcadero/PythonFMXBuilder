@@ -1,4 +1,4 @@
-program PythonFMXBuilder;
+program PythonFMXBuilderGUI;
 
 uses
   System.StartUpCopy,
