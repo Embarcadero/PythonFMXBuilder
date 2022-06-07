@@ -3,7 +3,7 @@
         <ProjectGuid>{45C8994C-F369-4F39-AD70-4FABFE025F2E}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="PythonFMXBuilder.dproj">
+        <Projects Include="PythonFMXBuilderGUI.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="PythonFMXBuilderCLI.dproj">
@@ -17,14 +17,14 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="PythonFMXBuilder">
-        <MSBuild Projects="PythonFMXBuilder.dproj"/>
+    <Target Name="PythonFMXBuilderGUI">
+        <MSBuild Projects="PythonFMXBuilderGUI.dproj"/>
     </Target>
-    <Target Name="PythonFMXBuilder:Clean">
-        <MSBuild Projects="PythonFMXBuilder.dproj" Targets="Clean"/>
+    <Target Name="PythonFMXBuilderGUI:Clean">
+        <MSBuild Projects="PythonFMXBuilderGUI.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="PythonFMXBuilder:Make">
-        <MSBuild Projects="PythonFMXBuilder.dproj" Targets="Make"/>
+    <Target Name="PythonFMXBuilderGUI:Make">
+        <MSBuild Projects="PythonFMXBuilderGUI.dproj" Targets="Make"/>
     </Target>
     <Target Name="PythonFMXBuilderCLI">
         <MSBuild Projects="PythonFMXBuilderCLI.dproj"/>
@@ -36,13 +36,13 @@
         <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderCLI"/>
+        <CallTarget Targets="PythonFMXBuilderGUI;PythonFMXBuilderCLI"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderCLI:Clean"/>
+        <CallTarget Targets="PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderCLI:Make"/>
+        <CallTarget Targets="PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
