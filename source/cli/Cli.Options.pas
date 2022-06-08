@@ -13,9 +13,6 @@ type
   public
     class var
       ProjectNameCommand: string;
-      IncludeDefaultScriptCommand: boolean;
-  public
-    class constructor Create();
   end;
 
   TSelectOptions = class
@@ -25,22 +22,21 @@ type
   end;
 
   TBuildOptions = class
+  public
+    class var
+      ProjectNameCommand: string;
+      VerboseCommand: boolean;
   end;
 
   TDeployOptions = class
   public
     class var
+      ProjectNameCommand: string;
+      VerboseCommand: boolean;
       DeviceCommand: string;
       UninstallCommand: boolean;
   end;
 
 implementation
-
-{ TCreateOptions }
-
-class constructor TCreateOptions.Create;
-begin
-  TCreateOptions.IncludeDefaultScriptCommand := true;
-end;
 
 end.
