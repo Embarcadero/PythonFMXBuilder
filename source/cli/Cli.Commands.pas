@@ -2,6 +2,13 @@ unit Cli.Commands;
 
 interface
 
+const
+  HELP_CMD    = 'help';
+  CREATE_CMD  = 'create';
+  LIST_CMD    = 'list';
+  BUILD_CMD   = 'build';
+  DEPLOY_CMD  = 'deploy';
+
 implementation
 
 uses
@@ -12,7 +19,7 @@ uses
 procedure ConfigureHelpOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
-    'help', 'h',
+    HELP_CMD, 'h',
     'Display a list of command options and their help strings.',
     String.Empty,
     'help [command]');
@@ -30,7 +37,7 @@ end;
 procedure ConfigureCreateOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
-    'create',
+    CREATE_CMD,
     String.Empty,
     'Create a new project from the scratch.',
     String.Empty,
@@ -45,22 +52,14 @@ begin
     end);
   LOption.Required := true;
 
-  LOption := LCmd.RegisterUnNamedOption<string>(
-    'Include the default python script file.',
-    'defaultscript',
-    procedure(const AValue: string) begin
-      if (AValue = 'defaultscript') then
-        TCreateOptions.IncludeDefaultScriptCommand := true;
-    end);
-
   LCmd.Examples.Add('create --name my_project');
-  LCmd.Examples.Add('create --name my_project defaultscript');
+  LCmd.Examples.Add('create --name my_project -s');
 end;
 
 procedure ConfigureListOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
-    'list',
+    LIST_CMD,
     String.Empty,
     'List all projects available in the data folder.',
     String.Empty,
@@ -90,39 +89,87 @@ end;
 procedure ConfigureBuildOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
-    'build',
+    BUILD_CMD,
     String.Empty,
     'Build the current project.',
     String.Empty,
     'build [options]');
+
+  var LOption := LCmd.RegisterOption<string>(
+    'name',
+    String.Empty,
+    'Project name',
+    procedure(const AValue: string) begin
+      TBuildOptions.ProjectNameCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<boolean>(
+    'verbose',
+    'v',
+    'Print logs',
+    procedure(const AValue: boolean) begin
+      TBuildOptions.VerboseCommand := true;
+    end
+  );
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LCmd.Examples.Add('build --name my_project');
+  LCmd.Examples.Add('build --name my_project -v');
 end;
 
 procedure ConfigureDeployOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
-    'deploy',
+    DEPLOY_CMD,
     String.Empty,
     'Deploy the current project to a device.',
     String.Empty,
     'deploy [options]');
 
   var LOption := LCmd.RegisterOption<string>(
+    'name',
+    String.Empty,
+    'Project name',
+    procedure(const AValue: string) begin
+      TDeployOptions.ProjectNameCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<string>(
     'device', 'd', 'Select the target device.',
     procedure(const Value: string) begin
       TDeployOptions.DeviceCommand := Value;
     end);
   LOption.Required := false;
+  LOption.HasValue := false;
 
-  LOption := LCmd.RegisterUnNamedOption<string>(
-    'Uninstall application before deployment.',
+  LOption := LCmd.RegisterOption<boolean>(
     'uninstall',
-    procedure(const AValue: string) begin
-      TDeployOptions.UninstallCommand := (AValue = 'uninstall');
+    'u',
+    'Uninstall application before deployment.',
+    procedure(const AValue: boolean) begin
+      TDeployOptions.UninstallCommand := true;
     end);
   LOption.Required := false;
+  LOption.HasValue := false;
 
-  LCmd.Examples.Add('deploy -d my_device');
-  LCmd.Examples.Add('deploy -d my_device uninstall');
+  LOption := LCmd.RegisterOption<boolean>(
+    'verbose',
+    'v',
+    'Print logs',
+    procedure(const AValue: boolean) begin
+      TDeployOptions.VerboseCommand := true;
+    end
+  );
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LCmd.Examples.Add('deploy --name my_project');
+  LCmd.Examples.Add('deploy --name my_project -d my_device');
+  LCmd.Examples.Add('deploy --name my_project -d my_device -u');
+  LCmd.Examples.Add('deploy --name my_project -d my_device -u -v');
 end;
 
 procedure ConfigureOptions();
