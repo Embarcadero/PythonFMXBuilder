@@ -42,11 +42,18 @@ end;
 function TProjectFilesModel.Validate(const AErrors: TStrings): boolean;
 begin
   Result := true;
+  var HasMainScript := false;
   for var LFile in FScriptFiles do begin
+    if TPath.GetFileName(LFile).ToLower() = 'main.py' then
+      HasMainScript := true;
     if not TFile.Exists(LFile) then begin
       Result := false;
       AErrors.Add(Format('* Script file %s not found.', [LFile]))
     end;
+  end;
+  if not HasMainScript then begin
+    Result := false;
+    AErrors.Add('* Main script file not found.');
   end;
 end;
 
