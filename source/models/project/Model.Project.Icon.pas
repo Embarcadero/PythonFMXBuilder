@@ -22,7 +22,7 @@ type
     FDrawableMdpi: string;
     [JSONName('drawable_hdpi')]
     FDrawableHdpi: string;
-    [JSONName('drawable_xdpi')]
+    [JSONName('drawable_xhdpi')]
     FDrawableXhdpi: string;
     [JSONName('drawable_xxhdpi')]
     FDrawableXxhdpi: string;
