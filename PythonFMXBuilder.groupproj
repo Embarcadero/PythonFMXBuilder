@@ -3,11 +3,14 @@
         <ProjectGuid>{45C8994C-F369-4F39-AD70-4FABFE025F2E}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="PythonFMXBuilderGUI.dproj">
+        <Projects Include="packages\PythonFMXBuilder.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="PythonFMXBuilderGUI.dproj">
+            <Dependencies>packages\PythonFMXBuilder.dproj</Dependencies>
+        </Projects>
         <Projects Include="PythonFMXBuilderCLI.dproj">
-            <Dependencies/>
+            <Dependencies>packages\PythonFMXBuilder.dproj</Dependencies>
         </Projects>
     </ItemGroup>
     <ProjectExtensions>
@@ -17,32 +20,41 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="PythonFMXBuilderGUI">
+    <Target Name="PythonFMXBuilder">
+        <MSBuild Projects="packages\PythonFMXBuilder.dproj"/>
+    </Target>
+    <Target Name="PythonFMXBuilder:Clean">
+        <MSBuild Projects="packages\PythonFMXBuilder.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PythonFMXBuilder:Make">
+        <MSBuild Projects="packages\PythonFMXBuilder.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PythonFMXBuilderGUI" DependsOnTargets="PythonFMXBuilder">
         <MSBuild Projects="PythonFMXBuilderGUI.dproj"/>
     </Target>
-    <Target Name="PythonFMXBuilderGUI:Clean">
+    <Target Name="PythonFMXBuilderGUI:Clean" DependsOnTargets="PythonFMXBuilder:Clean">
         <MSBuild Projects="PythonFMXBuilderGUI.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="PythonFMXBuilderGUI:Make">
+    <Target Name="PythonFMXBuilderGUI:Make" DependsOnTargets="PythonFMXBuilder:Make">
         <MSBuild Projects="PythonFMXBuilderGUI.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PythonFMXBuilderCLI">
+    <Target Name="PythonFMXBuilderCLI" DependsOnTargets="PythonFMXBuilder">
         <MSBuild Projects="PythonFMXBuilderCLI.dproj"/>
     </Target>
-    <Target Name="PythonFMXBuilderCLI:Clean">
+    <Target Name="PythonFMXBuilderCLI:Clean" DependsOnTargets="PythonFMXBuilder:Clean">
         <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="PythonFMXBuilderCLI:Make">
+    <Target Name="PythonFMXBuilderCLI:Make" DependsOnTargets="PythonFMXBuilder:Make">
         <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="PythonFMXBuilderGUI;PythonFMXBuilderCLI"/>
+        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderCLI"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean"/>
+        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make"/>
+        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
