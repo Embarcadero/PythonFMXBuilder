@@ -5,7 +5,8 @@ interface
 uses
   System.SysUtils, System.StrUtils, System.Classes,
   VSoft.CommandLine.Options,
-  Model, Model.Environment, Model.Project;
+  Model, Model.Environment, Model.Project, PythonVersion, Architecture,
+  System.Rtti;
 
 type
   TCommandInterpreter = class
@@ -15,6 +16,9 @@ type
     class procedure DoListCommand(); static;
     class procedure DoBuildCommand(); static;
     class procedure DoDeployCommand(); static;
+    class procedure DoDeviceCommand(); static;
+    class procedure DoEnvironmentCommand(); static;
+    class procedure DoProjectCommand(); static;
   private
     class procedure PrintUsage(const ACommand: string); static;
     class function ExecuteAction(const AVerbose: boolean;
@@ -155,11 +159,182 @@ begin
   end;
 end;
 
+class procedure TCommandInterpreter.DoDeviceCommand;
+begin
+  var LEnvironmentModel := InternalLoadEnvironment();
+  var LAdbService := TServiceSimpleFactory.CreateAdb();
+  var LDeviceList := TStringList.Create();
+  try
+    LAdbService.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
+    if LDeviceList.Count = 0 then
+      raise Exception.Create('No devices attached.');
+
+    for var I := 0 to LDeviceList.Count - 1 do begin
+      if TDeviceOptions.ListCommand then
+        WriteLn(LDeviceList.KeyNames[I] + ' -> ' + LDeviceList.Values[LDeviceList.KeyNames[I]])
+      else
+        WriteLn(LDeviceList.KeyNames[I]);
+    end;
+  finally
+    LDeviceList.Free();
+  end;
+end;
+
+class procedure TCommandInterpreter.DoEnvironmentCommand;
+begin
+  var LEnvironmentModel: TEnvironmentModel := nil;
+  var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
+
+  if not LEnvironmentStorage.LoadModel(LEnvironmentModel) then
+    LEnvironmentModel := TEnvironmentModel.Create();
+  try
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.SdkBasePathCommand) then
+      LEnvironmentModel.SdkBasePath := TEnvironmentOptions.SdkBasePathCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.ApkSignerLocationCommand) then
+      LEnvironmentModel.ApkSignerLocation := TEnvironmentOptions.ApkSignerLocationCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.AdbLocationCommand) then
+      LEnvironmentModel.AdbLocation := TEnvironmentOptions.AdbLocationCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.AptLocationCommand) then
+      LEnvironmentModel.AAptLocation := TEnvironmentOptions.AptLocationCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.SdkApiLocationCommand) then
+      LEnvironmentModel.SdkApiLocation := TEnvironmentOptions.SdkApiLocationCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.ZipAlignLocationCommand) then
+      LEnvironmentModel.ZipAlignLocation := TEnvironmentOptions.ZipAlignLocationCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.JdkBasePathCommand) then
+      LEnvironmentModel.JdkBasePath := TEnvironmentOptions.JdkBasePathCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.KeyToolLocationCommand) then
+      LEnvironmentModel.KeyToolLocation := TEnvironmentOptions.KeyToolLocationCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.JarSignerLocationCommand) then
+      LEnvironmentModel.JarSignerLocation := TEnvironmentOptions.JarSignerLocationCommand.AsString();
+
+    if TEnvironmentOptions.FindCommand then begin
+      if LEnvironmentModel.SdkBasePath.Trim().IsEmpty() then
+        raise Exception.Create('Invalid SDK base path.');
+
+      if LEnvironmentModel.JdkBasePath.Trim().IsEmpty() then
+        raise Exception.Create('Invalid JDK base path.');
+
+      var LEditPredicate := function(const AValue: string): boolean
+      begin
+        Result := AValue.Trim().IsEmpty()
+          or TEnvironmentOptions.OverrideCommand;
+      end;
+
+      if LEditPredicate(LEnvironmentModel.ApkSignerLocation) then
+        LEnvironmentModel.ApkSignerLocation := TPathLocator.LoadToolPath(LEnvironmentModel.SdkBasePath, 'apksigner.jar');
+      if LEditPredicate(LEnvironmentModel.AdbLocation) then
+        LEnvironmentModel.AdbLocation := TPathLocator.LoadToolPath(LEnvironmentModel.SdkBasePath, 'adb.exe');
+      if LEditPredicate(LEnvironmentModel.AAptLocation) then
+        LEnvironmentModel.AAptLocation := TPathLocator.LoadToolPath(LEnvironmentModel.SdkBasePath, 'aapt.exe');
+      if LEditPredicate(LEnvironmentModel.ZipAlignLocation) then
+        LEnvironmentModel.ZipAlignLocation := TPathLocator.LoadToolPath(LEnvironmentModel.SdkBasePath, 'zipalign.exe');
+      if LEditPredicate(LEnvironmentModel.SdkApiLocation) then
+        LEnvironmentModel.SdkApiLocation := TPathLocator.FindSdkApiLocation(LEnvironmentModel.SdkBasePath);
+
+      if LEditPredicate(LEnvironmentModel.KeyToolLocation) then
+        LEnvironmentModel.KeyToolLocation := TPathLocator.LoadToolPath(LEnvironmentModel.JdkBasePath, 'keytool.exe');
+      if LEditPredicate(LEnvironmentModel.JarSignerLocation) then
+        LEnvironmentModel.JarSignerLocation := TPathLocator.LoadToolPath(LEnvironmentModel.JdkBasePath, 'jarsigner.exe');
+    end;
+
+    LEnvironmentStorage.SaveModel(LEnvironmentModel);
+  finally
+    LEnvironmentModel.Free();
+  end;
+end;
+
+class procedure TCommandInterpreter.DoProjectCommand;
+begin
+  var LProjectService := TServiceSimpleFactory.CreateProject();
+  if not LProjectService.HasProject(TProjectOptions.SelectCommand) then
+    raise Exception.Create('Project not found.');
+
+  var LProjectModel := LProjectService.LoadProject(TProjectOptions.SelectCommand);
+  try
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.PackageNameCommand) then
+      LProjectModel.PackageName := TProjectOptions.PackageNameCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.VersionCodeCommand) then
+      LProjectModel.VersionCode := TProjectOptions.VersionCodeCommand.AsInteger();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.VersionNameCommand) then
+      LProjectModel.VersionName := TProjectOptions.VersionNameCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.PythonVersionCommand) then
+      if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
+        LProjectModel.PythonVersion := TPythonVersion.cp38
+      else if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
+        LProjectModel.PythonVersion := TPythonVersion.cp39
+      else if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
+        LProjectModel.PythonVersion := TPythonVersion.cp310
+      else raise Exception.Create('Invalid Python version.');
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
+      if TProjectOptions.ArchitectureCommand.AsString() = '' then
+        LProjectModel.Architecture := TArchitecture.arm
+      else if TProjectOptions.ArchitectureCommand.AsString() = '' then
+        LProjectModel.Architecture := TArchitecture.aarch64
+      else
+        raise Exception.Create('Invalid architecture.');
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableSmallCommand) then
+      LProjectModel.Icons.DrawableSmall := TProjectOptions.DrawableSmallCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableNormalCommand) then
+      LProjectModel.Icons.DrawableNormal := TProjectOptions.DrawableNormalCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableLargeCommand) then
+      LProjectModel.Icons.DrawableLarge := TProjectOptions.DrawableLargeCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXLargeCommand) then
+      LProjectModel.Icons.DrawableXlarge := TProjectOptions.DrawableXLargeCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableLDpiCommand) then
+      LProjectModel.Icons.DrawableLdpi := TProjectOptions.DrawableLDpiCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableMDpiCommand) then
+      LProjectModel.Icons.DrawableMdpi := TProjectOptions.DrawableMDpiCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXHDpiCommand) then
+      LProjectModel.Icons.DrawableHdpi := TProjectOptions.DrawableXHDpiCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXHDpiCommand) then
+      LProjectModel.Icons.DrawableXhdpi := TProjectOptions.DrawableXHDpiCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxHDpiCommand) then
+      LProjectModel.Icons.DrawableXxhdpi := TProjectOptions.DrawableXxHDpiCommand.AsString();
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxxHDpiCommand) then
+      LProjectModel.Icons.DrawableXxxHdpi := TProjectOptions.DrawableXxxHDpiCommand.AsString();
+
+    for var LFile in TProjectOptions.AddFile do begin
+      LProjectService.AddScriptFile(LProjectModel, LFile);
+    end;
+
+    for var LFile in TProjectOptions.RemoveFile do begin
+      LProjectService.RemoveScriptFile(LProjectModel, LFile);
+    end;
+
+    LProjectService.SaveProject(LProjectModel);
+  finally
+    LProjectModel.Free();
+  end;
+end;
+
 class procedure TCommandInterpreter.Interpret(
   const AParsed: ICommandLineParseResult);
 const
   COMMANDS: array of string = [
-    String.Empty, HELP_CMD, CREATE_CMD, LIST_CMD, BUILD_CMD, DEPLOY_CMD];
+    String.Empty, HELP_CMD, CREATE_CMD, LIST_CMD, BUILD_CMD, DEPLOY_CMD,
+    DEVICE_CMD, ENVIRONMENT_CMD, PROJECT_CMD];
 begin
   if AParsed.HasErrors then begin
     Writeln;
@@ -175,6 +350,9 @@ begin
     3: DoListCommand();
     4: DoBuildCommand();
     5: DoDeployCommand();
+    6: DoDeviceCommand();
+    7: DoEnvironmentCommand();
+    8: DoProjectCommand();
   end;
 end;
 
