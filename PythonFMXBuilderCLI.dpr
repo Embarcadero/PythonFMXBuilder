@@ -31,7 +31,6 @@ uses
 begin
   try
     TCommandInterpreter.Interpret(TOptionsRegistry.Parse());
-    readln;
   except
     on E: EAbort do begin
       //
