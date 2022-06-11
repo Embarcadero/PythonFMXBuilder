@@ -3,8 +3,9 @@ unit Services;
 interface
 
 uses
-  System.Classes, Architecture, PythonVersion, Model.Project,
-  Model.Environment, System.IOUtils;
+  System.Classes, System.IOUtils,
+  Architecture, PythonVersion,
+  Model.Project, Model.Environment;
 
 type
   IServices = interface

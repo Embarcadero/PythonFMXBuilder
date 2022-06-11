@@ -4,7 +4,7 @@ interface
 
 uses
   Services, Architecture, PythonVersion, Model.Project, Model.Environment, 
-  System.Classes, FMX.ListView.Types, System.IOUtils;
+  System.Classes, System.IOUtils;
 
 type
   TAppService = class(TInterfacedObject, IAppServices)

@@ -3,8 +3,9 @@ unit Storage.Json;
 interface
 
 uses
-  REST.JsonReflect, System.TypInfo, Storage, Model,
-  System.Generics.Collections;
+  System.TypInfo, System.Generics.Collections,
+  REST.JsonReflect,
+  Storage, Model;
 
 type
   TJsonStorage<ModelType : class> = class(TInterfacedObject, IStorage, IStorage<ModelType>)

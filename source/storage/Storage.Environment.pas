@@ -3,7 +3,8 @@ unit Storage.Environment;
 interface
 
 uses
-  Storage, Storage.Default, Model.Environment;
+  Storage, Storage.Default,
+  Model.Environment;
 
 type
   TEnvironmentStorage = class(TInterfacedObject, IStorageEnvironment)
