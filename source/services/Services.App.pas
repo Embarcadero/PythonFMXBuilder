@@ -421,7 +421,7 @@ end;
 
 procedure TAppService.CopyScriptFiles(const AModel: TProjectModel);
 begin
-  for var LScript in AModel.Files.ScriptFiles do begin
+  for var LScript in AModel.Files.Files do begin
     var LStream := TFileStream.Create(LScript, fmOpenRead);
     try
       AddScriptFile(AModel, TPath.GetFileName(LScript), LStream);

@@ -153,20 +153,20 @@ function TProjectService.AddScriptFile(const AModel: TProjectModel;
   const AFilePath: string): boolean;
 begin
   //We are not accepting duplicated file names
-  for var LFile in AModel.Files.ScriptFiles do begin
+  for var LFile in AModel.Files.Files do begin
     if TPath.GetFileName(LFile) = TPath.GetFileName(AFilePath) then
       Exit(false);
   end;
 
   //Should we copy this file to a local dir?
-  AModel.Files.ScriptFiles.Add(AFilePath);
+  AModel.Files.Files.Add(AFilePath);
   Result := true;
 end;
 
 procedure TProjectService.RemoveScriptFile(const AModel: TProjectModel;
   const AFilePath: string);
 begin
-  AModel.Files.ScriptFiles.Remove(AFilePath);
+  AModel.Files.Files.Remove(AFilePath);
 end;
 
 procedure TProjectService.SaveProject(const AProject: TProjectModel);
@@ -177,7 +177,7 @@ end;
 
 function TProjectService.GetScriptFiles(const AModel: TProjectModel): Tarray<string>;
 begin
-  Result := AModel.Files.ScriptFiles.ToArray();
+  Result := AModel.Files.Files.ToArray();
 end;
 
 end.
