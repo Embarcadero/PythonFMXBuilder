@@ -2,10 +2,10 @@
 	"hash": "d41d8cd98f00b204e9800998ecf8427e",
 	"updated": "2022-06-06T13:35:21.1905607-07:00",
 	"installedModules": {
-		"https://github.com/vsofttechnologies/vsoft.commandlineparser": {
+		"https://github.com/lmbelo/vsoft.commandlineparser": {
 			"name": "vsoft.commandlineparser",
-			"version": "v0.1.3",
-			"hash": "aa0afc58f07e9cee02649ef9c0ed468f",
+			"version": "v0.1.4",
+			"hash": "15969db09fa7ea87ce6837adc4ecda0a",
 			"artifacts": {},
 			"failed": false,
 			"changed": false

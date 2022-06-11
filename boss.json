@@ -6,6 +6,6 @@
 	"mainsrc": "./source",
 	"projects": [],
 	"dependencies": {
-		"https://github.com/vsofttechnologies/vsoft.commandlineparser": "^v0.1.3"
+		"https://github.com/lmbelo/vsoft.commandlineparser": "^v0.1.4"
 	}
 }
