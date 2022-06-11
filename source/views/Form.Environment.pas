@@ -186,11 +186,7 @@ begin
     Exit;
 
   LoadEditContent(AEdit, function(): string begin
-    var LFiles := TDirectory.GetFiles(ABasePath, ATool, TSearchOption.soAllDirectories, nil);
-    if Length(LFiles) > 0 then
-      Result := LFiles[0]
-    else
-      Result := String.Empty;
+    Result := TPathLocator.LoadToolPath(ABasePath, ATool);
   end);
 end;
 
@@ -206,26 +202,7 @@ begin
 
   if edtSdkApiLocation.Text.IsEmpty() then
     LoadEditContent(edtSdkAPILocation, function(): string begin
-      var LPlatforms := TPath.Combine(ABasePath, 'platforms');
-      var LFolders := TDirectory.GetDirectories(
-        LPlatforms, 'android-*', TSearchOption.soTopDirectoryOnly, nil);
-
-      Result := String.Empty;
-      if Length(LFolders) > 0 then begin
-        var LGreater := 0;
-        for var LFolder in LFolders do begin
-          var LAndroid :=
-            TPath.GetFileName(ExcludeTrailingPathDelimiter(LFolder))
-              .Replace('android-', String.Empty, []);
-
-          var LApi := 0;
-          if TryStrToInt(LAndroid, LApi) then
-            if (LApi > LGreater) then begin
-              LGreater := LApi;
-              Result := LFolder;
-            end;
-        end;
-      end;
+      Result := TPathLocator.FindSdkApiLocation(ABasePath);
     end);
 end;
 
