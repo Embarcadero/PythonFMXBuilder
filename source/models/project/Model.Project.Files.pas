@@ -9,15 +9,15 @@ uses
 type
   TProjectFilesModel = class(TModel)
   private
-    [JSONName('script_files')]
-    FScriptFiles: TList<string>;
+    [JSONName('files')]
+    FFiles: TList<string>;
   public
     constructor Create(); override;
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
   public
-    property ScriptFiles: TList<string> read FScriptFiles write FScriptFiles;
+    property Files: TList<string> read FFiles write FFiles;
   end;
 
 implementation
@@ -30,12 +30,12 @@ uses
 constructor TProjectFilesModel.Create;
 begin
   inherited;
-  FScriptFiles := TList<string>.Create();
+  FFiles := TList<string>.Create();
 end;
 
 destructor TProjectFilesModel.Destroy;
 begin
-  FScriptFiles.Free();
+  FFiles.Free();
   inherited;
 end;
 
@@ -43,7 +43,7 @@ function TProjectFilesModel.Validate(const AErrors: TStrings): boolean;
 begin
   Result := true;
   var HasMainScript := false;
-  for var LFile in FScriptFiles do begin
+  for var LFile in FFiles do begin
     if TPath.GetFileName(LFile).ToLower() = 'main.py' then
       HasMainScript := true;
     if not TFile.Exists(LFile) then begin
