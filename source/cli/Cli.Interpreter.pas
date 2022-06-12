@@ -37,7 +37,7 @@ implementation
 uses
   Services, Services.Factory,
   Storage.Default,
-  Cli.Commands, Cli.Options;
+  Cli.Commands, Cli.Options, Cli.Exception;
 
 type
   TCliServices = class(TInterfacedObject, IServices, ILogServices)
@@ -95,9 +95,8 @@ begin
     InternalLoadProject(TBuildOptions.ProjectNameCommand),
     TBuildOptions.VerboseCommand) then
   begin
-    WriteLn('Build process has failed.')
-  end else
-    WriteLn('Build process has completed.');
+    raise EBuildProcessFailed.Create();
+  end;
 end;
 
 class procedure TCommandInterpreter.DoDeployCommand;
@@ -111,10 +110,10 @@ begin
   try
     LAdbService.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
     if LDeviceList.Count = 0 then
-      raise Exception.Create('No devices attached.');
+      raise ENoDevicesAttached.Create();
 
     if not LDevice.IsEmpty() and (LDeviceList.IndexOf(LDevice) < 0) then
-      raise Exception.CreateFmt('Device %s not attached.', [LDevice]);
+      raise EDeviceNotAttached(LDevice);
 
     if LDevice.IsEmpty() then
       LDevice := LDeviceList.KeyNames[0];
@@ -127,7 +126,7 @@ begin
     LProjectModel,
     TDeployOptions.VerboseCommand) then
   begin
-    WriteLn('Build process has failed.')
+    raise EBuildProcessFailed.Create();
   end else begin
     var LSuccess := ExecuteAction(TDeployOptions.VerboseCommand,
       function(): boolean
@@ -155,7 +154,7 @@ begin
       end);
 
     if not LSuccess then
-      WriteLn('Deploy process has failed.');
+      raise EDeployProcessFailed.Create();
   end;
 end;
 
@@ -167,7 +166,7 @@ begin
   try
     LAdbService.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
     if LDeviceList.Count = 0 then
-      raise Exception.Create('No devices attached.');
+      raise ENoDevicesAttached.Create();
 
     for var I := 0 to LDeviceList.Count - 1 do begin
       if TDeviceOptions.ListCommand then
@@ -217,10 +216,10 @@ begin
 
     if TEnvironmentOptions.FindCommand then begin
       if LEnvironmentModel.SdkBasePath.Trim().IsEmpty() then
-        raise Exception.Create('Invalid SDK base path.');
+        raise EInvalidBasePath.Create(E_STR_INVALID_SDK_BASE_PATH, E_CODE_INVALID_SDK_BASE_PATH);
 
       if LEnvironmentModel.JdkBasePath.Trim().IsEmpty() then
-        raise Exception.Create('Invalid JDK base path.');
+        raise EInvalidBasePath.Create(E_STR_INVALID_JDK_BASE_PATH, E_CODE_INVALID_JDK_BASE_PATH);
 
       var LEditPredicate := function(const AValue: string): boolean
       begin
@@ -267,7 +266,7 @@ class procedure TCommandInterpreter.DoProjectCommand;
 begin
   var LProjectService := TServiceSimpleFactory.CreateProject();
   if not LProjectService.HasProject(TProjectOptions.SelectCommand) then
-    raise Exception.Create('Project not found.');
+    raise EProjectNotFound.Create(TProjectOptions.SelectCommand);
 
   var LProjectModel := LProjectService.LoadProject(TProjectOptions.SelectCommand);
   try
@@ -287,7 +286,7 @@ begin
         LProjectModel.PythonVersion := TPythonVersion.cp39
       else if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
         LProjectModel.PythonVersion := TPythonVersion.cp310
-      else raise Exception.Create('Invalid Python version.');
+      else raise EInvalidPythonVersion.Create();
 
     if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
       if TProjectOptions.ArchitectureCommand.AsString() = 'arm32' then
@@ -295,7 +294,7 @@ begin
       else if TProjectOptions.ArchitectureCommand.AsString() = 'arm64' then
         LProjectModel.Architecture := TArchitecture.aarch64
       else
-        raise Exception.Create('Invalid architecture.');
+        raise EInvalidArchitecture.Create();
 
     if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableSmallCommand) then
       LProjectModel.Icons.DrawableSmall := TProjectOptions.DrawableSmallCommand.AsString();
@@ -447,15 +446,15 @@ begin
   Result := nil;
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
   if not LEnvironmentStorage.LoadModel(Result) then
-    raise Exception.Create('The Environment Settings are empty.');
+    raise EEnvironmentSettingsAreEmpty.Create();
 
   var LModelErrors := TStringList.Create();
   try
     if not Result.Validate(LModelErrors) then
-      raise EModelValidationError.Create('The Environment Settings has invalid arguments:'
-        + sLineBreak
-        + sLineBreak
-        + LModelErrors.Text);
+      raise EEnvironmentSettingsInvalidArgs.Create(
+        sLineBreak
+      + sLineBreak
+      + LModelErrors.Text);
   finally
     LModelErrors.Free();
   end;
@@ -466,15 +465,15 @@ class function TCommandInterpreter.InternalLoadProject(
 begin
   var LProjectService := TServiceSimpleFactory.CreateProject();
   if not LProjectService.HasProject(AProjectName) then
-    raise Exception.Create('The Project Settings are empty.');
+    raise EProjectSettingsAreEmpty.Create();
 
   Result := LProjectService.LoadProject(AProjectName);
 
   var LModelErrors := TStringList.Create();
   try
     if not Result.Validate(LModelErrors) then
-      raise EModelValidationError.Create('The Project Settings has invalid arguments:'
-        + sLineBreak
+      raise EProjectSettingsInvalidArgs.Create(
+        sLineBreak
         + sLineBreak
         + LModelErrors.Text);
   finally
