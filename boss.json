@@ -6,6 +6,8 @@
 	"mainsrc": "./source",
 	"projects": [],
 	"dependencies": {
-		"https://github.com/lmbelo/vsoft.commandlineparser": "^v0.1.4"
+		"https://github.com/embarcadero/pythonenviroments": "^v0.0.1-alpha",
+		"https://github.com/lmbelo/vsoft.commandlineparser": "^v0.1.4",
+		"https://github.com/vsofttechnologies/dunitx": "^v0.3.1"
 	}
 }

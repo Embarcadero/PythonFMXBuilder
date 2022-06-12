@@ -2,10 +2,34 @@
 	"hash": "d41d8cd98f00b204e9800998ecf8427e",
 	"updated": "2022-06-06T13:35:21.1905607-07:00",
 	"installedModules": {
+		"https://github.com/embarcadero/python4delphi": {
+			"name": "python4delphi",
+			"version": "1.1",
+			"hash": "e3651527eab7f1eac8adac7917c6f5e1",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
+		"https://github.com/embarcadero/pythonenviroments": {
+			"name": "pythonenviroments",
+			"version": "v0.0.1-alpha",
+			"hash": "265ab3f33b5fd70f289ff7bfa2dd380e",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
 		"https://github.com/lmbelo/vsoft.commandlineparser": {
 			"name": "vsoft.commandlineparser",
 			"version": "v0.1.4",
 			"hash": "15969db09fa7ea87ce6837adc4ecda0a",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
+		"https://github.com/vsofttechnologies/dunitx": {
+			"name": "dunitx",
+			"version": "v0.3.1",
+			"hash": "593a85139d5454b09bd6ca3b03c20f27",
 			"artifacts": {},
 			"failed": false,
 			"changed": false

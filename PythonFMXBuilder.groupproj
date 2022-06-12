@@ -12,6 +12,12 @@
         <Projects Include="PythonFMXBuilderCLI.dproj">
             <Dependencies>packages\PythonFMXBuilder.dproj</Dependencies>
         </Projects>
+        <Projects Include="android\PyApp\PyApp.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PythonFMXBuilderCLITest.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +53,32 @@
     <Target Name="PythonFMXBuilderCLI:Make" DependsOnTargets="PythonFMXBuilder:Make">
         <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Make"/>
     </Target>
+    <Target Name="PyApp">
+        <MSBuild Projects="android\PyApp\PyApp.dproj"/>
+    </Target>
+    <Target Name="PyApp:Clean">
+        <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PyApp:Make">
+        <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PythonFMXBuilderCLITest">
+        <MSBuild Projects="PythonFMXBuilderCLITest.dproj"/>
+    </Target>
+    <Target Name="PythonFMXBuilderCLITest:Clean">
+        <MSBuild Projects="PythonFMXBuilderCLITest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PythonFMXBuilderCLITest:Make">
+        <MSBuild Projects="PythonFMXBuilderCLITest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderCLI"/>
+        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderCLI;PyApp;PythonFMXBuilderCLITest"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean"/>
+        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean;PyApp:Clean;PythonFMXBuilderCLITest:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make"/>
+        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make;PyApp:Make;PythonFMXBuilderCLITest:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
