@@ -278,9 +278,9 @@ begin
       else raise Exception.Create('Invalid Python version.');
 
     if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
-      if TProjectOptions.ArchitectureCommand.AsString() = '' then
+      if TProjectOptions.ArchitectureCommand.AsString() = 'arm32' then
         LProjectModel.Architecture := TArchitecture.arm
-      else if TProjectOptions.ArchitectureCommand.AsString() = '' then
+      else if TProjectOptions.ArchitectureCommand.AsString() = 'arm64' then
         LProjectModel.Architecture := TArchitecture.aarch64
       else
         raise Exception.Create('Invalid architecture.');
