@@ -16,10 +16,13 @@ begin
   try
     TCommandInterpreter.Interpret(TOptionsRegistry.Parse());
   except
-    on E: EAbort do begin
-      //
+    on E: ECliException do begin
+      Writeln(E.Message);
+      ExitCode := E.Code;
     end;
-    on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
+    on E: Exception do begin
+      Writeln(E.Message);
+      ExitCode := 1;
+    end;
   end;
 end.
