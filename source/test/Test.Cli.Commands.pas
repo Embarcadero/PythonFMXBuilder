@@ -76,36 +76,39 @@ procedure TTestCliCommands.TestHelp;
 begin
   var LOutput: string;
   var LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help build']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help create']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help deploy']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help device']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help environment']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help list']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   LExitCode := TExecCmdService.Cmd(GetCliExe(), ['help project']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 end;
 
 procedure TTestCliCommands.TestCreate;
 begin
   if not FProjectService.HasProject(TEST_APP) then begin
     var LOutput: string;
-    var LExitCode := TExecCmdService.Cmd(GetCliExe(), ['create --name ' + TEST_APP]).Run(LOutput).Wait();
-    Assert.AreEqual(LExitCode, 0);
+    var LExitCode := TExecCmdService.Cmd(GetCliExe(), [
+      'create',
+      '--name ',
+      TEST_APP]).Run(LOutput).Wait();
+    Assert.AreEqual(0, LExitCode);
 
     Assert.AreEqual(FProjectService.HasProject(TEST_APP), true);
   end;
@@ -115,14 +118,14 @@ procedure TTestCliCommands.TestList;
 begin
   var LOutput: string;
   var LExitCode := TExecCmdService.Cmd(GetCliExe(), ['list']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 end;
 
 procedure TTestCliCommands.TestDevice;
 begin
   var LOutput: string;
   var LExitCode := TExecCmdService.Cmd(GetCliExe(), ['device']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 end;
 
 procedure TTestCliCommands.TestEnvironment;
@@ -132,7 +135,7 @@ begin
   var LExitCode := TExecCmdService.Cmd(GetCliExe(), [
     'environment',
     '--sdk_base_path "' + SDK_BASE_PATH + '"']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   Assert.AreEqual(FEnvironmentStorage.LoadModel(LEnvironmentModel), true);
   Assert.AreEqual(LEnvironmentModel.SdkBasePath, SDK_BASE_PATH);
@@ -142,7 +145,7 @@ begin
   //  '--sdk_base_path "' + SDK_BASE_PATH + '"',
   //  '--jdk_base_path "' + JDK_BASE_PATH + '"',
   //  '-f']).Run(LOutput).Wait();
-  //Assert.AreEqual(LExitCode, 0);
+  //Assert.AreEqual(0, LExitCode);
 
   //Assert.AreEqual(FEnvironmentStorage.LoadModel(LEnvironmentModel), true);
 
@@ -152,7 +155,7 @@ begin
   //'--jdk_base_path "' + JDK_BASE_PATH + '"',
   //'-f',
   //'-o']).Run(LOutput).Wait();
-  //Assert.AreEqual(LExitCode, 0);
+  //Assert.AreEqual(0, LExitCode);
 
   //Assert.AreEqual(FEnvironmentStorage.LoadModel(LEnvironmentModel), true);
 end;
@@ -165,7 +168,7 @@ begin
       'create',
       '--name',
       TEST_APP]).Run(LOutput).Wait();
-    Assert.AreEqual(LExitCode, 0);
+    Assert.AreEqual(0, LExitCode);
     Assert.AreEqual(FProjectService.HasProject(TEST_APP), true);
   end;
 
@@ -176,7 +179,7 @@ begin
     'testcli',
     '--version_code 2',
     '--architecture arm64']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 
   var LProjectModel := FProjectService.LoadProject(TEST_APP);
   Assert.AreEqual(LProjectModel.VersionCode, 2);
@@ -193,7 +196,7 @@ begin
     '--jdk_base_path "' + JDK_BASE_PATH + '"',
     '-f',
     '-o']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
   Assert.AreEqual(FEnvironmentStorage.LoadModel(LEnvironmentModel), true);
 
   if not FProjectService.HasProject(TEST_APP) then begin
@@ -201,7 +204,7 @@ begin
       'create',
       '--name',
       TEST_APP]).Run(LOutput).Wait();
-    Assert.AreEqual(LExitCode, 0);
+    Assert.AreEqual(0, LExitCode);
     Assert.AreEqual(FProjectService.HasProject(TEST_APP), true);
   end;
 
@@ -209,7 +212,7 @@ begin
     'build',
     '--name',
     TEST_APP]).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 end;
 
 procedure TTestCliCommands.TestDeploy;
@@ -222,7 +225,7 @@ begin
     '--jdk_base_path "' + JDK_BASE_PATH + '"',
     '-f',
     '-o']).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
   Assert.AreEqual(FEnvironmentStorage.LoadModel(LEnvironmentModel), true);
 
   if not FProjectService.HasProject(TEST_APP) then begin
@@ -230,7 +233,7 @@ begin
       'create',
       '--name',
       TEST_APP]).Run(LOutput).Wait();
-    Assert.AreEqual(LExitCode, 0);
+    Assert.AreEqual(0, LExitCode);
     Assert.AreEqual(FProjectService.HasProject(TEST_APP), true);
   end;
 
@@ -238,7 +241,7 @@ begin
     'deploy',
     '--name',
     TEST_APP]).Run(LOutput).Wait();
-  Assert.AreEqual(LExitCode, 0);
+  Assert.AreEqual(0, LExitCode);
 end;
 
 initialization
