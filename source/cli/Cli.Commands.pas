@@ -124,7 +124,7 @@ begin
   LOption := LCmd.RegisterOption<string>(
     'device',
     'd',
-    'Select the target device.',
+    'Select the target device. Empty to auto detect.',
     procedure(const Value: string) begin
       TDeployOptions.DeviceCommand := Value;
     end);
@@ -195,7 +195,7 @@ begin
 
   var LOption := LCmd.RegisterOption<boolean>(
     'find',
-    '-f',
+    'f',
     'Automatically finds SDK and JDK locations based on its base paths.',
     procedure(const AValue: boolean) begin
       TEnvironmentOptions.FindCommand := AValue;
@@ -205,7 +205,7 @@ begin
 
   LOption := LCmd.RegisterOption<boolean>(
     'override',
-    '-o',
+    'o',
     'Overrides paths when using the find option.',
     procedure(const AValue: boolean) begin
       TEnvironmentOptions.OverrideCommand := AValue;
