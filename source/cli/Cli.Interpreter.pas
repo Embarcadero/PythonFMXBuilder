@@ -245,6 +245,18 @@ begin
         LEnvironmentModel.JarSignerLocation := TPathLocator.LoadToolPath(LEnvironmentModel.JdkBasePath, 'jarsigner.exe');
     end;
 
+    if TEnvironmentOptions.ShowCommand then begin
+      Writeln(Format('--sdk_base_path %s', [LEnvironmentModel.SdkBasePath]));
+      Writeln(Format('--apk_signer_location %s', [LEnvironmentModel.ApkSignerLocation]));
+      Writeln(Format('--adb_location %s', [LEnvironmentModel.AdbLocation]));
+      Writeln(Format('--apt_location %s', [LEnvironmentModel.AAptLocation]));
+      Writeln(Format('--sdk_api_location %s', [LEnvironmentModel.SdkApiLocation]));
+      Writeln(Format('--zip_align_location %s', [LEnvironmentModel.ZipAlignLocation]));
+      Writeln(Format('--jdk_base_path %s', [LEnvironmentModel.JdkBasePath]));
+      Writeln(Format('--key_tool_location %s', [LEnvironmentModel.KeyToolLocation]));
+      Writeln(Format('--jar_signer_location %s', [LEnvironmentModel.JarSignerLocation]));
+    end;
+
     LEnvironmentStorage.SaveModel(LEnvironmentModel);
   finally
     LEnvironmentModel.Free();
@@ -321,6 +333,43 @@ begin
 
     for var LFile in TProjectOptions.RemoveFile do begin
       LProjectService.RemoveScriptFile(LProjectModel, LFile);
+    end;
+
+    if TProjectOptions.ShowCommand then begin
+      Writeln(Format('--application_name %s', [LProjectModel.ApplicationName]));
+      Writeln(Format('--package_name %s', [LProjectModel.PackageName]));
+      Writeln(Format('--version_code %d', [LProjectModel.VersionCode]));
+      Writeln(Format('--version_name %s', [LProjectModel.VersionName]));
+
+      var LPythonVersion := String.Empty;
+      case LProjectModel.PythonVersion of
+        cp38: LPythonVersion := '3.8';
+        cp39: LPythonVersion := '3.9';
+        cp310: LPythonVersion := '3.10';
+      end;
+      Writeln(Format('--python_version %s', [LPythonVersion]));
+
+      var LArchitecture := String.Empty;
+      case LProjectModel.Architecture of
+        arm: LArchitecture := 'arm32';
+        aarch64: LArchitecture := 'arm64';
+      end;
+      Writeln(Format('--architecture %s', [LArchitecture]));
+
+      Writeln(Format('--drawable_small %s', [LProjectModel.Icons.DrawableSmall]));
+      Writeln(Format('--drawable_normal %s', [LProjectModel.Icons.DrawableNormal]));
+      Writeln(Format('--drawable_large %s', [LProjectModel.Icons.DrawableLarge]));
+      Writeln(Format('--drawable_xlarge %s', [LProjectModel.Icons.DrawableXlarge]));
+      Writeln(Format('--drawable_ldpi %s', [LProjectModel.Icons.DrawableLdpi]));
+      Writeln(Format('--drawable_mdpi %s', [LProjectModel.Icons.DrawableMdpi]));
+      Writeln(Format('--drawable_hdpi %s', [LProjectModel.Icons.DrawableHdpi]));
+      Writeln(Format('--drawable_xhdpi %s', [LProjectModel.Icons.DrawableXhdpi]));
+      Writeln(Format('--drawable_xxhdpi %s', [LProjectModel.Icons.DrawableXxhdpi]));
+      Writeln(Format('--drawable_xxxhdpi %s', [LProjectModel.Icons.DrawableXxxHdpi]));
+
+      for var LFile in LProjectModel.Files.Files do begin
+        Writeln(Format('--file %s', [LFile]));
+      end;
     end;
 
     LProjectService.SaveProject(LProjectModel);

@@ -51,6 +51,7 @@ type
     class var
       FindCommand: boolean;
       OverrideCommand: boolean;
+      ShowCommand: boolean;
       SdkBasePathCommand: TValue;
       ApkSignerLocationCommand: TValue;
       AdbLocationCommand: TValue;
@@ -66,6 +67,7 @@ type
   public
     class var
       SelectCommand: string;
+      ShowCommand: boolean;
       PackageNameCommand: TValue;
       VersionCodeCommand: TValue;
       VersionNameCommand: TValue;

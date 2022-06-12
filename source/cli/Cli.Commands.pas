@@ -213,6 +213,16 @@ begin
   LOption.Required := false;
   LOption.HasValue := false;
 
+  LOption := LCmd.RegisterOption<boolean>(
+    'show',
+    's',
+    'Show all fields.',
+    procedure(const AValue: boolean) begin
+      TEnvironmentOptions.ShowCommand := AValue;
+    end);
+  LOption.Required := false;
+  LOption.HasValue := false;
+
   //Fields
   LOption := LCmd.RegisterOption<string>(
     'sdk_base_path',
@@ -316,6 +326,16 @@ var LCmd := TOptionsRegistry.RegisterCommand(
       TProjectOptions.SelectCommand := AValue;
     end);
   LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<boolean>(
+    'show',
+    's',
+    'Show all fields.',
+    procedure(const AValue: boolean) begin
+      TProjectOptions.ShowCommand := AValue;
+    end);
+  LOption.Required := false;
+  LOption.HasValue := false;
 
   //Fields
   LOption := LCmd.RegisterOption<string>(
