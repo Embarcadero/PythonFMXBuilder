@@ -5,8 +5,8 @@ interface
 uses
   System.SysUtils, System.Types, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.Layouts, Container.Images, Services,
-  Model.Project, Form.SelectProject;
+  FMX.Controls.Presentation, FMX.Layouts, Container.Images, Builder.Services,
+  Builder.Model.Project, Form.SelectProject;
 
 type
   TProjectButtonsFrame = class(TFrame)
@@ -26,7 +26,7 @@ implementation
 
 uses
   FMX.DialogService, System.UITypes,
-  Services.Factory;
+  Builder.Services.Factory;
 
 {$R *.fmx}
 

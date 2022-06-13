@@ -19,8 +19,8 @@ uses
   System.SysUtils,
   VSoft.CommandLine.Options,
   Cli.Options,
-  Model, Model.Environment,
-  Storage.Default;
+  Builder.Model, Builder.Model.Environment,
+  Builder.Storage.Default;
 
 procedure ConfigureHelpOptions();
 begin

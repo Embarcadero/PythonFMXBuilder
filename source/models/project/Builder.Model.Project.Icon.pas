@@ -1,9 +1,9 @@
-unit Model.Project.Icon;
+unit Builder.Model.Project.Icon;
 
 interface
 
 uses
-  System.Classes, REST.Json.Types, Model;
+  System.Classes, REST.Json.Types, Builder.Model;
 
 type
   TProjectIconModel = class(TModel)

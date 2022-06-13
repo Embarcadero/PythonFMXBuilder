@@ -1,10 +1,10 @@
-unit Model.Project.Files;
+unit Builder.Model.Project.Files;
 
 interface
 
 uses
-  System.Classes, System.Generics.Collections, REST.Json.Types, Model,
-  System.SysUtils;
+  System.Classes, System.Generics.Collections, REST.Json.Types, System.SysUtils,
+  Builder.Model;
 
 type
   TProjectFilesModel = class(TModel)

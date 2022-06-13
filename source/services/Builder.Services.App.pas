@@ -1,9 +1,11 @@
-unit Services.App;
+unit Builder.Services.App;
 
 interface
 
 uses
-  Services, Architecture, PythonVersion, Model.Project, Model.Environment, 
+  Builder.Services,
+  Builder.Architecture, Builder.PythonVersion,
+  Builder.Model.Project, Builder.Model.Environment,
   System.Classes, System.IOUtils;
 
 type
@@ -49,7 +51,7 @@ type
 implementation
 
 uses
-  System.SysUtils, Services.Factory;
+  System.SysUtils, Builder.Services.Factory;
 
 const
   APPS_FOLDER = 'apps';

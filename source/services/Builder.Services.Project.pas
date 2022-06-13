@@ -1,9 +1,9 @@
-unit Services.Project;
+unit Builder.Services.Project;
 
 interface
 
 uses
-  Services, System.IOUtils, System.Classes, Model.Project, System.SysUtils,
+  Builder.Services, System.IOUtils, System.Classes, Builder.Model.Project, System.SysUtils,
   System.Generics.Collections;
 
 type
@@ -33,7 +33,7 @@ implementation
 
 uses
   Builder.Exception,
-  Storage.Default;
+  Builder.Storage.Default;
 
 { TProjectService }
 

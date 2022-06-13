@@ -4,9 +4,9 @@ interface
 
 uses
   DUnitX.TestFramework,
-  Storage, Storage.Default,
-  Services, Services.Factory,
-  Model.Environment;
+  Builder.Storage, Builder.Storage.Default,
+  Builder.Services, Builder.Services.Factory,
+  Builder.Model.Environment;
 
 type
   [TestFixture]
@@ -45,7 +45,7 @@ implementation
 uses
   System.IOUtils, System.SysUtils, System.StrUtils,
   PyTools.ExecCmd,
-  Architecture;
+  Builder.Architecture;
 
 const
   CLI_EXE = 'PythonFMXBuilderCLI.exe';

@@ -1,11 +1,11 @@
-unit Services;
+unit Builder.Services;
 
 interface
 
 uses
   System.Classes, System.IOUtils,
-  Architecture, PythonVersion,
-  Model.Project, Model.Environment;
+  Builder.Architecture, Builder.PythonVersion,
+  Builder.Model.Project, Builder.Model.Environment;
 
 type
   IServices = interface

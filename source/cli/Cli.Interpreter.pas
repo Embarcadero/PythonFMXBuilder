@@ -5,7 +5,8 @@ interface
 uses
   System.SysUtils, System.StrUtils, System.Classes,
   VSoft.CommandLine.Options,
-  Model, Model.Environment, Model.Project, PythonVersion, Architecture,
+  Builder.Model, Builder.Model.Environment, Builder.Model.Project,
+  Builder.PythonVersion, Builder.Architecture,
   System.Rtti;
 
 type
@@ -37,8 +38,8 @@ implementation
 
 uses
   Builder.Exception,
-  Services, Services.Factory,
-  Storage.Default,
+  Builder.Services, Builder.Services.Factory,
+  Builder.Storage.Default,
   Cli.Commands, Cli.Options, Cli.Exception;
 
 type

@@ -1,11 +1,11 @@
-unit Model.Project;
+unit Builder.Model.Project;
 
 interface
 
 uses
   System.Classes, REST.Json.Types,
-  Architecture, PythonVersion,
-  Model, Model.Project.Icon, Model.Project.Files;
+  Builder.Architecture, Builder.PythonVersion,
+  Builder.Model, Builder.Model.Project.Icon, Builder.Model.Project.Files;
 
 type
   PProjectModel = ^TProjectModel;

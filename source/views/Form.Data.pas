@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ImgList,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Edit, FMX.ListBox, FMX.Layouts,
-  FMX.Objects, System.Actions, FMX.ActnList, System.Rtti, FMX.Ani, Form.Base, Model;
+  FMX.Objects, System.Actions, FMX.ActnList, System.Rtti, FMX.Ani, Form.Base, Builder.Model;
 
 type
   TDataForm = class(TBaseForm)
@@ -69,7 +69,7 @@ var
 implementation
 
 uses
-  Container.Images, Storage, Storage.Default;
+  Container.Images, Builder.Storage, Builder.Storage.Default;
 
 {$R *.fmx}
 

@@ -1,9 +1,9 @@
-unit Model.Environment;
+unit Builder.Model.Environment;
 
 interface
 
 uses
-  System.SysUtils, System.Classes, REST.Json.Types, Model;
+  System.SysUtils, System.Classes, REST.Json.Types, Builder.Model;
 
 type
   [Model('environment')]
