@@ -6,6 +6,7 @@ const
   HELP_CMD         = 'help';
   CREATE_CMD       = 'create';
   LIST_CMD         = 'list';
+  REMOVE_CMD       = 'remove';
   BUILD_CMD        = 'build';
   DEPLOY_CMD       = 'deploy';
   DEVICE_CMD       = 'device';
@@ -68,6 +69,39 @@ begin
     'List all projects available in the data folder.',
     String.Empty,
     'list [options]');
+end;
+
+procedure ConfigureRemoveOptions();
+begin
+  var LCmd := TOptionsRegistry.RegisterCommand(
+    REMOVE_CMD,
+    String.Empty,
+    'Remove a project.',
+    String.Empty,
+    'remove [options]');
+
+  var LOption := LCmd.RegisterOption<string>(
+    'name',
+    String.Empty,
+    'Project name.',
+    procedure(const AValue: string) begin
+      TRemoveOptions.ProjectNameCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<boolean>(
+    'yes',
+    'y',
+    'Skip confirmation.',
+    procedure(const AValue: boolean) begin
+      TRemoveOptions.SkipConfirmationCommand := true;
+    end
+  );
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LCmd.Examples.Add('remove --name my_project');
+  LCmd.Examples.Add('remove --name my_project -y');
 end;
 
 procedure ConfigureBuildOptions();
@@ -512,6 +546,7 @@ begin
   ConfigureDeviceOptions();
   ConfigureCreateOptions();
   ConfigureListOptions();
+  ConfigureRemoveOptions();
   ConfigureBuildOptions();
   ConfigureDeployOptions();
   ConfigureEnvironment();

@@ -24,6 +24,13 @@ type
       ProjectNameCommand: string;
   end;
 
+  TRemoveOptions = class
+  public
+    class var
+      ProjectNameCommand: string;
+      SkipConfirmationCommand: boolean;
+  end;
+
   TBuildOptions = class
   public
     class var

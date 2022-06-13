@@ -19,6 +19,7 @@ type
     function LoadProject(const AApplicationName: string): TProjectModel;
     function ListProjects(): TArray<string>;
     function HasProject(const AApplicationName: string): boolean;
+    function RemoveProject(const AAplicationName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     function AddScriptFile(const AModel: TProjectModel;
@@ -31,6 +32,7 @@ type
 implementation
 
 uses
+  Builder.Exception,
   Storage.Default;
 
 { TProjectService }
@@ -100,7 +102,7 @@ begin
   Result := nil;
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   if not LStorage.LoadModel(Result, String.Empty, AApplicationName) then
-    raise Exception.CreateFmt('Project %s not found.', [AApplicationName]);
+    raise EProjectNotFound.CreateFmt('Project %s not found.', [AApplicationName]);
 end;
 
 function TProjectService.AddMainScriptFile(const AModel: TProjectModel): string;
@@ -161,6 +163,19 @@ begin
   //Should we copy this file to a local dir?
   AModel.Files.Files.Add(AFilePath);
   Result := true;
+end;
+
+function TProjectService.RemoveProject(const AAplicationName: string): boolean;
+begin
+  var LProjectModel := LoadProject(AAplicationName);
+  var LStorage := TDefaultStorage<TProjectModel>.Make();
+  Result := LStorage.DeleteModel(LProjectModel);
+
+  if not Result then
+    Exit;
+
+  var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ApplicationName);
+  TDirectory.Delete(LProjectFilesFolder, true);
 end;
 
 procedure TProjectService.RemoveScriptFile(const AModel: TProjectModel;

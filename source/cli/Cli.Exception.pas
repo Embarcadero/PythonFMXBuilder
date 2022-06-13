@@ -16,6 +16,11 @@ type
     property Code: integer read FCode write FCode;
   end;
 
+  ERemoveProjectFailure = class(ECliException)
+  public
+    constructor Create();
+  end;
+
   EBuildProcessFailed = class(ECliException)
   public
     constructor Create();
@@ -87,6 +92,7 @@ resourcestring
   E_STR_ENVIRONMENT_SETTINGS_INVALID_ARGS = 'The Environment Settings has invalid arguments: %s';
   E_STR_PROJECT_SETTINGS_EMPTY = 'The Project Settings are empty.';
   E_STR_PROJECT_SETTINGS_INVALID_ARGS = 'The Project Settings has invalid arguments: %s';
+  E_STR_REMOVE_PROJECT_FAILURE = 'Remove project failed.';
 
 const
   E_CODE_BUILD_PROCESS_FAILED = 101;
@@ -102,6 +108,7 @@ const
   E_CODE_ENVIRONMENT_SETTINGS_INVALID_ARGS = 111;
   E_CODE_PROJECT_SETTINGS_EMPTY = 113;
   E_CODE_PROJECT_SETTINGS_INVALID_ARGS = 114;
+  E_CODE_PROJECT_REMOVE_FAILURE = 115;
 
 implementation
 
@@ -195,6 +202,13 @@ end;
 constructor EProjectSettingsInvalidArgs.Create(const AArgs: string);
 begin
   inherited CreateFmt(E_STR_PROJECT_SETTINGS_INVALID_ARGS, E_CODE_PROJECT_SETTINGS_INVALID_ARGS, [AArgs]);
+end;
+
+{ EProjectRemoveFailure }
+
+constructor ERemoveProjectFailure.Create;
+begin
+  inherited Create(E_STR_REMOVE_PROJECT_FAILURE, E_CODE_PROJECT_REMOVE_FAILURE);
 end;
 
 end.

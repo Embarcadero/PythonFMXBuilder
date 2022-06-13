@@ -37,6 +37,7 @@ type
     function LoadProject(const AApplicationName: string): TProjectModel;
     function ListProjects(): TArray<string>;
     function HasProject(const AApplicationName: string): boolean;
+    function RemoveProject(const AAplicationName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     function AddScriptFile(const AModel: TProjectModel;

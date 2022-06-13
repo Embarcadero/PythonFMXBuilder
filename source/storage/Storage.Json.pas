@@ -28,11 +28,15 @@ type
       const AEntity: string = ''; const AId: string = ''): boolean; overload;
     function ListModels(const ATypeInfo: PTypeInfo;
       const AEntity: string = ''): TArray<TObject>; overload;
+    function DeleteModel(const ATypeInfo: PTypeInfo; AModel: TObject;
+      const AEntity: string = ''; const AId: string = ''): boolean; overload;
     //IStorageModel<Model> interface
     procedure SaveModel(const AModel: ModelType; const AEntity: string); overload;
     function LoadModel(var AModel: ModelType; const AEntity: string = '';
       const AId: string = ''): boolean; overload;
     function ListModels(const AEntity: string = ''): TArray<ModelType>; overload;
+    function DeleteModel(AModel: ModelType;
+      const AEntity: string = ''; const AId: string = ''): boolean; overload;
   end;
 
 implementation
@@ -198,6 +202,26 @@ end;
 procedure TJsonStorage<ModelType>.SaveModel(const AModel: ModelType; const AEntity: string);
 begin
   SaveModel(TypeInfo(ModelType), AModel, AEntity);
+end;
+
+function TJsonStorage<ModelType>.DeleteModel(const ATypeInfo: PTypeInfo;
+  AModel: TObject; const AEntity, AId: string): boolean;
+begin
+  var LEntity := MakeEntityName(AEntity, ATypeInfo);
+  var LEntityPath := GetModelPath(LEntity, GetModelId(LEntity, AModel));
+
+  if not TFile.Exists(LEntityPath) then
+    Exit(false);
+
+  TFile.Delete(LEntityPath);
+
+  Result := true;
+end;
+
+function TJsonStorage<ModelType>.DeleteModel(AModel: ModelType; const AEntity,
+  AId: string): boolean;
+begin
+  Result := DeleteModel(TypeInfo(ModelType), AModel, AEntity, AId);
 end;
 
 end.

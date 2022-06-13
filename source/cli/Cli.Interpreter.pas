@@ -14,6 +14,7 @@ type
     class procedure DoHelpCommand(const ACommand: string); static;
     class procedure DoCreateCommand(); static;
     class procedure DoListCommand(); static;
+    class procedure DoRemoveCommand(); static;
     class procedure DoBuildCommand(); static;
     class procedure DoDeployCommand(); static;
     class procedure DoDeviceCommand(); static;
@@ -35,6 +36,7 @@ type
 implementation
 
 uses
+  Builder.Exception,
   Services, Services.Factory,
   Storage.Default,
   Cli.Commands, Cli.Options, Cli.Exception;
@@ -53,6 +55,20 @@ begin
 end;
 
 { TCommandInterpreter }
+
+class function TCommandInterpreter.ExecuteAction(
+  const AVerbose: boolean; const AAction: TFunc<boolean>): boolean;
+begin
+  if AVerbose then begin
+    GlobalServices := TCliServices.Create();
+    try
+      Result := AAction();
+    finally
+      GlobalServices := nil;
+    end;
+  end else
+    Result := AAction();
+end;
 
 class procedure TCommandInterpreter.DoHelpCommand(const ACommand: string);
 begin
@@ -74,18 +90,29 @@ begin
   end;
 end;
 
-class function TCommandInterpreter.ExecuteAction(
-  const AVerbose: boolean; const AAction: TFunc<boolean>): boolean;
+class procedure TCommandInterpreter.DoRemoveCommand;
 begin
-  if AVerbose then begin
-    GlobalServices := TCliServices.Create();
+  var LService := TServiceSimpleFactory.CreateProject();
+  var LCanRemove := TRemoveOptions.SkipConfirmationCommand;
+
+  if not LCanRemove then begin
+    var Output: string;
+    WriteLn(Format('Do you want to remove the %s project and all its data?', [TRemoveOptions.ProjectNameCommand]));
+    ReadLn(Output);
+    LCanRemove := (Output = 'yes') or (Output = 'y');
+  end;
+
+  if LCanRemove then begin
     try
-      Result := AAction();
-    finally
-      GlobalServices := nil;
+      if not LService.RemoveProject(TRemoveOptions.ProjectNameCommand) then
+        raise ERemoveProjectFailure.Create();
+    except
+      on E: Builder.Exception.EProjectNotFound do
+        raise Cli.Exception.EProjectNotFound.Create(TRemoveOptions.ProjectNameCommand)
+      else
+        raise;
     end;
-  end else
-    Result := AAction();
+  end;
 end;
 
 class procedure TCommandInterpreter.DoBuildCommand;
@@ -266,7 +293,7 @@ class procedure TCommandInterpreter.DoProjectCommand;
 begin
   var LProjectService := TServiceSimpleFactory.CreateProject();
   if not LProjectService.HasProject(TProjectOptions.SelectCommand) then
-    raise EProjectNotFound.Create(TProjectOptions.SelectCommand);
+    raise Cli.Exception.EProjectNotFound.Create(TProjectOptions.SelectCommand);
 
   var LProjectModel := LProjectService.LoadProject(TProjectOptions.SelectCommand);
   try
@@ -381,8 +408,12 @@ class procedure TCommandInterpreter.Interpret(
   const AParsed: ICommandLineParseResult);
 const
   COMMANDS: array of string = [
-    String.Empty, HELP_CMD, CREATE_CMD, LIST_CMD, BUILD_CMD, DEPLOY_CMD,
-    DEVICE_CMD, ENVIRONMENT_CMD, PROJECT_CMD];
+    String.Empty,
+    HELP_CMD,
+    CREATE_CMD, LIST_CMD, REMOVE_CMD,
+    BUILD_CMD, DEPLOY_CMD,
+    DEVICE_CMD,
+    ENVIRONMENT_CMD, PROJECT_CMD];
 begin
   if AParsed.HasErrors then begin
     Writeln;
@@ -396,11 +427,12 @@ begin
     1: DoHelpCommand(AParsed.Command);
     2: DoCreateCommand();
     3: DoListCommand();
-    4: DoBuildCommand();
-    5: DoDeployCommand();
-    6: DoDeviceCommand();
-    7: DoEnvironmentCommand();
-    8: DoProjectCommand();
+    4: DoRemoveCommand();
+    5: DoBuildCommand();
+    6: DoDeployCommand();
+    7: DoDeviceCommand();
+    8: DoEnvironmentCommand();
+    9: DoProjectCommand();
   end;
 end;
 
