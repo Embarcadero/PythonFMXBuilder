@@ -12,10 +12,13 @@
         <Projects Include="PythonFMXBuilderCLI.dproj">
             <Dependencies>packages\PythonFMXBuilder.dproj</Dependencies>
         </Projects>
-        <Projects Include="android\PyApp\PyApp.dproj">
+        <Projects Include="PythonFMXBuilderEntityEditor.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="PythonFMXBuilderCLITest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="android\PyApp\PyApp.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -53,14 +56,14 @@
     <Target Name="PythonFMXBuilderCLI:Make" DependsOnTargets="PythonFMXBuilder:Make">
         <MSBuild Projects="PythonFMXBuilderCLI.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PyApp">
-        <MSBuild Projects="android\PyApp\PyApp.dproj"/>
+    <Target Name="PythonFMXBuilderEntityEditor">
+        <MSBuild Projects="PythonFMXBuilderEntityEditor.dproj"/>
     </Target>
-    <Target Name="PyApp:Clean">
-        <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Clean"/>
+    <Target Name="PythonFMXBuilderEntityEditor:Clean">
+        <MSBuild Projects="PythonFMXBuilderEntityEditor.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="PyApp:Make">
-        <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Make"/>
+    <Target Name="PythonFMXBuilderEntityEditor:Make">
+        <MSBuild Projects="PythonFMXBuilderEntityEditor.dproj" Targets="Make"/>
     </Target>
     <Target Name="PythonFMXBuilderCLITest">
         <MSBuild Projects="PythonFMXBuilderCLITest.dproj"/>
@@ -71,14 +74,23 @@
     <Target Name="PythonFMXBuilderCLITest:Make">
         <MSBuild Projects="PythonFMXBuilderCLITest.dproj" Targets="Make"/>
     </Target>
+    <Target Name="PyApp">
+        <MSBuild Projects="android\PyApp\PyApp.dproj"/>
+    </Target>
+    <Target Name="PyApp:Clean">
+        <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PyApp:Make">
+        <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderCLI;PyApp;PythonFMXBuilderCLITest"/>
+        <CallTarget Targets="PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderCLI;PythonFMXBuilderEntityEditor;PythonFMXBuilderCLITest;PyApp"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean;PyApp:Clean;PythonFMXBuilderCLITest:Clean"/>
+        <CallTarget Targets="PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderCLI:Clean;PythonFMXBuilderEntityEditor:Clean;PythonFMXBuilderCLITest:Clean;PyApp:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make;PyApp:Make;PythonFMXBuilderCLITest:Make"/>
+        <CallTarget Targets="PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderCLI:Make;PythonFMXBuilderEntityEditor:Make;PythonFMXBuilderCLITest:Make;PyApp:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
