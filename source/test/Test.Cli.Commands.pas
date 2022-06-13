@@ -29,6 +29,8 @@ type
     [Test]
     procedure TestList;
     [Test]
+    procedure TestRemove;
+    [Test]
     procedure TestDevice;
     [Test]
     procedure TestEnvironment;
@@ -172,7 +174,6 @@ begin
     Assert.AreEqual(FProjectService.HasProject(TEST_APP), true);
   end;
 
-  var LEnvironmentModel: TEnvironmentModel := nil;
   var LOutput: string;
   var LExitCode := TExecCmdService.Cmd(GetCliExe(), [
     'project',
@@ -184,6 +185,27 @@ begin
   var LProjectModel := FProjectService.LoadProject(TEST_APP);
   Assert.AreEqual(LProjectModel.VersionCode, 2);
   Assert.AreEqual(Ord(LProjectModel.Architecture), Ord(TArchitecture.aarch64));
+end;
+
+procedure TTestCliCommands.TestRemove;
+begin
+  var LOutput: string;
+  if not FProjectService.HasProject(TEST_APP) then begin
+    var LExitCode := TExecCmdService.Cmd(GetCliExe(), [
+      'create',
+      '--name',
+      TEST_APP]).Run(LOutput).Wait();
+    Assert.AreEqual(0, LExitCode);
+    Assert.AreEqual(FProjectService.HasProject(TEST_APP), true);
+  end;
+
+  var LExitCode := TExecCmdService.Cmd(GetCliExe(), [
+    'remove',
+    '--name',
+    TEST_APP,
+    '-y']).Run(LOutput).Wait();
+  Assert.AreEqual(0, LExitCode);
+  Assert.AreEqual(FProjectService.HasProject(TEST_APP), false);
 end;
 
 procedure TTestCliCommands.TestBuild;
