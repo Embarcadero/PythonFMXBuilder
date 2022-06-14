@@ -37,6 +37,7 @@ type
 implementation
 
 uses
+  PyTools.ExecCmd,
   Builder.Exception,
   Builder.Services, Builder.Services.Factory,
   Builder.Storage.Default,
@@ -209,6 +210,15 @@ end;
 
 class procedure TCommandInterpreter.DoEnvironmentCommand;
 begin
+  if TEnvironmentOptions.Gui then begin
+    var LOutput: string;
+    if TExecCmdService.Cmd(GetGUIEntityEditorPath(), ['environment'])
+      .Run(LOutput)
+        .Wait() <> 0 then
+          Writeln(LOutput);
+    Exit;
+  end;
+
   var LEnvironmentModel: TEnvironmentModel := nil;
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
 
@@ -292,6 +302,17 @@ end;
 
 class procedure TCommandInterpreter.DoProjectCommand;
 begin
+  if TProjectOptions.Gui then begin
+    var LOutput: string;
+    if TExecCmdService.Cmd(GetGUIEntityEditorPath(), [
+      'project',
+      '--name "' + TProjectOptions.SelectCommand + '"'])
+      .Run()
+        .Wait() <> 0 then
+          Writeln(LOutput);
+    Exit;
+  end;
+
   var LProjectService := TServiceSimpleFactory.CreateProject();
   if not LProjectService.HasProject(TProjectOptions.SelectCommand) then
     raise Cli.Exception.EProjectNotFound.Create(TProjectOptions.SelectCommand);

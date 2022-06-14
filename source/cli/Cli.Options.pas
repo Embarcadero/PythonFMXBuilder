@@ -58,6 +58,7 @@ type
     class var
       FindCommand: boolean;
       OverrideCommand: boolean;
+      Gui: boolean;
       ShowCommand: boolean;
       SdkBasePathCommand: TValue;
       ApkSignerLocationCommand: TValue;
@@ -75,6 +76,7 @@ type
     class var
       SelectCommand: string;
       ShowCommand: boolean;
+      Gui: boolean;
       PackageNameCommand: TValue;
       VersionCodeCommand: TValue;
       VersionNameCommand: TValue;
@@ -104,7 +106,20 @@ type
     class function HasChanged([ref] AValue: TValue): boolean;
   end;
 
+  function GetGUIEntityEditorPath(): string;
+
 implementation
+
+uses
+  System.IOUtils;
+
+const
+  GUI_ENTITY_EDITOR_APP = 'pythonfmxbuilderentityeditor.exe';
+
+function GetGUIEntityEditorPath(): string;
+begin
+  Result := TPath.Combine(TPath.GetDirectoryName(ParamStr(0)), GUI_ENTITY_EDITOR_APP);
+end;
 
 { TProjectOptions }
 

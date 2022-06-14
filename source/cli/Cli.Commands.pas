@@ -16,7 +16,7 @@ const
 implementation
 
 uses
-  System.SysUtils,
+  System.SysUtils, System.IOUtils,
   VSoft.CommandLine.Options,
   Cli.Options,
   Builder.Model, Builder.Model.Environment,
@@ -339,6 +339,20 @@ begin
     end);
   LOption.Required := false;
 
+  if TFile.Exists(GetGUIEntityEditorPath()) then begin
+    LOption := LCmd.RegisterOption<boolean>(
+      'gui',
+      String.Empty,
+      'Edit the environment settings using the GUI editor.',
+      procedure(const AValue: boolean) begin
+        TEnvironmentOptions.Gui := AValue;
+      end);
+    LOption.Required := false;
+    LOption.HasValue := false;
+
+    LCmd.Examples.Add('environment -gui');
+  end;
+
   LCmd.Examples.Add('environment --sdk_base_path "my_sdk_path" --jdk_base_path "my_jdk_path" -f');
   LCmd.Examples.Add('environment --sdk_base_path "my_sdk_path" --jdk_base_path "my_jdk_path" -f -o');
   LCmd.Examples.Add('environment --sdk_base_path "my_sdk_path" --jdk_base_path "my_jdk_path" --jar_signer_location "my_path" --zip_align_location "my_path"');
@@ -528,6 +542,20 @@ var LCmd := TOptionsRegistry.RegisterCommand(
     end);
   LOption.Required := false;
   LOption.AllowMultiple := true;
+
+  if TFile.Exists(GetGUIEntityEditorPath()) then begin
+    LOption := LCmd.RegisterOption<boolean>(
+      'gui',
+      String.Empty,
+      'Edit a project settings using the GUI editor.',
+      procedure(const AValue: boolean) begin
+        TProjectOptions.Gui := AValue;
+      end);
+    LOption.Required := false;
+    LOption.HasValue := false;
+
+    LCmd.Examples.Add('project my_project -gui');
+  end;
 
   LCmd.Examples.Add('project my_project --package_name com.embarcadero.my_app --version_name 1.0.0 --version_code 1');
   LCmd.Examples.Add('project my_project --package_name com.embarcadero.my_app --version_name 1.0.0 --python_version 3.9 --architecture arm64');
