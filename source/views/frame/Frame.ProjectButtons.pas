@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.Layouts, Container.Images, Builder.Services,
-  Builder.Model.Project, Form.SelectProject;
+  Builder.Model.Project, Form.SelectProject, Form.Project.Create;
 
 type
   TProjectButtonsFrame = class(TFrame)
@@ -34,19 +34,12 @@ uses
 
 procedure TProjectButtonsFrame.btnCreateClick(Sender: TObject);
 begin
-  TDialogService.InputQuery('Create a new project', ['Application name'], [''],
-    procedure(const AResult: TModalResult; const AValues: array of string)
-    begin
-      if (AResult = mrOk) then begin
-        if AValues[0].Trim().IsEmpty() then
-          raise Exception.Create('Project name can''t be blank.');
-        if GetProjectServices().HasProject(AValues[0]) then
-          raise Exception.Create('A project with the same name already exists.');
-        FProjectRef^ := GetProjectServices().CreateProject(AValues[0].Trim());
-        GetProjectServices().SaveProject(FProjectRef^);
-      end;
-    end
-  );
+  var LProjectName: string;
+  var LCreateMainFile: boolean;
+  if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
+    FProjectRef^ := GetProjectServices().CreateProject(LProjectName, LCreateMainFile);
+    GetProjectServices().SaveProject(FProjectRef^);
+  end;
 end;
 
 procedure TProjectButtonsFrame.btnOpenClick(Sender: TObject);

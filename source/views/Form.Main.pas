@@ -61,7 +61,7 @@ type
     procedure CheckSelectedDevice();
     procedure CheckLoadedProject();
     function LoadModels(const AValidate: boolean = true): boolean;
-    procedure LoadProjectFiles();
+    procedure LoadProject();
     function BuildApk(): boolean;
 
     procedure DoBuild();
@@ -222,12 +222,16 @@ end;
 procedure TMainForm.frmProjectButtonsbtnCreateClick(Sender: TObject);
 begin
   inherited;
-  FreeAndNil(FProjectModel);
-  frmProjectButtons.btnCreateClick(Sender);
+  var LBuff := FProjectModel;
+  try
+    frmProjectButtons.btnCreateClick(Sender);
+  finally
+    if (LBuff <> FProjectModel) then
+      FreeAndNil(LBuff);
+  end;
+
   if Assigned(FProjectModel) then
-    LoadProjectFiles();
-  frmScriptEditor.CloseAll();
-  frmScriptEditor.OpenEditor(frmProjectFiles.GetDefaultScriptFilePath());
+    LoadProject();
 end;
 
 procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
@@ -241,13 +245,8 @@ begin
       FreeAndNil(LBuff);
   end;
 
-  if Assigned(FProjectModel) then begin
-    LoadProjectFiles();
-    frmScriptEditor.CloseAll();
-    var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
-    if TFile.Exists(LMainScript) then
-      frmScriptEditor.OpenEditor(LMainScript);
-  end;
+  if Assigned(FProjectModel) then
+    LoadProject();
 end;
 
 procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
@@ -363,9 +362,13 @@ begin
   Result := true;
 end;
 
-procedure TMainForm.LoadProjectFiles;
+procedure TMainForm.LoadProject;
 begin
   frmProjectFiles.LoadProject(FProjectModel);
+  frmScriptEditor.CloseAll();
+  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
+  if TFile.Exists(LMainScript) then
+    frmScriptEditor.OpenEditor(LMainScript);
 end;
 
 procedure TMainForm.Log(const AString: string);
