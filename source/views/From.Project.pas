@@ -76,6 +76,10 @@ type
     sebDrawableNormal: TSearchEditButton;
     sebDrawableSmall: TSearchEditButton;
     odIcon: TOpenDialog;
+    cbMainFile: TComboBox;
+    lblMainFile: TLabel;
+    lbiSetMainFile: TListBoxItem;
+    lblInitScript: TListBoxGroupHeader;
     procedure sebDrawableClick(Sender: TObject);
   protected
     procedure FormUpdate(); override;
