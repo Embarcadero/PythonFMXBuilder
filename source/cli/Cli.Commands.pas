@@ -58,7 +58,19 @@ begin
     end);
   LOption.Required := true;
 
+  LOption := LCmd.RegisterOption<boolean>(
+    'main',
+    String.Empty,
+    'Add the main script file.',
+    procedure(const AValue: boolean) begin
+      TCreateOptions.AddMainScriptCommand := true;
+    end
+  );
+  LOption.Required := false;
+  LOption.HasValue := false;
+
   LCmd.Examples.Add('create --name my_project');
+  LCmd.Examples.Add('create --name my_project -main');
 end;
 
 procedure ConfigureListOptions();
@@ -360,7 +372,7 @@ end;
 
 procedure ConfigureProject();
 begin
-var LCmd := TOptionsRegistry.RegisterCommand(
+  var LCmd := TOptionsRegistry.RegisterCommand(
     PROJECT_CMD,
     String.Empty,
     'Configure the Project entity.',

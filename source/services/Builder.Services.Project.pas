@@ -22,6 +22,11 @@ type
     function RemoveProject(const AAplicationName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
+    procedure SetMainScriptFile(const AModel: TProjectModel;
+      const AFilePath: string);
+    function IsMainScriptFile(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+
     function AddScriptFile(const AModel: TProjectModel;
       const AFilePath: string): boolean;
     procedure RemoveScriptFile(const AModel: TProjectModel;
@@ -58,6 +63,12 @@ begin
   end;
 end;
 
+function TProjectService.IsMainScriptFile(const AModel: TProjectModel;
+  const AFilePath: string): boolean;
+begin
+  Result := TPath.GetFileName(AFilePath) = AModel.Files.MainFile;
+end;
+
 function TProjectService.TestProject(const AModel: TProjectModel): boolean;
 begin
   Result := HasProject(AModel.ApplicationName);
@@ -68,8 +79,9 @@ function TProjectService.CreateProject(const AApplicationName: string;
 begin
   Result := TProjectModel.Create(AApplicationName);
 
-  if AAddMainScript then
+  if AAddMainScript then begin
     AddMainScriptFile(Result);
+  end;
 end;
 
 function TProjectService.ListProjects: TArray<string>;
@@ -149,6 +161,8 @@ begin
 
   //Save the script file in the model files
   AddScriptFile(AModel, LMainScriptPath);
+  //Once we add the main file, we automatically set it as the main file
+  SetMainScriptFile(AModel, LMainScriptPath);
 end;
 
 function TProjectService.AddScriptFile(const AModel: TProjectModel;
@@ -182,12 +196,21 @@ procedure TProjectService.RemoveScriptFile(const AModel: TProjectModel;
   const AFilePath: string);
 begin
   AModel.Files.Files.Remove(AFilePath);
+  //If we remove the main file, then we update it to empty.
+  if (AModel.Files.MainFile = TPath.GetFileName(AFilePath)) then
+    AModel.Files.MainFile := String.Empty;
 end;
 
 procedure TProjectService.SaveProject(const AProject: TProjectModel);
 begin
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   LStorage.SaveModel(AProject);
+end;
+
+procedure TProjectService.SetMainScriptFile(const AModel: TProjectModel;
+  const AFilePath: string);
+begin
+  AModel.Files.MainFile := TPath.GetFileName(AFilePath);
 end;
 
 function TProjectService.GetScriptFiles(const AModel: TProjectModel): Tarray<string>;

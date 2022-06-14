@@ -80,7 +80,8 @@ end;
 class procedure TCommandInterpreter.DoCreateCommand;
 begin
   var LService := TServiceSimpleFactory.CreateProject();
-  var LProject := LService.CreateProject(TCreateOptions.ProjectNameCommand);
+  var LProject := LService.CreateProject(
+    TCreateOptions.ProjectNameCommand, TCreateOptions.AddMainScriptCommand);
   LService.SaveProject(LProject);
 end;
 
@@ -418,6 +419,9 @@ begin
       for var LFile in LProjectModel.Files.Files do begin
         Writeln(Format('--file %s', [LFile]));
       end;
+
+      if LProjectModel.Files.Files.Count = 0 then
+        Writeln('--file');
     end;
 
     LProjectService.SaveProject(LProjectModel);

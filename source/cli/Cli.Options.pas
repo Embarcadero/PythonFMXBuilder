@@ -16,6 +16,7 @@ type
   public
     class var
       ProjectNameCommand: string;
+      AddMainScriptCommand: boolean;
   end;
 
   TSelectOptions = class

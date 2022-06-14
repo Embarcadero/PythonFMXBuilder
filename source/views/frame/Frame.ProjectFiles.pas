@@ -21,10 +21,13 @@ type
     actAddFile: TAction;
     actRemoveFile: TAction;
     odtvProjectFiles: TOpenDialog;
+    miSetToMain: TMenuItem;
+    actSetToMain: TAction;
     procedure actAddFileExecute(Sender: TObject);
     procedure actRemoveFileExecute(Sender: TObject);
     procedure altvProjectFilesUpdate(Action: TBasicAction;
       var Handled: Boolean);
+    procedure actSetToMainExecute(Sender: TObject);
   private
     FProjectModel: TProjectModel;
     FFileExt: TArray<string>;
@@ -48,7 +51,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    procedure LaodProject(const AProjectModel: TProjectModel);
+    procedure LoadProject(const AProjectModel: TProjectModel);
     function GetDefaultScriptFilePath(): string;
     function GetItemFilePath(const AItem: TTreeViewItem): string;
 
@@ -239,6 +242,11 @@ begin
 
   actRemoveFile.Visible := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule);
+
+  actSetToMain.Visible := Assigned(tvProjectFiles.Selected)
+    and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
+    and not FProjectServices.IsMainScriptFile(FProjectModel,
+      GetItemFilePath(tvProjectFiles.Selected));
 end;
 
 procedure TProjectFilesFrame.actAddFileExecute(Sender: TObject);
@@ -279,6 +287,13 @@ begin
   SaveChanges();
 end;
 
+procedure TProjectFilesFrame.actSetToMainExecute(Sender: TObject);
+begin
+  FProjectServices.SetMainScriptFile(FProjectModel,
+    GetItemFilePath(tvProjectFiles.Selected));
+  SaveChanges();
+end;
+
 procedure TProjectFilesFrame.AddDirectoryModuleNodes(const ARoot: TTreeViewItem);
 begin
   if not Assigned(ARoot) then
@@ -292,7 +307,7 @@ begin
   end;
 end;
 
-procedure TProjectFilesFrame.LaodProject(const AProjectModel: TProjectModel);
+procedure TProjectFilesFrame.LoadProject(const AProjectModel: TProjectModel);
 begin
   FProjectModel := AProjectModel;
   tvProjectFiles.Clear();

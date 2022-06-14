@@ -40,6 +40,11 @@ type
     function RemoveProject(const AAplicationName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
+    procedure SetMainScriptFile(const AModel: TProjectModel;
+      const AFilePath: string);
+    function IsMainScriptFile(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+
     function AddScriptFile(const AModel: TProjectModel;
       const AFilePath: string): boolean;
     procedure RemoveScriptFile(const AModel: TProjectModel;
