@@ -8,6 +8,10 @@ uses
 type
   EProjectNotFound = class(Exception);
 
+  EInvalidArchitecture = class(Exception);
+
+  EInvalidPythonVersion = class(Exception);
+
 implementation
 
 end.
