@@ -233,14 +233,21 @@ end;
 procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
 begin
   inherited;
-  FreeAndNil(FProjectModel);
-  frmProjectButtons.btnOpenClick(Sender);
-  if Assigned(FProjectModel) then
+  var LBuff := FProjectModel;
+  try
+    frmProjectButtons.btnOpenClick(Sender);
+  finally
+    if (LBuff <> FProjectModel) then
+      FreeAndNil(LBuff);
+  end;
+
+  if Assigned(FProjectModel) then begin
     LoadProjectFiles();
-  frmScriptEditor.CloseAll();
-  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
-  if TFile.Exists(LMainScript) then
-    frmScriptEditor.OpenEditor(LMainScript);
+    frmScriptEditor.CloseAll();
+    var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
+    if TFile.Exists(LMainScript) then
+      frmScriptEditor.OpenEditor(LMainScript);
+  end;
 end;
 
 procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
@@ -275,6 +282,7 @@ begin
     LForm.Id := FProjectModel.Id;
     TFormSlider.ShowModal(Self, LForm);
     LoadModels(false);
+    frmProjectFiles.LoadProject(FProjectModel);
   finally
     LForm.Free();
   end;
@@ -314,14 +322,19 @@ end;
 function TMainForm.LoadModels(const AValidate: boolean): boolean;
 begin
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  FreeAndNil(FEnvironmentModel);
+  var LProjectStorage := TDefaultStorage<TProjectModel>.Make();
+
   if not LEnvironmentStorage.LoadModel(FEnvironmentModel) then
     if AValidate then
       raise Exception.Create('The Environment Settings are empty.')
     else
       Exit(false);
 
-  if not Assigned(FProjectModel) then
+  var LId := String.Empty;
+  if Assigned(FProjectModel) then
+    LId := FProjectModel.Id;
+
+  if not LProjectStorage.LoadModel(FProjectModel, String.Empty, LId) then
     if AValidate then
       raise Exception.Create('The Project Settings are empty.')
     else
@@ -352,7 +365,7 @@ end;
 
 procedure TMainForm.LoadProjectFiles;
 begin
-  frmProjectFiles.LaodProject(FProjectModel);
+  frmProjectFiles.LoadProject(FProjectModel);
 end;
 
 procedure TMainForm.Log(const AString: string);
