@@ -19,6 +19,7 @@ uses
   System.SysUtils, System.IOUtils,
   VSoft.CommandLine.Options,
   Cli.Options,
+  Builder.Architecture, Builder.PythonVersion,
   Builder.Model, Builder.Model.Environment,
   Builder.Storage.Default;
 
@@ -428,7 +429,10 @@ begin
   LOption := LCmd.RegisterOption<string>(
     'python_version',
     String.Empty,
-    'Python version (3.8, 3.9, 3.10).',
+    Format('Python version (%s, %s and %s).', [
+      TPythonVersion.cp38.AsString(),
+      TPythonVersion.cp39.AsString(),
+      TPythonVersion.cp310.AsString()]),
     procedure(const AValue: string) begin
       TProjectOptions.PythonVersionCommand := AValue;
     end);
@@ -437,7 +441,9 @@ begin
   LOption := LCmd.RegisterOption<string>(
     'architecture',
     String.Empty,
-    'Architecture (arm32 or arm64).',
+    Format('Architecture (%s or %s).', [
+      TArchitecture.arm.AsString(),
+      TArchitecture.aarch64.AsString]),
     procedure(const AValue: string) begin
       TProjectOptions.ArchitectureCommand := AValue;
     end);
@@ -536,11 +542,20 @@ begin
 
   //Files
   LOption := LCmd.RegisterOption<string>(
+    'main_file',
+    String.Empty,
+    'Set the project main file.',
+    procedure(const AValue: string) begin
+      TProjectOptions.MainFileCommand := AValue;
+    end);
+  LOption.Required := false;
+
+  LOption := LCmd.RegisterOption<string>(
     'add_file',
     String.Empty,
     'Add a file.',
     procedure(const AValue: string) begin
-      TProjectOptions.AddFile.Add(AValue);
+      TProjectOptions.AddFileCommand.Add(AValue);
     end);
   LOption.Required := false;
   LOption.AllowMultiple := true;
@@ -550,7 +565,7 @@ begin
     String.Empty,
     'Remove a file.',
     procedure(const AValue: string) begin
-      TProjectOptions.RemoveFile.Add(AValue);
+      TProjectOptions.RemoveFileCommand.Add(AValue);
     end);
   LOption.Required := false;
   LOption.AllowMultiple := true;
@@ -572,9 +587,10 @@ begin
   LCmd.Examples.Add('project my_project --package_name com.embarcadero.my_app --version_name 1.0.0 --version_code 1');
   LCmd.Examples.Add('project my_project --package_name com.embarcadero.my_app --version_name 1.0.0 --python_version 3.9 --architecture arm64');
   LCmd.Examples.Add('project my_project --package_name com.embarcadero.my_app --version_name 1.0.0 --drawable_small "my_icon_path"');
+  LCmd.Examples.Add('project my_project --main_file "main_file_path"');
   LCmd.Examples.Add('project my_project --add_file "file_path_1" --add_file "file_path_2"');
   LCmd.Examples.Add('project my_project --remove_file "file_path_1"');
-  LCmd.Examples.Add('project my_project --add_file "file_path_1" --add_file "file_path_2" --remove_file "file_path_3"');
+  LCmd.Examples.Add('project my_project --add_file "file_path_1" --add_file "file_path_3" --remove_file "file_path_2"');
 end;
 
 procedure ConfigureOptions();

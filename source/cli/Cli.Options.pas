@@ -95,8 +95,9 @@ type
       DrawableXxHDpiCommand: TValue;
       DrawableXxxHDpiCommand: TValue;
       //Files
-      AddFile: TList<string>;
-      RemoveFile: TList<string>;
+      MainFileCommand: TValue;
+      AddFileCommand: TList<string>;
+      RemoveFileCommand: TList<string>;
   public
     class constructor Create();
     class destructor Destroy();
@@ -126,14 +127,14 @@ end;
 
 class constructor TProjectOptions.Create;
 begin
-  AddFile := TList<string>.Create();
-  RemoveFile := TList<string>.Create();
+  AddFileCommand := TList<string>.Create();
+  RemoveFileCommand := TList<string>.Create();
 end;
 
 class destructor TProjectOptions.Destroy;
 begin
-  RemoveFile.Free();
-  AddFile.Free();
+  RemoveFileCommand.Free();
+  AddFileCommand.Free();
 end;
 
 { TEntityOptions }
