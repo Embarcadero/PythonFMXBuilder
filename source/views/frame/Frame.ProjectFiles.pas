@@ -6,7 +6,7 @@ uses
   System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Layouts, FMX.TreeView, System.Rtti, FMX.Menus, System.ImageList,
-  FMX.ImgList, Services, System.Actions, FMX.ActnList, Model.Project,
+  FMX.ImgList, Builder.Services, System.Actions, FMX.ActnList, Builder.Model.Project,
   Container.Images;
 
 type
@@ -59,7 +59,7 @@ type
 implementation
 
 uses
-  System.StrUtils, System.IOUtils, Services.Factory, System.SysUtils;
+  System.StrUtils, System.IOUtils, Builder.Services.Factory, System.SysUtils;
 
 type
   TProjectFilesTreeViewItem = class(FMX.TreeView.TTreeViewItem)
@@ -143,13 +143,13 @@ begin
     Exit(String.Empty);
 
   //We try to find the main script
-  for var LScriptFile in FProjectModel.Files.ScriptFiles do begin
+  for var LScriptFile in FProjectModel.Files.Files do begin
     if (TPath.GetFileName(LScriptFile) = 'main.py') and TFile.Exists(LScriptFile) then
       Exit(LScriptFile);
   end;
 
   //If we don't have a main script, we try to get the first existent script
-  for var LScriptFile in FProjectModel.Files.ScriptFiles do begin
+  for var LScriptFile in FProjectModel.Files.Files do begin
     if TFile.Exists(LScriptFile) then
       Exit(LScriptFile);
   end;

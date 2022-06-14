@@ -1,0 +1,56 @@
+package PythonFMXBuilder;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$LIBSUFFIX AUTO}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  RESTComponents;
+
+contains
+  Builder.Architecture in '..\source\Builder.Architecture.pas',
+  Builder.PythonVersion in '..\source\Builder.PythonVersion.pas',
+  Builder.Model.Environment in '..\source\models\Builder.Model.Environment.pas',
+  Builder.Model in '..\source\models\Builder.Model.pas',
+  Builder.Model.Project.Files in '..\source\models\project\Builder.Model.Project.Files.pas',
+  Builder.Model.Project.Icon in '..\source\models\project\Builder.Model.Project.Icon.pas',
+  Builder.Model.Project in '..\source\models\project\Builder.Model.Project.pas',
+  Builder.Services.ADB in '..\source\services\Builder.Services.ADB.pas',
+  Builder.Services.App in '..\source\services\Builder.Services.App.pas',
+  Builder.Services.Factory in '..\source\services\Builder.Services.Factory.pas',
+  Builder.Services in '..\source\services\Builder.Services.pas',
+  Builder.Services.Project in '..\source\services\Builder.Services.Project.pas',
+  Builder.Storage.Default in '..\source\storage\Builder.Storage.Default.pas',
+  Builder.Storage.Environment in '..\source\storage\Builder.Storage.Environment.pas',
+  Builder.Storage.Factory in '..\source\storage\Builder.Storage.Factory.pas',
+  Builder.Storage.Json in '..\source\storage\Builder.Storage.Json.pas',
+  Builder.Storage in '..\source\storage\Builder.Storage.pas',
+  Builder.Exception in '..\source\Builder.Exception.pas';
+
+end.

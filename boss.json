@@ -1,0 +1,13 @@
+{
+	"name": "PythonFMXBuilder",
+	"description": "An application builder for Python using DelphiFMX for Python for targeting Android. For use with DelphiFMX.",
+	"version": "1.0.0",
+	"homepage": "https://github.com/Embarcadero/PythonFMXBuilder",
+	"mainsrc": "./source",
+	"projects": [],
+	"dependencies": {
+		"https://github.com/embarcadero/pythonenviroments": "^v0.0.1-alpha",
+		"https://github.com/lmbelo/vsoft.commandlineparser": "^v0.1.4",
+		"https://github.com/vsofttechnologies/dunitx": "^v0.3.1"
+	}
+}

@@ -1,9 +1,9 @@
-unit Services.ADB.Win;
+unit Builder.Services.ADB.Win;
 
 interface
 
 uses
-  System.Classes, FMX.Forms;
+  System.Classes;
 
 procedure ExecCmdine(const CmdLine, ABaseDir: string; CmdResult: TStrings);
 
@@ -54,7 +54,6 @@ begin
     if CreateProcess(nil, PChar(LCmd), nil, nil, True, NORMAL_PRIORITY_CLASS, nil, LBaseDir, start, ProcessInfo) then begin
       repeat
         Apprunning := WaitForSingleObject(ProcessInfo.hProcess, 100);
-        Application.ProcessMessages;
       until (Apprunning <> WAIT_TIMEOUT);
 
       repeat

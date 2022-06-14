@@ -1,9 +1,9 @@
-unit Model.Environment;
+unit Builder.Model.Environment;
 
 interface
 
 uses
-  System.Classes, REST.Json.Types, Model;
+  System.SysUtils, System.Classes, REST.Json.Types, Builder.Model;
 
 type
   [Model('environment')]
@@ -43,10 +43,16 @@ type
     property JarSignerLocation: string read FJarSignerLocation write FJarSignerLocation;
   end;
 
+  TPathLocator = class
+  public
+    class function LoadToolPath(const ABasePath, ATool: string): string; static;
+    class function FindSdkApiLocation(const ABasePath: string): string; static;
+  end;
+
 implementation
 
 uses
-  System.SysUtils, System.IOUtils;
+  System.IOUtils;
 
 { TEnvironmentModel }
 
@@ -104,6 +110,42 @@ begin
     AErrors.Add('* JARSigner tool not found.');
 
   Result := (AErrors.Count = 0);
+end;
+
+{ TPathLocator }
+
+class function TPathLocator.FindSdkApiLocation(const ABasePath: string): string;
+begin
+  var LPlatforms := TPath.Combine(ABasePath, 'platforms');
+  var LFolders := TDirectory.GetDirectories(
+    LPlatforms, 'android-*', TSearchOption.soTopDirectoryOnly, nil);
+
+  Result := String.Empty;
+  if Length(LFolders) > 0 then begin
+    var LGreater := 0;
+    for var LFolder in LFolders do begin
+      var LAndroid :=
+        TPath.GetFileName(ExcludeTrailingPathDelimiter(LFolder))
+          .Replace('android-', String.Empty, []);
+
+      var LApi := 0;
+      if TryStrToInt(LAndroid, LApi) then
+        if (LApi > LGreater) then begin
+          LGreater := LApi;
+          Result := LFolder;
+        end;
+    end;
+  end;
+end;
+
+class function TPathLocator.LoadToolPath(const ABasePath,
+  ATool: string): string;
+begin
+  var LFiles := TDirectory.GetFiles(ABasePath, ATool, TSearchOption.soAllDirectories, nil);
+  if Length(LFiles) > 0 then
+    Result := LFiles[0]
+  else
+    Result := String.Empty;
 end;
 
 end.

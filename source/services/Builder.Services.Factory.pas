@@ -1,9 +1,9 @@
-unit Services.Factory;
+unit Builder.Services.Factory;
 
 interface
 
 uses
-  Services;
+  Builder.Services;
 
 type
   TServiceSimpleFactory = class
@@ -16,7 +16,7 @@ type
 implementation
 
 uses
-  Services.ADB, Services.Project, Services.App;
+  Builder.Services.ADB, Builder.Services.Project, Builder.Services.App;
 
 { TServiceSimpleFactory }
 

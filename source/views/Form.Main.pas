@@ -7,8 +7,8 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
-  FMX.Objects, Form.Base, Services, Storage.Factory, Storage.Default,
-  Model.Project, Model.Environment, Model, Frame.Loading, FMX.Menus,
+  FMX.Objects, Form.Base, Builder.Services, Builder.Storage.Factory, Builder.Storage.Default,
+  Builder.Model.Project, Builder.Model.Environment, Builder.Model, Frame.Loading, FMX.Menus,
   Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
   Frame.ScriptEditor, FMX.TreeView;
 
@@ -77,7 +77,7 @@ implementation
 
 uses
   System.IOUtils, System.Threading, FMX.DialogService,
-  Container.Images, Form.Factory, Form.Slider, Services.Factory, Services.ADB;
+  Container.Images, Form.Factory, Form.Slider, Builder.Services.Factory, Builder.Services.ADB;
 
 const
   CMD_DETAILS_REF_LINK =

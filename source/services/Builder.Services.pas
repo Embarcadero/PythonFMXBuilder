@@ -1,10 +1,11 @@
-unit Services;
+unit Builder.Services;
 
 interface
 
 uses
-  System.Classes, Architecture, PythonVersion, Model.Project,
-  Model.Environment, System.IOUtils;
+  System.Classes, System.IOUtils,
+  Builder.Architecture, Builder.PythonVersion,
+  Builder.Model.Project, Builder.Model.Environment;
 
 type
   IServices = interface
@@ -36,6 +37,7 @@ type
     function LoadProject(const AApplicationName: string): TProjectModel;
     function ListProjects(): TArray<string>;
     function HasProject(const AApplicationName: string): boolean;
+    function RemoveProject(const AAplicationName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     function AddScriptFile(const AModel: TProjectModel;

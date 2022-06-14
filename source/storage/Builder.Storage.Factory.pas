@@ -1,9 +1,9 @@
-unit Storage.Factory;
+unit Builder.Storage.Factory;
 
 interface
 
 uses
-  Storage;
+  Builder.Storage;
 
 type
   TStorageSimpleFactory = class
@@ -14,7 +14,7 @@ type
 implementation
 
 uses
-  Storage.Environment;
+  Builder.Storage.Environment;
 
 { TStorageSimpleFactory }
 

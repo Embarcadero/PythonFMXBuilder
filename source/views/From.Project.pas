@@ -8,7 +8,7 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.ListView, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Objects,
   FMX.Layouts, FMX.Edit, FMX.ListBox, FMX.ImgList, System.Actions,
-  FMX.ActnList, Form.Data, Model.Project, FMX.Ani;
+  FMX.ActnList, Form.Data, Builder.Model.Project, FMX.Ani;
 
 type
   [Entity(TProjectModel)]
@@ -88,7 +88,7 @@ var
 implementation
 
 uses
-  Container.Images, Architecture, PythonVersion;
+  Container.Images, Builder.Architecture, Builder.PythonVersion;
 
 {$R *.fmx}
 

@@ -1,9 +1,9 @@
-unit Model.Project.Icon;
+unit Builder.Model.Project.Icon;
 
 interface
 
 uses
-  System.Classes, REST.Json.Types, Model;
+  System.Classes, REST.Json.Types, Builder.Model;
 
 type
   TProjectIconModel = class(TModel)
@@ -22,7 +22,7 @@ type
     FDrawableMdpi: string;
     [JSONName('drawable_hdpi')]
     FDrawableHdpi: string;
-    [JSONName('drawable_xdpi')]
+    [JSONName('drawable_xhdpi')]
     FDrawableXhdpi: string;
     [JSONName('drawable_xxhdpi')]
     FDrawableXxhdpi: string;

@@ -1,10 +1,12 @@
-unit Services.App;
+unit Builder.Services.App;
 
 interface
 
 uses
-  Services, Architecture, PythonVersion, Model.Project, Model.Environment, 
-  System.Classes, FMX.ListView.Types, System.IOUtils;
+  Builder.Services,
+  Builder.Architecture, Builder.PythonVersion,
+  Builder.Model.Project, Builder.Model.Environment,
+  System.Classes, System.IOUtils;
 
 type
   TAppService = class(TInterfacedObject, IAppServices)
@@ -49,7 +51,7 @@ type
 implementation
 
 uses
-  System.SysUtils, Services.Factory;
+  System.SysUtils, Builder.Services.Factory;
 
 const
   APPS_FOLDER = 'apps';
@@ -421,7 +423,7 @@ end;
 
 procedure TAppService.CopyScriptFiles(const AModel: TProjectModel);
 begin
-  for var LScript in AModel.Files.ScriptFiles do begin
+  for var LScript in AModel.Files.Files do begin
     var LStream := TFileStream.Create(LScript, fmOpenRead);
     try
       AddScriptFile(AModel, TPath.GetFileName(LScript), LStream);
