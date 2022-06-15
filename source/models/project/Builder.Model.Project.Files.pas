@@ -11,6 +11,8 @@ type
   private
     [JSONName('files')]
     FFiles: TList<string>;
+    [JSONName('main_file')]
+    FMainFile: string;
   public
     constructor Create(); override;
     destructor Destroy(); override;
@@ -18,6 +20,7 @@ type
     function Validate(const AErrors: TStrings): boolean; override;
   public
     property Files: TList<string> read FFiles write FFiles;
+    property MainFile: string read FMainFile write FMainFile;
   end;
 
 implementation
@@ -42,16 +45,20 @@ end;
 function TProjectFilesModel.Validate(const AErrors: TStrings): boolean;
 begin
   Result := true;
-  var HasMainScript := false;
+  var LMainFileExists := false;
   for var LFile in FFiles do begin
-    if TPath.GetFileName(LFile).ToLower() = 'main.py' then
-      HasMainScript := true;
     if not TFile.Exists(LFile) then begin
       Result := false;
-      AErrors.Add(Format('* Script file %s not found.', [LFile]))
+      AErrors.Add(Format('* File %s not found.', [LFile]))
     end;
+    //Let's make sure the main file is part of the project files list
+    if not LMainFileExists and not MainFile.Trim().IsEmpty() then
+      LMainFileExists := (TPath.GetFileName(LFile) = MainFile);
   end;
-  if not HasMainScript then begin
+  if MainFile.Trim().IsEmpty() then begin
+    Result := false;
+    AErrors.Add('* Main script file is empty.');
+  end else if not LMainFileExists then begin
     Result := false;
     AErrors.Add('* Main script file not found.');
   end;

@@ -80,7 +80,8 @@ end;
 class procedure TCommandInterpreter.DoCreateCommand;
 begin
   var LService := TServiceSimpleFactory.CreateProject();
-  var LProject := LService.CreateProject(TCreateOptions.ProjectNameCommand);
+  var LProject := LService.CreateProject(
+    TCreateOptions.ProjectNameCommand, TCreateOptions.AddMainScriptCommand);
   LService.SaveProject(LProject);
 end;
 
@@ -329,21 +330,26 @@ begin
       LProjectModel.VersionName := TProjectOptions.VersionNameCommand.AsString();
 
     if TEntityOptionsHelper.HasChanged(TProjectOptions.PythonVersionCommand) then
-      if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
-        LProjectModel.PythonVersion := TPythonVersion.cp38
-      else if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
-        LProjectModel.PythonVersion := TPythonVersion.cp39
-      else if TProjectOptions.PythonVersionCommand.AsString() = '3.8' then
-        LProjectModel.PythonVersion := TPythonVersion.cp310
-      else raise EInvalidPythonVersion.Create();
+      try
+        LProjectModel.PythonVersion := TPythonVersion.FromString(
+          TProjectOptions.PythonVersionCommand.AsString());
+      except
+        on E: Builder.Exception.EInvalidPythonVersion do
+          raise Cli.Exception.EInvalidPythonVersion.Create()
+        else
+          raise;
+      end;
 
     if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
-      if TProjectOptions.ArchitectureCommand.AsString() = 'arm32' then
-        LProjectModel.Architecture := TArchitecture.arm
-      else if TProjectOptions.ArchitectureCommand.AsString() = 'arm64' then
-        LProjectModel.Architecture := TArchitecture.aarch64
-      else
-        raise EInvalidArchitecture.Create();
+      try
+        LProjectModel.Architecture := TArchitecture.FromString(
+          TProjectOptions.ArchitectureCommand.AsString());
+      except
+        on E: Builder.Exception.EInvalidArchitecture do
+          raise Cli.Exception.EInvalidArchitecture.Create()
+        else
+          raise;
+      end;
 
     if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableSmallCommand) then
       LProjectModel.Icons.DrawableSmall := TProjectOptions.DrawableSmallCommand.AsString();
@@ -375,34 +381,24 @@ begin
     if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxxHDpiCommand) then
       LProjectModel.Icons.DrawableXxxHdpi := TProjectOptions.DrawableXxxHDpiCommand.AsString();
 
-    for var LFile in TProjectOptions.AddFile do begin
+    for var LFile in TProjectOptions.AddFileCommand do begin
       LProjectService.AddScriptFile(LProjectModel, LFile);
     end;
 
-    for var LFile in TProjectOptions.RemoveFile do begin
+    for var LFile in TProjectOptions.RemoveFileCommand do begin
       LProjectService.RemoveScriptFile(LProjectModel, LFile);
     end;
+
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.MainFileCommand) then
+      LProjectService.SetMainScriptFile(LProjectModel, TProjectOptions.MainFileCommand.AsString());
 
     if TProjectOptions.ShowCommand then begin
       Writeln(Format('--application_name %s', [LProjectModel.ApplicationName]));
       Writeln(Format('--package_name %s', [LProjectModel.PackageName]));
       Writeln(Format('--version_code %d', [LProjectModel.VersionCode]));
       Writeln(Format('--version_name %s', [LProjectModel.VersionName]));
-
-      var LPythonVersion := String.Empty;
-      case LProjectModel.PythonVersion of
-        cp38: LPythonVersion := '3.8';
-        cp39: LPythonVersion := '3.9';
-        cp310: LPythonVersion := '3.10';
-      end;
-      Writeln(Format('--python_version %s', [LPythonVersion]));
-
-      var LArchitecture := String.Empty;
-      case LProjectModel.Architecture of
-        arm: LArchitecture := 'arm32';
-        aarch64: LArchitecture := 'arm64';
-      end;
-      Writeln(Format('--architecture %s', [LArchitecture]));
+      Writeln(Format('--python_version %s', [LProjectModel.PythonVersion.AsString()]));
+      Writeln(Format('--architecture %s', [LProjectModel.Architecture.AsString()]));
 
       Writeln(Format('--drawable_small %s', [LProjectModel.Icons.DrawableSmall]));
       Writeln(Format('--drawable_normal %s', [LProjectModel.Icons.DrawableNormal]));
@@ -418,6 +414,11 @@ begin
       for var LFile in LProjectModel.Files.Files do begin
         Writeln(Format('--file %s', [LFile]));
       end;
+
+      if LProjectModel.Files.Files.Count = 0 then
+        Writeln('--file');
+
+      Writeln(Format('--main_file %s', [LProjectModel.Files.MainFile]));
     end;
 
     LProjectService.SaveProject(LProjectModel);
@@ -482,14 +483,8 @@ begin
     WriteLn('Starting up the build process. It may take some time...');
     WriteLn;
     var LAppService := TServiceSimpleFactory.CreateApp();
-    //Copy Python and other APP files
-    LAppService.CopyAppFiles(AProject);
-    //Copy icons
-    LAppService.CopyIcons(AProject);
-    //Save aditional scripts to the APP files
-    LAppService.CopyScriptFiles(AProject);
-    //Update the manifest with the custom APP settings
-    LAppService.UpdateManifest(AProject);
+    //Generates the project necessary files and settings
+    LAppService.BuildProject(AProject);
     //Create and sign the APK file
     Result := LAppService.BuildApk(AProject, AEnvironment);
   end);

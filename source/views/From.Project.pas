@@ -76,6 +76,10 @@ type
     sebDrawableNormal: TSearchEditButton;
     sebDrawableSmall: TSearchEditButton;
     odIcon: TOpenDialog;
+    lbiSetMainFile: TListBoxItem;
+    lblInitScript: TListBoxGroupHeader;
+    cbMainFile: TComboBox;
+    lblMainFile: TLabel;
     procedure sebDrawableClick(Sender: TObject);
   protected
     procedure FormUpdate(); override;
@@ -88,7 +92,9 @@ var
 implementation
 
 uses
-  Container.Images, Builder.Architecture, Builder.PythonVersion;
+  System.IOUtils,
+  Container.Images,
+  Builder.Architecture, Builder.PythonVersion;
 
 {$R *.fmx}
 
@@ -106,6 +112,18 @@ begin
     edtVersionName.Text := VersionName;
     cbPythonVersion.ItemIndex := PY_VER[PythonVersion];
     cbArchitecture.ItemIndex := ARCH[Architecture];
+
+    with Files do begin
+      cbMainFile.Clear();
+      for var LFile in Files do begin
+        cbMainFile.Items.Add(TPath.GetFileName(LFile));
+      end;
+
+      if MainFile.IsEmpty() then
+        cbMainFile.ItemIndex := 0
+      else
+        cbMainFile.ItemIndex := cbMainFile.Items.IndexOf(MainFile);
+    end;
 
     with Icons do begin
       edtDrawableSmall.Text := DrawableSmall;
@@ -139,6 +157,11 @@ begin
     VersionName := edtVersionName.Text;
     PythonVersion := PY_VER[cbPythonVersion.ItemIndex];
     Architecture := ARCH[cbArchitecture.ItemIndex];
+
+    with Files do begin
+      if Assigned(cbMainFile.Selected) then
+        MainFile := cbMainFile.Selected.Text;
+    end;
 
     with Icons do begin
       DrawableSmall := edtDrawableSmall.Text;

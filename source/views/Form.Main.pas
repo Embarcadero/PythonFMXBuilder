@@ -61,7 +61,7 @@ type
     procedure CheckSelectedDevice();
     procedure CheckLoadedProject();
     function LoadModels(const AValidate: boolean = true): boolean;
-    procedure LoadProjectFiles();
+    procedure LoadProject();
     function BuildApk(): boolean;
 
     procedure DoBuild();
@@ -102,15 +102,9 @@ begin
   LoadModels(true);
 
   var LAppService := TServiceSimpleFactory.CreateApp();
-  //Copy Python and other APP files
-  LAppService.CopyAppFiles(FProjectModel);
-  //Copy icons
-  LAppService.CopyIcons(FProjectModel);
-  //Save aditional scripts to the APP files
-  LAppService.CopyScriptFiles(FProjectModel);
-  //Update the manifest with the custom APP settings
-  LAppService.UpdateManifest(FProjectModel);
-  //Create and sign the APK file
+  //Generates the project necessary files and settings
+  LAppService.BuildProject(FProjectModel);
+  //Creates and signs the APK file
   Result := LAppService.BuildApk(FProjectModel, FEnvironmentModel);
 end;
 
@@ -222,25 +216,31 @@ end;
 procedure TMainForm.frmProjectButtonsbtnCreateClick(Sender: TObject);
 begin
   inherited;
-  FreeAndNil(FProjectModel);
-  frmProjectButtons.btnCreateClick(Sender);
+  var LBuff := FProjectModel;
+  try
+    frmProjectButtons.btnCreateClick(Sender);
+  finally
+    if (LBuff <> FProjectModel) then
+      FreeAndNil(LBuff);
+  end;
+
   if Assigned(FProjectModel) then
-    LoadProjectFiles();
-  frmScriptEditor.CloseAll();
-  frmScriptEditor.OpenEditor(frmProjectFiles.GetDefaultScriptFilePath());
+    LoadProject();
 end;
 
 procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
 begin
   inherited;
-  FreeAndNil(FProjectModel);
-  frmProjectButtons.btnOpenClick(Sender);
+  var LBuff := FProjectModel;
+  try
+    frmProjectButtons.btnOpenClick(Sender);
+  finally
+    if (LBuff <> FProjectModel) then
+      FreeAndNil(LBuff);
+  end;
+
   if Assigned(FProjectModel) then
-    LoadProjectFiles();
-  frmScriptEditor.CloseAll();
-  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
-  if TFile.Exists(LMainScript) then
-    frmScriptEditor.OpenEditor(LMainScript);
+    LoadProject();
 end;
 
 procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
@@ -275,6 +275,7 @@ begin
     LForm.Id := FProjectModel.Id;
     TFormSlider.ShowModal(Self, LForm);
     LoadModels(false);
+    frmProjectFiles.LoadProject(FProjectModel);
   finally
     LForm.Free();
   end;
@@ -314,14 +315,19 @@ end;
 function TMainForm.LoadModels(const AValidate: boolean): boolean;
 begin
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  FreeAndNil(FEnvironmentModel);
+  var LProjectStorage := TDefaultStorage<TProjectModel>.Make();
+
   if not LEnvironmentStorage.LoadModel(FEnvironmentModel) then
     if AValidate then
       raise Exception.Create('The Environment Settings are empty.')
     else
       Exit(false);
 
-  if not Assigned(FProjectModel) then
+  var LId := String.Empty;
+  if Assigned(FProjectModel) then
+    LId := FProjectModel.Id;
+
+  if not LProjectStorage.LoadModel(FProjectModel, String.Empty, LId) then
     if AValidate then
       raise Exception.Create('The Project Settings are empty.')
     else
@@ -350,9 +356,13 @@ begin
   Result := true;
 end;
 
-procedure TMainForm.LoadProjectFiles;
+procedure TMainForm.LoadProject;
 begin
-  frmProjectFiles.LaodProject(FProjectModel);
+  frmProjectFiles.LoadProject(FProjectModel);
+  frmScriptEditor.CloseAll();
+  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
+  if TFile.Exists(LMainScript) then
+    frmScriptEditor.OpenEditor(LMainScript);
 end;
 
 procedure TMainForm.Log(const AString: string);

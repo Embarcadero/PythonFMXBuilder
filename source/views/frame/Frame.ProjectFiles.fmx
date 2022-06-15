@@ -30,6 +30,11 @@ object ProjectFilesFrame: TProjectFilesFrame
       Enabled = True
       ImageIndex = 14
     end
+    object miSetToMain: TMenuItem
+      Action = actSetToMain
+      Enabled = True
+      ImageIndex = -1
+    end
   end
   object odtvProjectFiles: TOpenDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
@@ -52,6 +57,10 @@ object ProjectFilesFrame: TProjectFilesFrame
       ImageIndex = 14
       OnExecute = actRemoveFileExecute
       ImageIndex = 14
+    end
+    object actSetToMain: TAction
+      Text = 'Set to main'
+      OnExecute = actSetToMainExecute
     end
   end
 end

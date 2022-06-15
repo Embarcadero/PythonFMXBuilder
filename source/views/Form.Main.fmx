@@ -3,6 +3,7 @@ inherited MainForm: TMainForm
   ClientHeight = 612
   ClientWidth = 719
   Position = ScreenCenter
+  WindowState = wsMaximized
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

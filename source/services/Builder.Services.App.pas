@@ -21,7 +21,7 @@ type
     function GetApkPath(const AAppName: string): string;
     function GetManifestPath(const AAppName: string): string;
     function GetAppPath(const AAppName: string): string;
-    function GetAppAssetsInternal(const AAppName: string): string;
+    function GetAppAssetsInternal(const AAppName: string; const AValidate: boolean = true): string;
     function GetAppDeployInfoFolder(const AAppName: string): string;
     procedure ClearDeployInfo(const AAppName: string);
     procedure AddAssetsInternalFileToDeployInfo(const AAppName: string; const AFileName: string);
@@ -29,6 +29,8 @@ type
   public
     procedure CopyAppFiles(const AModel: TProjectModel);
     procedure CopyIcons(const AModel: TProjectModel);
+    //App defs. file (used by the Android app)
+    procedure CreateAppDefs(const AModel: TProjectModel);
     //App script files
     procedure CopyScriptFiles(const AModel: TProjectModel);
     function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
@@ -38,6 +40,8 @@ type
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //App basic info
     procedure UpdateManifest(const AModel: TProjectModel);
+    //Project builder
+    procedure BuildProject(const AModel: TProjectModel);
     //App builder
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
@@ -51,7 +55,8 @@ type
 implementation
 
 uses
-  System.SysUtils, Builder.Services.Factory;
+  System.SysUtils, System.JSON,
+  Builder.Services.Factory;
 
 const
   APPS_FOLDER = 'apps';
@@ -66,11 +71,15 @@ begin
   Result := TPath.Combine(Result, ChangeFileExt(AAppName, '.apk'));
 end;
 
-function TAppService.GetAppAssetsInternal(const AAppName: string): string;
+function TAppService.GetAppAssetsInternal(const AAppName: string;
+  const AValidate: boolean): string;
 begin
   Result := GetAppPath(AAppName);
   Result := TPath.Combine(Result, 'assets');
   Result := TPath.Combine(Result, 'internal');
+
+  if AValidate and not TDirectory.Exists(Result) then
+    raise Exception.CreateFmt('Script folder not found at: %s', [Result]);
 end;
 
 function TAppService.GetAppDeployInfoFolder(const AAppName: string): string;
@@ -255,8 +264,6 @@ var
   LBytes: TBytes;
 begin
   var LScriptFolder := GetAppAssetsInternal(AModel.ApplicationName);
-  if not TDirectory.Exists(LScriptFolder) then
-    raise Exception.CreateFmt('Script folder not found at: %s', [LScriptFolder]);
 
   SetLength(LBytes, AStream.Size);
   AStream.Position := 0;
@@ -273,8 +280,6 @@ procedure TAppService.RemoveScriptFile(const AModel: TProjectModel;
   const AFilePath: string);
 begin
   var LScriptFolder := GetAppAssetsInternal(AModel.ApplicationName);
-  if not TDirectory.Exists(LScriptFolder) then
-    raise Exception.CreateFmt('Script folder not found at: %s', [LScriptFolder]);
   //Remove from the dataset file
   RemoveAssetsInternalFileToDeployInfo(AModel.ApplicationName, TPath.GetFileName(AFilePath));
   //Physically delete file
@@ -285,9 +290,6 @@ function TAppService.GetScriptFiles(
   const AModel: TProjectModel; const AFilter: TDirectory.TFilterPredicate): TArray<string>;
 begin
   var LScriptFolder := GetAppAssetsInternal(AModel.ApplicationName);
-  if not TDirectory.Exists(LScriptFolder) then
-    raise Exception.CreateFmt('Script folder not found at: %s', [LScriptFolder]);
-
   Result := TDirectory.GetFiles(LScriptFolder, '*', TSearchOption.soTopDirectoryOnly, AFilter);
 end;
 
@@ -302,6 +304,20 @@ begin
   finally
     LStrings.Free();
   end;
+end;
+
+procedure TAppService.BuildProject(const AModel: TProjectModel);
+begin
+  //Copy Python and other APP files
+  CopyAppFiles(AModel);
+  //Copy icons
+  CopyIcons(AModel);
+  //Save aditional scripts to the APP files
+  CopyScriptFiles(AModel);
+  //Update the manifest with the custom APP settings
+  UpdateManifest(AModel);
+  //Creates the app_defs file - it defines which file is the main script and more
+  CreateAppDefs(AModel);
 end;
 
 procedure TAppService.ClearDeployInfo(const AAppName: string);
@@ -431,6 +447,27 @@ begin
       LStream.Free();
     end;
   end;
+end;
+
+procedure TAppService.CreateAppDefs(const AModel: TProjectModel);
+const
+  APP_DEFS_FILE_NAME = 'app_defs.json';
+begin
+  var LScriptFolder := GetAppAssetsInternal(AModel.ApplicationName);
+  var LAppDefsFiles := TPath.Combine(LScriptFolder, APP_DEFS_FILE_NAME);
+
+  if not TFile.Exists(LAppDefsFiles) then
+    TFile.Create(LAppDefsFiles).Free();
+
+  var LJSON := TJSONObject.Create();
+  try
+    LJSON.AddPair('main_file', AModel.Files.MainFile);
+    TFile.WriteAllText(LAppDefsFiles, LJSON.ToJSON(), TEncoding.UTF8);
+  finally
+    LJSON.Free();
+  end;
+
+  AddAssetsInternalFileToDeployInfo(AModel.ApplicationName, APP_DEFS_FILE_NAME);
 end;
 
 end.

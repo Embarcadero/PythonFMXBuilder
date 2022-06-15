@@ -40,6 +40,11 @@ type
     function RemoveProject(const AAplicationName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
+    procedure SetMainScriptFile(const AModel: TProjectModel;
+      const AFilePath: string);
+    function IsMainScriptFile(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+
     function AddScriptFile(const AModel: TProjectModel;
       const AFilePath: string): boolean;
     procedure RemoveScriptFile(const AModel: TProjectModel;
@@ -53,6 +58,8 @@ type
     procedure CopyAppFiles(const AModel: TProjectModel);
     //Defines the app package name, version and etc.
     procedure UpdateManifest(const AModel: TProjectModel);
+    //App defs. file (used by the Android app)
+    procedure CreateAppDefs(const AModel: TProjectModel);
     //assets/internal dataset
     procedure CopyScriptFiles(const AModel: TProjectModel);
     function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
@@ -62,6 +69,7 @@ type
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //Send the user icons to the deployable folder
     procedure CopyIcons(const AModel: TProjectModel);
+    procedure BuildProject(const AModel: TProjectModel);
     //Generate the new APK
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
