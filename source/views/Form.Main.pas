@@ -102,15 +102,9 @@ begin
   LoadModels(true);
 
   var LAppService := TServiceSimpleFactory.CreateApp();
-  //Copy Python and other APP files
-  LAppService.CopyAppFiles(FProjectModel);
-  //Copy icons
-  LAppService.CopyIcons(FProjectModel);
-  //Save aditional scripts to the APP files
-  LAppService.CopyScriptFiles(FProjectModel);
-  //Update the manifest with the custom APP settings
-  LAppService.UpdateManifest(FProjectModel);
-  //Create and sign the APK file
+  //Generates the project necessary files and settings
+  LAppService.BuildProject(FProjectModel);
+  //Creates and signs the APK file
   Result := LAppService.BuildApk(FProjectModel, FEnvironmentModel);
 end;
 

@@ -483,14 +483,8 @@ begin
     WriteLn('Starting up the build process. It may take some time...');
     WriteLn;
     var LAppService := TServiceSimpleFactory.CreateApp();
-    //Copy Python and other APP files
-    LAppService.CopyAppFiles(AProject);
-    //Copy icons
-    LAppService.CopyIcons(AProject);
-    //Save aditional scripts to the APP files
-    LAppService.CopyScriptFiles(AProject);
-    //Update the manifest with the custom APP settings
-    LAppService.UpdateManifest(AProject);
+    //Generates the project necessary files and settings
+    LAppService.BuildProject(AProject);
     //Create and sign the APK file
     Result := LAppService.BuildApk(AProject, AEnvironment);
   end);
