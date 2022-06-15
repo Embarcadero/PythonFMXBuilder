@@ -37,7 +37,7 @@ uses
   FMX.Ani, FMX.StdCtrls, FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo,
   PythonEngine, FMX.PythonGUIInputOutput, System.Actions, FMX.ActnList,
   FMX.Objects, FMX.Layouts, FMX.Platform, AppEnvironment, ProgressFrame,
-  System.Threading, FMX.ListBox, WrapDelphi, WrapDelphiFMX;
+  System.Threading, System.JSON, FMX.ListBox, WrapDelphi, WrapDelphiFMX;
 
 type
   TPyMainForm = class(TForm)
@@ -121,10 +121,19 @@ end;
 
 function TPyMainForm.TryLoadingMainScript: boolean;
 begin
-  var LScript := TPath.Combine(TPath.GetDocumentsPath(), 'main.py');
-  Result := TFile.Exists(LScript);
-  if Result then
-    mmMainScript.Lines.LoadFromFile(LScript);
+  var LAppDefsFilePath := TPath.Combine(TPath.GetDocumentsPath(), 'app_defs.json');
+  if TFile.Exists(LAppDefsFilePath) then begin
+    var LAppDefs := TJSONValue.ParseJSONValue(TFile.ReadAllText(LAppDefsFilePath, TEncoding.UTF8)) as TJSONobject;
+    try
+      var LScript := TPath.Combine(TPath.GetDocumentsPath(), LAppDefs.GetValue<string>('main_file', ''));
+      Result := TFile.Exists(LScript);
+      if Result then
+        mmMainScript.Lines.LoadFromFile(LScript);
+    finally
+      LAppDefs.Free();
+    end;
+  end else
+    raise Exception.Create('Main script not found.');
 end;
 
 procedure TPyMainForm.actRunExecute(Sender: TObject);
