@@ -10,7 +10,7 @@ uses
   FMX.Objects, Form.Base, Builder.Services, Builder.Storage.Factory, Builder.Storage.Default,
   Builder.Model.Project, Builder.Model.Environment, Builder.Model, Frame.Loading, FMX.Menus,
   Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
-  Frame.ScriptEditor, FMX.TreeView;
+  Frame.ScriptEditor, FMX.TreeView, Frame.Device;
 
 type
   TMainForm = class(TBaseForm, IServices, ILogServices)
@@ -30,22 +30,18 @@ type
     lbiBuild: TListBoxItem;
     frmLoading: TLoadingFrame;
     loMain: TLayout;
-    loDevice: TLayout;
-    aiDevice: TAniIndicator;
-    cbDevice: TComboBox;
-    btnRefreshDevice: TSpeedButton;
-    loEditorHeader: TLayout;
     frmProjectFiles: TProjectFilesFrame;
     spProjectFIles: TSplitter;
     RoundRect1: TRoundRect;
     loProjectOptions: TLayout;
-    frmProjectButtons: TProjectButtonsFrame;
     frmScriptEditor: TScriptEditorFrame;
+    loEditorHeader: TLayout;
+    frmProjectButtons: TProjectButtonsFrame;
+    frmDevice: TDeviceFrame;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure btnRefreshDeviceClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbiDeployClick(Sender: TObject);
     procedure lbiBuildClick(Sender: TObject);
@@ -53,12 +49,11 @@ type
     procedure frmProjectButtonsbtnCreateClick(Sender: TObject);
     procedure frmProjectButtonsbtnOpenClick(Sender: TObject);
     procedure tviDblClick(Sender: TObject);
+    procedure loProjectOptionsResized(Sender: TObject);
   private
-    FDevices: TStrings;
+    FProjectServices: IProjectServices;
+
     FEnvironmentModel: TEnvironmentModel;
-    FProjectModel: TProjectModel;
-    procedure LoadDevices();
-    procedure CheckSelectedDevice();
     procedure CheckLoadedProject();
     function LoadModels(const AValidate: boolean = true): boolean;
     procedure LoadProject();
@@ -77,7 +72,8 @@ implementation
 
 uses
   System.IOUtils, System.Threading, FMX.DialogService,
-  Container.Images, Form.Factory, Form.Slider, Builder.Services.Factory, Builder.Services.ADB;
+  Container.Images, Form.Factory, Form.Slider,
+  Builder.Services.Factory, Builder.Services.ADB;
 
 const
   CMD_DETAILS_REF_LINK =
@@ -92,32 +88,20 @@ begin
   // We can add license details also
 end;
 
-procedure TMainForm.btnRefreshDeviceClick(Sender: TObject);
-begin
-  LoadDevices();
-end;
-
 function TMainForm.BuildApk: boolean;
 begin
   LoadModels(true);
-
   var LAppService := TServiceSimpleFactory.CreateApp();
   //Generates the project necessary files and settings
-  LAppService.BuildProject(FProjectModel);
+  LAppService.BuildProject(FProjectServices.GetActivetProject());
   //Creates and signs the APK file
-  Result := LAppService.BuildApk(FProjectModel, FEnvironmentModel);
+  Result := LAppService.BuildApk(FProjectServices.GetActivetProject(), FEnvironmentModel);
 end;
 
 procedure TMainForm.CheckLoadedProject;
 begin
-  if not Assigned(FProjectModel) then
+  if not Assigned(FProjectServices.GetActivetProject()) then
     raise Exception.Create('Open/Create a project before continue.');
-end;
-
-procedure TMainForm.CheckSelectedDevice;
-begin
-  if cbDevice.ItemIndex < 0 then
-    raise Exception.Create('Select a device.');
 end;
 
 procedure TMainForm.DoBuild;
@@ -151,7 +135,7 @@ end;
 
 procedure TMainForm.DoDeploy;
 begin
-  CheckSelectedDevice();
+  frmDevice.CheckSelectedDevice();
   mmLog.Lines.Clear();
   frmLoading.StartAni();
   TTask.Run(procedure begin
@@ -161,14 +145,20 @@ begin
         var LAppService := TServiceSimpleFactory.CreateApp();
         //Create and sign the APK file
         if BuildApk() then begin
-          //Install the APK on the device
-          LAppService.UnInstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]);
-          if LAppService.InstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]) then begin
+          var LProjectModel := FProjectServices.GetActivetProject();
+          //Installs the APK on the device
+          LAppService.UnInstallApk(LProjectModel, FEnvironmentModel,
+            frmDevice.GetSelectedDeviceName());
+
+          if LAppService.InstallApk(LProjectModel, FEnvironmentModel,
+            frmDevice.GetSelectedDeviceName()) then
+          begin
             var LAdbService := TServiceSimpleFactory.CreateAdb();
             var LResult := TStringList.Create();
             try
-              LAdbService.RunApp(FEnvironmentModel.AdbLocation, FProjectModel.PackageName,
-                FDevices.Names[cbDevice.ItemIndex], LResult);
+              LAdbService.RunApp(FEnvironmentModel.AdbLocation,
+                LProjectModel.PackageName,
+                frmDevice.GetSelectedDeviceName(), LResult);
             finally
               LResult.Free();
             end;
@@ -193,54 +183,35 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  FDevices := TStringList.Create();
   GlobalServices := Self;
-  frmProjectButtons.ProjectRef := @FProjectModel;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
   frmProjectFiles.OnScriptFileDblClick := tviDblClick;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   GlobalServices := nil;
-  FDevices.Free();
   FEnvironmentModel.Free();
-  FProjectModel.Free();
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-  LoadDevices();
+  frmDevice.LoadDevices();
   LoadModels(false);
 end;
 
 procedure TMainForm.frmProjectButtonsbtnCreateClick(Sender: TObject);
 begin
   inherited;
-  var LBuff := FProjectModel;
-  try
-    frmProjectButtons.btnCreateClick(Sender);
-  finally
-    if (LBuff <> FProjectModel) then
-      FreeAndNil(LBuff);
-  end;
-
-  if Assigned(FProjectModel) then
-    LoadProject();
+  frmProjectButtons.btnCreateClick(Sender);
+  LoadProject();
 end;
 
 procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
 begin
   inherited;
-  var LBuff := FProjectModel;
-  try
-    frmProjectButtons.btnOpenClick(Sender);
-  finally
-    if (LBuff <> FProjectModel) then
-      FreeAndNil(LBuff);
-  end;
-
-  if Assigned(FProjectModel) then
-    LoadProject();
+  frmProjectButtons.btnOpenClick(Sender);
+  LoadProject();
 end;
 
 procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
@@ -272,44 +243,13 @@ begin
   CheckLoadedProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
-    LForm.Id := FProjectModel.Id;
+    LForm.Id := FProjectServices.GetActivetProject().Id;
     TFormSlider.ShowModal(Self, LForm);
     LoadModels(false);
-    frmProjectFiles.LoadProject(FProjectModel);
+    frmProjectFiles.LoadProject(FProjectServices.GetActivetProject());
   finally
     LForm.Free();
   end;
-end;
-
-procedure TMainForm.LoadDevices;
-begin
-  FDevices.Clear();
-  cbDevice.Clear();
-  aiDevice.Enabled := true;
-  aiDevice.Visible := true;
-  btnRefreshDevice.Enabled := false;
-  TTask.Run(procedure begin
-    var LStorage := TStorageSimpleFactory.CreateEnvironment();
-    try
-      var LService := TServiceSimpleFactory.CreateAdb();
-      var LAdbPath := LStorage.GetAdbPath();
-
-      if not LAdbPath.IsEmpty() then
-        LService.ListDevices(LAdbPath, FDevices);
-    finally
-      TThread.Synchronize(nil, procedure begin
-        for var I := 0 to FDevices.Count - 1 do
-          cbDevice.Items.Add(FDevices.ValueFromIndex[I]);
-
-        if (cbDevice.Count > 0)  then
-          cbDevice.ItemIndex := 0;
-
-        aiDevice.Enabled := false;
-        aiDevice.Visible := false;
-        btnRefreshDevice.Enabled := true;
-      end);
-    end;
-  end);
 end;
 
 function TMainForm.LoadModels(const AValidate: boolean): boolean;
@@ -323,11 +263,12 @@ begin
     else
       Exit(false);
 
+  var LProjectModel := FProjectServices.GetActivetProject();
   var LId := String.Empty;
-  if Assigned(FProjectModel) then
-    LId := FProjectModel.Id;
+  if Assigned(LProjectModel) then
+    LId := LProjectModel.Id;
 
-  if not LProjectStorage.LoadModel(FProjectModel, String.Empty, LId) then
+  if not LProjectStorage.LoadModel(LProjectModel, String.Empty, LId) then
     if AValidate then
       raise Exception.Create('The Project Settings are empty.')
     else
@@ -344,7 +285,7 @@ begin
         + sLineBreak
         + LModelErrors.Text);
 
-    if not FProjectModel.Validate(LModelErrors) then
+    if not LProjectModel.Validate(LModelErrors) then
       raise EModelValidationError.Create('The Project Settings has invalid arguments:'
         + sLineBreak
         + sLineBreak
@@ -358,7 +299,11 @@ end;
 
 procedure TMainForm.LoadProject;
 begin
-  frmProjectFiles.LoadProject(FProjectModel);
+  var LProjectModel := FProjectServices.GetActivetProject();
+  if not Assigned(LProjectModel) then
+    Exit;
+
+  frmProjectFiles.LoadProject(LProjectModel);
   frmScriptEditor.CloseAll();
   var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
   if TFile.Exists(LMainScript) then
@@ -377,6 +322,13 @@ begin
     mmLog.GoToTextEnd();
     mmLog.GoToLineBegin();
   end);
+end;
+
+procedure TMainForm.loProjectOptionsResized(Sender: TObject);
+begin
+  inherited;
+  if loProjectOptions.Width < 276 then
+    loProjectOptions.Width := 276;
 end;
 
 procedure TMainForm.tviDblClick(Sender: TObject);
