@@ -22,7 +22,7 @@ type
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
 
-    function BuildApk(const AAppBasePath, AAppName: string;
+    function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
   end;
 
@@ -38,30 +38,30 @@ uses
 
 { TADBService }
 
-function TADBService.BuildApk(const AAppBasePath, AAppName: string;
+function TADBService.BuildApk(const AAppBasePath, AProjectName: string;
   const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
 const
   CMD_1 = '"$AAPT" package -f -m -J . -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
 
-  CMD_2 = '"$AAPT" package -f -m -F bin\$APPNAME.unaligned.apk -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
+  CMD_2 = '"$AAPT" package -f -m -F bin\$PROJNAME.unaligned.apk -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
 
   CMD_3 = 'xcopy "$APPBASEPATH\classes\classes.dex" "$APPBASEPATH\bin\" /y';
 
-  CMD_4 = '"$AAPT" add $APPNAME.unaligned.apk classes.dex';
+  CMD_4 = '"$AAPT" add $PROJNAME.unaligned.apk classes.dex';
 
   CMD_5 = 'xcopy "$APPBASEPATH\assets" "$APPBASEPATH\bin\assets" /y /E /H /C /I';
 
-  CMD_6 = '"$AAPT" add $APPNAME.unaligned.apk $FILE';
+  CMD_6 = '"$AAPT" add $PROJNAME.unaligned.apk $FILE';
 
   CMD_7 = 'xcopy "$APPBASEPATH\library\lib" "$APPBASEPATH\bin\lib" /y /E /H /C /I';
 
-  CMD_8 = '"$AAPT" add $APPNAME.unaligned.apk $FILE';
+  CMD_8 = '"$AAPT" add $PROJNAME.unaligned.apk $FILE';
 
-  CMD_9 = '"$JARSIGNER" -keystore cert\PyApp.keystore -storepass delphirocks bin\$APPNAME.unaligned.apk PyApp';
+  CMD_9 = '"$JARSIGNER" -keystore cert\PyApp.keystore -storepass delphirocks bin\$PROJNAME.unaligned.apk PyApp';
 
-  CMD_10 = '"$ZIPALIGN" -f 4 bin\$APPNAME.unaligned.apk bin\$APPNAME.apk';
+  CMD_10 = '"$ZIPALIGN" -f 4 bin\$PROJNAME.unaligned.apk bin\$PROJNAME.apk';
 
-  CMD_11 = '"$APKSIGNER" sign --ks-key-alias PyApp --ks cert\PyApp.keystore --ks-pass pass:delphirocks --key-pass pass:delphirocks bin\$APPNAME.apk';
+  CMD_11 = '"$APKSIGNER" sign --ks-key-alias PyApp --ks cert\PyApp.keystore --ks-pass pass:delphirocks --key-pass pass:delphirocks bin\$PROJNAME.apk';
 begin
   var LAppBinPath := TPath.Combine(AAppBasePath, 'bin');
   if not TDirectory.Exists(LAppBinPath) then
@@ -69,14 +69,14 @@ begin
 
   var LCmd := CMD_1
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-    .Replace('$APPNAME', AAppName)
+    .Replace('$PROJNAME', AProjectName)
     .Replace('$ANDROIDJAR', TPath.Combine(AEnvironmentModel.SdkApiLocation, 'android.jar'));
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
   LCmd := CMD_2
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-    .Replace('$APPNAME', AAppName)
+    .Replace('$PROJNAME', AProjectName)
     .Replace('$ANDROIDJAR', TPath.Combine(AEnvironmentModel.SdkApiLocation, 'android.jar'));
 
   ExecCmd(LCmd, AAppBasePath, AResult);
@@ -88,7 +88,7 @@ begin
 
   LCmd := CMD_4
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, LAppBinPath, AResult);
 
@@ -101,7 +101,7 @@ begin
     procedure(AFile: string) begin
       LCmd := CMD_6
         .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-        .Replace('$APPNAME', AAppName)
+        .Replace('$PROJNAME', AProjectName)
         .Replace('$FILE', AFile);
 
       ExecCmd(LCmd, LAppBinPath, AResult);
@@ -116,7 +116,7 @@ begin
     procedure(AFile: string) begin
       LCmd := CMD_8
         .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-        .Replace('$APPNAME', AAppName)
+        .Replace('$PROJNAME', AProjectName)
         .Replace('$FILE', AFile);
 
       ExecCmd(LCmd, LAppBinPath, AResult);
@@ -124,13 +124,13 @@ begin
 
   LCmd := CMD_9
     .Replace('$JARSIGNER', AEnvironmentModel.JarSignerLocation)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
   LCmd := CMD_10
     .Replace('$ZIPALIGN', AEnvironmentModel.ZipAlignLocation)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
@@ -140,11 +140,11 @@ begin
 
   LCmd := CMD_11
     .Replace('$APKSIGNER', LApkSignerBatPath)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
-  var LApkPath := TPath.Combine(LAppBinPath, ChangeFileExt(AAppName, '.apk'));
+  var LApkPath := TPath.Combine(LAppBinPath, ChangeFileExt(AProjectName, '.apk'));
   Result := TFile.Exists(LApkPath)
     and not AResult.Text.Contains('Failure');
 end;

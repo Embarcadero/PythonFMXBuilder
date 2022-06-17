@@ -231,7 +231,7 @@ function TProjectFilesFrame.AddProjectNode: TTreeViewItem;
 begin
   Result := BuildNode(tvProjectFiles, ntProject);
   Result.Text := ExtractFileName(
-    ExcludeTrailingPathDelimiter(FProjectModel.ApplicationName));
+    ExcludeTrailingPathDelimiter(FProjectModel.ProjectName));
 end;
 
 procedure TProjectFilesFrame.altvProjectFilesUpdate(Action: TBasicAction;

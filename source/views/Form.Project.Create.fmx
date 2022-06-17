@@ -2,7 +2,7 @@ object ProjectCreateForm: TProjectCreateForm
   Left = 0
   Top = 0
   Caption = 'Create a new project'
-  ClientHeight = 225
+  ClientHeight = 221
   ClientWidth = 600
   Position = MainFormCenter
   FormFactor.Width = 320
@@ -24,13 +24,13 @@ object ProjectCreateForm: TProjectCreateForm
   object loBody: TLayout
     Align = Client
     Size.Width = 600.000000000000000000
-    Size.Height = 125.000000000000000000
+    Size.Height = 121.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object lbProject: TListBox
       Align = Client
       Size.Width = 600.000000000000000000
-      Size.Height = 125.000000000000000000
+      Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       DisableFocusEffect = True
@@ -38,8 +38,8 @@ object ProjectCreateForm: TProjectCreateForm
       DefaultItemStyles.GroupHeaderStyle = ''
       DefaultItemStyles.GroupFooterStyle = ''
       Viewport.Width = 596.000000000000000000
-      Viewport.Height = 121.000000000000000000
-      object ListBoxGroupHeader5: TListBoxGroupHeader
+      Viewport.Height = 117.000000000000000000
+      object lbghProjectName: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         StyledSettings = [Family, Other]
@@ -48,15 +48,15 @@ object ProjectCreateForm: TProjectCreateForm
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
         TabOrder = 2
-        Text = 'Application Name:'
+        Text = 'Project Name:'
       end
-      object ListBoxItem6: TListBoxItem
+      object lbiProjectName: TListBoxItem
         Position.Y = 24.000000000000000000
         Size.Width = 596.000000000000000000
         Size.Height = 38.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        object edtAppName: TEdit
+        object edtProjectName: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
           StyleLookup = 'editstyle'
@@ -70,9 +70,10 @@ object ProjectCreateForm: TProjectCreateForm
           Size.PlatformDefault = False
           TextPrompt = 'PyApp'
           OnChange = edtAppNameChange
+          OnKeyUp = edtProjectNameKeyUp
         end
       end
-      object ListBoxGroupHeader1: TListBoxGroupHeader
+      object lbghApplicationOptions: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         StyledSettings = [Family, Other]
@@ -102,7 +103,7 @@ object ProjectCreateForm: TProjectCreateForm
           Size.Width = 586.000000000000000000
           Size.Height = 19.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 54
+          TabOrder = 59
           Text = 'Create Main File'
         end
       end
@@ -110,7 +111,7 @@ object ProjectCreateForm: TProjectCreateForm
   end
   object loFooter: TLayout
     Align = Bottom
-    Position.Y = 175.000000000000000000
+    Position.Y = 171.000000000000000000
     Size.Width = 600.000000000000000000
     Size.Height = 50.000000000000000000
     Size.PlatformDefault = False

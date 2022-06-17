@@ -13,10 +13,7 @@ type
     lnHeaderSeparator: TLine;
     loBody: TLayout;
     lbProject: TListBox;
-    ListBoxGroupHeader5: TListBoxGroupHeader;
-    ListBoxItem6: TListBoxItem;
-    edtAppName: TEdit;
-    ListBoxGroupHeader1: TListBoxGroupHeader;
+    lbghApplicationOptions: TListBoxGroupHeader;
     lbiCreateMainFile: TListBoxItem;
     loFooter: TLayout;
     loRightActions: TLayout;
@@ -26,11 +23,16 @@ type
     lblProject: TLabel;
     imgHeader: TGlyph;
     cbCreateMainFile: TCheckBox;
+    lbghProjectName: TListBoxGroupHeader;
+    lbiProjectName: TListBoxItem;
+    edtProjectName: TEdit;
     procedure FormConstrainedResize(Sender: TObject; var MinWidth, MinHeight,
       MaxWidth, MaxHeight: Single);
     procedure btnSaveClick(Sender: TObject);
     procedure edtAppNameChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure edtProjectNameKeyUp(Sender: TObject; var Key: Word;
+      var KeyChar: Char; Shift: TShiftState);
   private
     FProjectServices: IProjectServices;
   public
@@ -49,9 +51,9 @@ uses
 
 procedure TProjectCreateForm.btnSaveClick(Sender: TObject);
 begin
-  if edtAppName.Text.IsEmpty() then
+  if edtProjectName.Text.IsEmpty() then
     raise Exception.Create('Project name can''t be empty.');
-  if FProjectServices.HasProject(edtAppName.Text) then
+  if FProjectServices.HasProject(edtProjectName.Text) then
     raise Exception.Create('A project with the same name already exists.');
 
   ModalResult := mrOk;
@@ -64,7 +66,7 @@ begin
   try
     Result := LForm.ShowModal() = mrOk;
     if Result then begin
-      AProjectName := LForm.edtAppName.Text;
+      AProjectName := LForm.edtProjectName.Text;
       ACreateMainScript := LForm.cbCreateMainFile.IsChecked;
     end;
   finally
@@ -75,6 +77,13 @@ end;
 procedure TProjectCreateForm.edtAppNameChange(Sender: TObject);
 begin
   TEdit(Sender).Text := TEdit(Sender).Text.Trim();
+end;
+
+procedure TProjectCreateForm.edtProjectNameKeyUp(Sender: TObject; var Key: Word;
+  var KeyChar: Char; Shift: TShiftState);
+begin
+  if KeyChar = ' ' then
+    KeyChar := #0;
 end;
 
 procedure TProjectCreateForm.FormConstrainedResize(Sender: TObject;

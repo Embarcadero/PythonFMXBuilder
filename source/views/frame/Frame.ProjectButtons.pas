@@ -12,6 +12,7 @@ type
   TProjectButtonsFrame = class(TFrame)
     btnCreate: TButton;
     btnOpen: TButton;
+    btnOptions: TButton;
     procedure btnCreateClick(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
   private
@@ -37,7 +38,8 @@ begin
   var LProjectName: string;
   var LCreateMainFile: boolean;
   if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
-    FProjectRef^ := GetProjectServices().CreateProject(LProjectName, LCreateMainFile);
+    FProjectRef^ := GetProjectServices().CreateProject(LProjectName,
+      LCreateMainFile);
     GetProjectServices().SaveProject(FProjectRef^);
   end;
 end;

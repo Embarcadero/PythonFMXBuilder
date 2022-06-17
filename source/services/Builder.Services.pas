@@ -20,7 +20,7 @@ type
   IADBServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
-    function BuildApk(const AAppBasePath, AAppName: string;
+    function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
     function InstallApk(const AAdbPath, AApkPath, ADevice: string;
       const AResult: TStrings): boolean;
@@ -31,13 +31,13 @@ type
 
   IProjectServices = interface
     ['{4C39B307-4536-4832-972D-0DEB0319509A}']
-    function CreateProject(const AApplicationName: string;
+    function CreateProject(const AProjectName: string;
       const AAddMainScript: boolean = true): TProjectModel;
     procedure SaveProject(const AProject: TProjectModel);
-    function LoadProject(const AApplicationName: string): TProjectModel;
+    function LoadProject(const AProjectName: string): TProjectModel;
     function ListProjects(): TArray<string>;
-    function HasProject(const AApplicationName: string): boolean;
-    function RemoveProject(const AAplicationName: string): boolean;
+    function HasProject(const AProjectName: string): boolean;
+    function RemoveProject(const AProjectName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;

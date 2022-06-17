@@ -12,6 +12,8 @@ type
   [Model('project')]
   TProjectModel = class(TModel)
   private
+    [JSONName('project_name')]
+    FProjectName: string;
     [JSONName('application_name')]
     FApplicationName: string;
     [JSONName('package_name')]
@@ -30,14 +32,17 @@ type
     FFiles: TProjectFilesModel;
   private
     function GetId(): string;
+    function GetProjectName: string;
   public
     constructor Create(); overload; override;
-    constructor Create(const AApplicationName: string); reintroduce; overload;
+    constructor Create(const AProjectName: string); reintroduce; overload;
+    constructor Create(const AProjectName, AApplicationName: string); reintroduce; overload;
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
   public
     property Id: string read GetId;
+    property ProjectName: string read GetProjectName write FProjectName;
     property ApplicationName: string read FApplicationName write FApplicationName;
     property PackageName: string read FPackageName write FPackageName;
     property VersionCode: integer read FVersionCode write FVersionCode;
@@ -62,15 +67,21 @@ begin
   FFiles := TProjectFilesModel.Create();
 end;
 
-constructor TProjectModel.Create(const AApplicationName: string);
+constructor TProjectModel.Create(const AProjectName, AApplicationName: string);
 begin
   Create();
+  FProjectName := AProjectName;
   FApplicationName := AApplicationName;
   FPackageName := 'com.embarcadero.' + AApplicationName;
   FVersionCode := 1;
   FVersionName := '1.0.0';
   FPythonVersion := TPythonVersion.cp39;
   FArchitecture := TArchitecture.aarch64;
+end;
+
+constructor TProjectModel.Create(const AProjectName: string);
+begin
+  Create(AProjectName, AProjectName);
 end;
 
 destructor TProjectModel.Destroy;
@@ -82,7 +93,14 @@ end;
 
 function TProjectModel.GetId: string;
 begin
-  Result := FApplicationName;
+  Result := GetProjectName;
+end;
+
+function TProjectModel.GetProjectName: string;
+begin
+  if FProjectName.IsEmpty() and not FApplicationName.IsEmpty() then
+    FProjectName := FApplicationName.Trim();
+  Result := FProjectName;
 end;
 
 function TProjectModel.Validate(const AErrors: TStrings): boolean;
@@ -90,6 +108,9 @@ begin
   AErrors.Clear();
 
   {|||||| CHECK FOR PATHS |||||||}
+  if GetProjectName().IsEmpty() then
+    AErrors.Add('* Invalid project name.');
+
   if FApplicationName.Trim().IsEmpty() then
     AErrors.Add('* The Application Name can not be empty.');
 

@@ -13,13 +13,13 @@ type
     function GetProjectFilesPath(const AProjectName: string): string;
     function TestProject(const AModel: TProjectModel): boolean;
   public
-    function CreateProject(const AApplicationName: string;
+    function CreateProject(const AProjectName: string;
       const AAddMainScript: boolean = true): TProjectModel;
     procedure SaveProject(const AProject: TProjectModel);
-    function LoadProject(const AApplicationName: string): TProjectModel;
+    function LoadProject(const AProjectName: string): TProjectModel;
     function ListProjects(): TArray<string>;
-    function HasProject(const AApplicationName: string): boolean;
-    function RemoveProject(const AAplicationName: string): boolean;
+    function HasProject(const AProjectName: string): boolean;
+    function RemoveProject(const AProjectName: string): boolean;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;
@@ -52,12 +52,12 @@ begin
   Result := TPath.Combine(GetBasePath(), AProjectName);
 end;
 
-function TProjectService.HasProject(const AApplicationName: string): boolean;
+function TProjectService.HasProject(const AProjectName: string): boolean;
 begin
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   var LModel: TProjectModel := nil;
   try
-    Result := LStorage.LoadModel(LModel, String.Empty, AApplicationName);
+    Result := LStorage.LoadModel(LModel, String.Empty, AProjectName);
   finally
     LModel.Free();
   end;
@@ -71,13 +71,13 @@ end;
 
 function TProjectService.TestProject(const AModel: TProjectModel): boolean;
 begin
-  Result := HasProject(AModel.ApplicationName);
+  Result := HasProject(AModel.ProjectName);
 end;
 
-function TProjectService.CreateProject(const AApplicationName: string;
+function TProjectService.CreateProject(const AProjectName: string;
   const AAddMainScript: boolean): TProjectModel;
 begin
-  Result := TProjectModel.Create(AApplicationName);
+  Result := TProjectModel.Create(AProjectName);
 
   if AAddMainScript then begin
     AddMainScriptFile(Result);
@@ -94,7 +94,7 @@ begin
       try
         for var LModel in LModels do begin
           if TestProject(LModel) then
-            LList.Add(LModel.ApplicationName);
+            LList.Add(LModel.ProjectName);
         end;
         Result := LList.ToArray();
       finally
@@ -109,12 +109,12 @@ begin
     Result := [];
 end;
 
-function TProjectService.LoadProject(const AApplicationName: string): TProjectModel;
+function TProjectService.LoadProject(const AProjectName: string): TProjectModel;
 begin
   Result := nil;
   var LStorage := TDefaultStorage<TProjectModel>.Make();
-  if not LStorage.LoadModel(Result, String.Empty, AApplicationName) then
-    raise EProjectNotFound.CreateFmt('Project %s not found.', [AApplicationName]);
+  if not LStorage.LoadModel(Result, String.Empty, AProjectName) then
+    raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectName]);
 end;
 
 function TProjectService.AddMainScriptFile(const AModel: TProjectModel): string;
@@ -139,12 +139,12 @@ const
     + #13#10
     + 'MainForm.Show()';
 begin
-  var LProjectFilesFolder := GetProjectFilesPath(AModel.ApplicationName);
+  var LProjectFilesFolder := GetProjectFilesPath(AModel.ProjectName);
   if not TDirectory.Exists(LProjectFilesFolder) then
     TDirectory.CreateDirectory(LProjectFilesFolder);
 
   var LMainScriptPath := TPath.Combine(
-    GetProjectFilesPath(AModel.ApplicationName),
+    GetProjectFilesPath(AModel.ProjectName),
     'main.py');
 
   if not TFile.Exists(LMainScriptPath) then begin
@@ -179,16 +179,16 @@ begin
   Result := true;
 end;
 
-function TProjectService.RemoveProject(const AAplicationName: string): boolean;
+function TProjectService.RemoveProject(const AProjectName: string): boolean;
 begin
-  var LProjectModel := LoadProject(AAplicationName);
+  var LProjectModel := LoadProject(AProjectName);
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   Result := LStorage.DeleteModel(LProjectModel);
 
   if not Result then
     Exit;
 
-  var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ApplicationName);
+  var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ProjectName);
   TDirectory.Delete(LProjectFilesFolder, true);
 end;
 
