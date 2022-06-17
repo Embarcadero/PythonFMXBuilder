@@ -93,14 +93,14 @@ begin
   LoadModels(true);
   var LAppService := TServiceSimpleFactory.CreateApp();
   //Generates the project necessary files and settings
-  LAppService.BuildProject(FProjectServices.GetActivetProject());
+  LAppService.BuildProject(FProjectServices.GetActiveProject());
   //Creates and signs the APK file
-  Result := LAppService.BuildApk(FProjectServices.GetActivetProject(), FEnvironmentModel);
+  Result := LAppService.BuildApk(FProjectServices.GetActiveProject(), FEnvironmentModel);
 end;
 
 procedure TMainForm.CheckLoadedProject;
 begin
-  if not Assigned(FProjectServices.GetActivetProject()) then
+  if not Assigned(FProjectServices.GetActiveProject()) then
     raise Exception.Create('Open/Create a project before continue.');
 end;
 
@@ -145,7 +145,7 @@ begin
         var LAppService := TServiceSimpleFactory.CreateApp();
         //Create and sign the APK file
         if BuildApk() then begin
-          var LProjectModel := FProjectServices.GetActivetProject();
+          var LProjectModel := FProjectServices.GetActiveProject();
           //Installs the APK on the device
           LAppService.UnInstallApk(LProjectModel, FEnvironmentModel,
             frmDevice.GetSelectedDeviceName());
@@ -243,10 +243,10 @@ begin
   CheckLoadedProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
-    LForm.Id := FProjectServices.GetActivetProject().Id;
+    LForm.Id := FProjectServices.GetActiveProject().Id;
     TFormSlider.ShowModal(Self, LForm);
     LoadModels(false);
-    frmProjectFiles.LoadProject(FProjectServices.GetActivetProject());
+    frmProjectFiles.LoadProject(FProjectServices.GetActiveProject());
   finally
     LForm.Free();
   end;
@@ -263,7 +263,7 @@ begin
     else
       Exit(false);
 
-  var LProjectModel := FProjectServices.GetActivetProject();
+  var LProjectModel := FProjectServices.GetActiveProject();
   if not Assigned(LProjectModel)
     or not LProjectStorage.LoadModel(LProjectModel, String.Empty, LProjectModel.Id) then
       if AValidate then
@@ -296,7 +296,7 @@ end;
 
 procedure TMainForm.LoadProject;
 begin
-  var LProjectModel := FProjectServices.GetActivetProject();
+  var LProjectModel := FProjectServices.GetActiveProject();
   if not Assigned(LProjectModel) then
     Exit;
 
