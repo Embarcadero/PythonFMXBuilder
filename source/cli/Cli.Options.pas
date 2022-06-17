@@ -78,6 +78,7 @@ type
       SelectCommand: string;
       ShowCommand: boolean;
       Gui: boolean;
+      ApplicationNameCommand: TValue;
       PackageNameCommand: TValue;
       VersionCodeCommand: TValue;
       VersionNameCommand: TValue;

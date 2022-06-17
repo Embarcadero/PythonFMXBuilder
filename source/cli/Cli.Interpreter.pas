@@ -320,6 +320,9 @@ begin
 
   var LProjectModel := LProjectService.LoadProject(TProjectOptions.SelectCommand);
   try
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.ApplicationNameCommand) then
+      LProjectModel.ApplicationName := TProjectOptions.ApplicationNameCommand.AsString();
+
     if TEntityOptionsHelper.HasChanged(TProjectOptions.PackageNameCommand) then
       LProjectModel.PackageName := TProjectOptions.PackageNameCommand.AsString();
 
