@@ -8,10 +8,11 @@ uses
   System.SysUtils,
   FMX.Forms,
   VSoft.CommandLine.Options,
-  Builder.Services, Builder.Services.Factory,
+  Builder.Services,
+  Builder.Services.Factory,
   Cli.Exception,
   Form.Environment in 'source\views\Form.Environment.pas',
-  From.Project in 'source\views\From.Project.pas';
+  Form.Project in 'source\views\Form.Project.pas';
 
 type
   TProjectOptions = class

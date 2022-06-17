@@ -4,7 +4,7 @@ interface
 
 uses
   FMX.Forms,
-  Form.Environment, From.Project, System.Classes;
+  Form.Environment, Form.Project, System.Classes;
 
 type
   TFormSimpleFactory = class

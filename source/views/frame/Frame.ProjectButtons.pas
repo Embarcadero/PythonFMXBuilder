@@ -16,11 +16,9 @@ type
     procedure btnCreateClick(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
   private
-    FProjectRef: PProjectModel;
     FProjectServices: IProjectServices;
-    function GetProjectServices: IProjectServices;
   public
-    property ProjectRef: PProjectModel read FProjectRef write FProjectRef;
+    constructor Create(AOwner: TComponent); override;
   end;
 
 implementation
@@ -38,28 +36,26 @@ begin
   var LProjectName: string;
   var LCreateMainFile: boolean;
   if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
-    FProjectRef^ := GetProjectServices().CreateProject(LProjectName,
-      LCreateMainFile);
-    GetProjectServices().SaveProject(FProjectRef^);
+    var LProjectModel := FProjectServices.CreateProject(LProjectName, LCreateMainFile);
+    FProjectServices.SaveProject(LProjectModel);
   end;
 end;
 
 procedure TProjectButtonsFrame.btnOpenClick(Sender: TObject);
 begin
-  var LProjects := GetProjectServices().ListProjects();
+  var LProjects := FProjectServices.ListProjects();
   if Length(LProjects) > 0 then begin
     var LSelected := TSelectProjectForm.Select(LProjects);
     if not LSelected.IsEmpty() then
-      FProjectRef^ := GetProjectServices().LoadProject(LSelected);
+      FProjectServices.LoadProject(LSelected);
   end else
     raise Exception.Create('Your workspace is empty. Try to create a new project.');
 end;
 
-function TProjectButtonsFrame.GetProjectServices: IProjectServices;
+constructor TProjectButtonsFrame.Create(AOwner: TComponent);
 begin
-  if not Assigned(FProjectServices) then
-    FProjectServices := TServiceSimpleFactory.CreateProject();
-  Result := FProjectServices;
+  inherited;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
 end;
 
 end.

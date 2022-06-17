@@ -9,6 +9,10 @@ uses
 type
   TProjectService = class(TInterfacedObject, IProjectServices)
   private
+    class var FActiveProject: TProjectModel;
+  private
+    class destructor Destroy();
+  private
     function GetBasePath(): string;
     function GetProjectFilesPath(const AProjectName: string): string;
     function TestProject(const AModel: TProjectModel): boolean;
@@ -20,6 +24,7 @@ type
     function ListProjects(): TArray<string>;
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
+    function GetActivetProject(): TProjectModel;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;
@@ -41,6 +46,16 @@ uses
   Builder.Storage.Default;
 
 { TProjectService }
+
+class destructor TProjectService.Destroy;
+begin
+  FActiveProject.Free();
+end;
+
+function TProjectService.GetActivetProject: TProjectModel;
+begin
+  Result := FActiveProject;
+end;
 
 function TProjectService.GetBasePath: string;
 begin
@@ -77,11 +92,14 @@ end;
 function TProjectService.CreateProject(const AProjectName: string;
   const AAddMainScript: boolean): TProjectModel;
 begin
-  Result := TProjectModel.Create(AProjectName);
+  FreeAndNil(FActiveProject);
+  FActiveProject := TProjectModel.Create(AProjectName);
 
   if AAddMainScript then begin
-    AddMainScriptFile(Result);
+    AddMainScriptFile(FActiveProject);
   end;
+
+  Result := FActiveProject;
 end;
 
 function TProjectService.ListProjects: TArray<string>;
@@ -111,10 +129,11 @@ end;
 
 function TProjectService.LoadProject(const AProjectName: string): TProjectModel;
 begin
-  Result := nil;
+  FreeAndNil(FActiveProject);
   var LStorage := TDefaultStorage<TProjectModel>.Make();
-  if not LStorage.LoadModel(Result, String.Empty, AProjectName) then
+  if not LStorage.LoadModel(FActiveProject, String.Empty, AProjectName) then
     raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectName]);
+  Result := FActiveProject;
 end;
 
 function TProjectService.AddMainScriptFile(const AModel: TProjectModel): string;
