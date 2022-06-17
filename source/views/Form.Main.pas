@@ -264,15 +264,12 @@ begin
       Exit(false);
 
   var LProjectModel := FProjectServices.GetActivetProject();
-  var LId := String.Empty;
-  if Assigned(LProjectModel) then
-    LId := LProjectModel.Id;
-
-  if not LProjectStorage.LoadModel(LProjectModel, String.Empty, LId) then
-    if AValidate then
-      raise Exception.Create('The Project Settings are empty.')
-    else
-      Exit(false);
+  if not Assigned(LProjectModel)
+    or not LProjectStorage.LoadModel(LProjectModel, String.Empty, LProjectModel.Id) then
+      if AValidate then
+        raise Exception.Create('The Project Settings are empty.')
+      else
+        Exit(false);
 
   if not AValidate then
     Exit(true);

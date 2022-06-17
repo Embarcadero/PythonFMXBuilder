@@ -24,7 +24,7 @@ type
     function ListProjects(): TArray<string>;
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
-    function GetActivetProject(): TProjectModel;
+    function GetActiveProject(): TProjectModel;
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;
@@ -52,7 +52,7 @@ begin
   FActiveProject.Free();
 end;
 
-function TProjectService.GetActivetProject: TProjectModel;
+function TProjectService.GetActiveProject: TProjectModel;
 begin
   Result := FActiveProject;
 end;
