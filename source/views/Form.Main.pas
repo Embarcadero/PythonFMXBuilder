@@ -10,7 +10,7 @@ uses
   FMX.Objects, Form.Base, Builder.Services, Builder.Storage.Factory, Builder.Storage.Default,
   Builder.Model.Project, Builder.Model.Environment, Builder.Model, Frame.Loading, FMX.Menus,
   Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
-  Frame.ScriptEditor, FMX.TreeView;
+  Frame.ScriptEditor, FMX.TreeView, Frame.Device;
 
 type
   TMainForm = class(TBaseForm, IServices, ILogServices)
@@ -30,22 +30,18 @@ type
     lbiBuild: TListBoxItem;
     frmLoading: TLoadingFrame;
     loMain: TLayout;
-    loDevice: TLayout;
-    aiDevice: TAniIndicator;
-    cbDevice: TComboBox;
-    btnRefreshDevice: TSpeedButton;
-    loEditorHeader: TLayout;
     frmProjectFiles: TProjectFilesFrame;
     spProjectFIles: TSplitter;
     RoundRect1: TRoundRect;
     loProjectOptions: TLayout;
-    frmProjectButtons: TProjectButtonsFrame;
     frmScriptEditor: TScriptEditorFrame;
+    loEditorHeader: TLayout;
+    frmProjectButtons: TProjectButtonsFrame;
+    frmDevice: TDeviceFrame;
     procedure lbiEnvironmentClick(Sender: TObject);
     procedure lbiProjectClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure btnRefreshDeviceClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lbiDeployClick(Sender: TObject);
     procedure lbiBuildClick(Sender: TObject);
@@ -53,12 +49,10 @@ type
     procedure frmProjectButtonsbtnCreateClick(Sender: TObject);
     procedure frmProjectButtonsbtnOpenClick(Sender: TObject);
     procedure tviDblClick(Sender: TObject);
+    procedure loProjectOptionsResized(Sender: TObject);
   private
-    FDevices: TStrings;
     FEnvironmentModel: TEnvironmentModel;
     FProjectModel: TProjectModel;
-    procedure LoadDevices();
-    procedure CheckSelectedDevice();
     procedure CheckLoadedProject();
     function LoadModels(const AValidate: boolean = true): boolean;
     procedure LoadProject();
@@ -92,15 +86,9 @@ begin
   // We can add license details also
 end;
 
-procedure TMainForm.btnRefreshDeviceClick(Sender: TObject);
-begin
-  LoadDevices();
-end;
-
 function TMainForm.BuildApk: boolean;
 begin
   LoadModels(true);
-
   var LAppService := TServiceSimpleFactory.CreateApp();
   //Generates the project necessary files and settings
   LAppService.BuildProject(FProjectModel);
@@ -112,12 +100,6 @@ procedure TMainForm.CheckLoadedProject;
 begin
   if not Assigned(FProjectModel) then
     raise Exception.Create('Open/Create a project before continue.');
-end;
-
-procedure TMainForm.CheckSelectedDevice;
-begin
-  if cbDevice.ItemIndex < 0 then
-    raise Exception.Create('Select a device.');
 end;
 
 procedure TMainForm.DoBuild;
@@ -151,7 +133,7 @@ end;
 
 procedure TMainForm.DoDeploy;
 begin
-  CheckSelectedDevice();
+  frmDevice.CheckSelectedDevice();
   mmLog.Lines.Clear();
   frmLoading.StartAni();
   TTask.Run(procedure begin
@@ -162,13 +144,13 @@ begin
         //Create and sign the APK file
         if BuildApk() then begin
           //Install the APK on the device
-          LAppService.UnInstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]);
-          if LAppService.InstallApk(FProjectModel, FEnvironmentModel, FDevices.Names[cbDevice.ItemIndex]) then begin
+          LAppService.UnInstallApk(FProjectModel, FEnvironmentModel, frmDevice.GetSelectedDeviceName());
+          if LAppService.InstallApk(FProjectModel, FEnvironmentModel, frmDevice.GetSelectedDeviceName()) then begin
             var LAdbService := TServiceSimpleFactory.CreateAdb();
             var LResult := TStringList.Create();
             try
               LAdbService.RunApp(FEnvironmentModel.AdbLocation, FProjectModel.PackageName,
-                FDevices.Names[cbDevice.ItemIndex], LResult);
+                frmDevice.GetSelectedDeviceName(), LResult);
             finally
               LResult.Free();
             end;
@@ -193,7 +175,6 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  FDevices := TStringList.Create();
   GlobalServices := Self;
   frmProjectButtons.ProjectRef := @FProjectModel;
   frmProjectFiles.OnScriptFileDblClick := tviDblClick;
@@ -202,14 +183,13 @@ end;
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   GlobalServices := nil;
-  FDevices.Free();
   FEnvironmentModel.Free();
   FProjectModel.Free();
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-  LoadDevices();
+  frmDevice.LoadDevices();
   LoadModels(false);
 end;
 
@@ -281,37 +261,6 @@ begin
   end;
 end;
 
-procedure TMainForm.LoadDevices;
-begin
-  FDevices.Clear();
-  cbDevice.Clear();
-  aiDevice.Enabled := true;
-  aiDevice.Visible := true;
-  btnRefreshDevice.Enabled := false;
-  TTask.Run(procedure begin
-    var LStorage := TStorageSimpleFactory.CreateEnvironment();
-    try
-      var LService := TServiceSimpleFactory.CreateAdb();
-      var LAdbPath := LStorage.GetAdbPath();
-
-      if not LAdbPath.IsEmpty() then
-        LService.ListDevices(LAdbPath, FDevices);
-    finally
-      TThread.Synchronize(nil, procedure begin
-        for var I := 0 to FDevices.Count - 1 do
-          cbDevice.Items.Add(FDevices.ValueFromIndex[I]);
-
-        if (cbDevice.Count > 0)  then
-          cbDevice.ItemIndex := 0;
-
-        aiDevice.Enabled := false;
-        aiDevice.Visible := false;
-        btnRefreshDevice.Enabled := true;
-      end);
-    end;
-  end);
-end;
-
 function TMainForm.LoadModels(const AValidate: boolean): boolean;
 begin
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
@@ -377,6 +326,13 @@ begin
     mmLog.GoToTextEnd();
     mmLog.GoToLineBegin();
   end);
+end;
+
+procedure TMainForm.loProjectOptionsResized(Sender: TObject);
+begin
+  inherited;
+  if loProjectOptions.Width < 276 then
+    loProjectOptions.Width := 276;
 end;
 
 procedure TMainForm.tviDblClick(Sender: TObject);

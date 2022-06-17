@@ -16,7 +16,8 @@ uses
   Frame.Loading in 'source\views\frame\Frame.Loading.pas' {LoadingFrame: TFrame},
   Form.SelectProject in 'source\views\Form.SelectProject.pas' {SelectProjectForm},
   Frame.ScriptEditor in 'source\views\frame\Frame.ScriptEditor.pas' {ScriptEditorFrame: TFrame},
-  Form.Project.Create in 'source\views\Form.Project.Create.pas' {ProjectCreateForm};
+  Form.Project.Create in 'source\views\Form.Project.Create.pas' {ProjectCreateForm},
+  Frame.Device in 'source\views\frame\Frame.Device.pas' {DeviceFrame: TFrame};
 
 {$R *.res}
 
