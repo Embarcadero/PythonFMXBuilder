@@ -159,7 +159,8 @@ end;
 
 procedure TMainForm.CloseProject(const AProjectModel: TProjectModel);
 begin
-
+  frmScriptEditor.CloseAll();
+  frmProjectFiles.UnLoadProject(AProjectModel);
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);

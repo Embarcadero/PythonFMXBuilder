@@ -21,6 +21,7 @@ type
       const AAddMainScript: boolean = true): TProjectModel;
     procedure SaveProject(const AProject: TProjectModel);
     function LoadProject(const AProjectName: string): TProjectModel;
+    procedure UnLoadProject();
     function ListProjects(): TArray<string>;
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
@@ -87,6 +88,11 @@ end;
 function TProjectService.TestProject(const AModel: TProjectModel): boolean;
 begin
   Result := HasProject(AModel.ProjectName);
+end;
+
+procedure TProjectService.UnLoadProject;
+begin
+  FreeAndNil(FActiveProject);
 end;
 
 function TProjectService.CreateProject(const AProjectName: string;
@@ -208,7 +214,11 @@ begin
     Exit;
 
   var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ProjectName);
-  TDirectory.Delete(LProjectFilesFolder, true);
+  if TDirectory.Exists(LProjectFilesFolder) then
+    TDirectory.Delete(LProjectFilesFolder, true);
+
+  if Assigned(FActiveProject) and (FActiveProject.ProjectName = AProjectName) then
+    UnLoadProject();
 end;
 
 procedure TProjectService.RemoveScriptFile(const AModel: TProjectModel;
