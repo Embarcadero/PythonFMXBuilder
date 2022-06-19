@@ -300,7 +300,7 @@ begin
   var LStrings := TStringList.Create();
   try
     Result := LService.BuildApk(GetAppPath(AProjectModel.ProjectName),
-      AProjectModel.ApplicationName, AEnvironmentModel, LStrings);
+      AProjectModel.ProjectName, AEnvironmentModel, LStrings);
   finally
     LStrings.Free();
   end;

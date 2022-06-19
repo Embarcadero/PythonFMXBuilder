@@ -81,7 +81,7 @@ inherited MainForm: TMainForm
           0C4D617267696E732E4C6566740500000000000000A001400B4D617267696E73
           2E546F7005000000000000008000400D4D617267696E732E5269676874050000
           0000000000A001400E4D617267696E732E426F74746F6D050000000000000080
-          00400A506F736974696F6E2E5805000000000000008803400A506F736974696F
+          00400A506F736974696F6E2E580500000000000000E803400A506F736974696F
           6E2E5905000000000000008000400A53697A652E576964746805000000000000
           008003400B53697A652E48656967687405000000000000009803401453697A65
           2E506C6174666F726D44656661756C7408000000000F545461625374796C654F
@@ -285,8 +285,8 @@ inherited MainForm: TMainForm
           697A652E48656967687405000000000000009803401453697A652E506C617466
           6F726D44656661756C74080000000000}
       end>
-    Left = 288
-    Top = 504
+    Left = 312
+    Top = 840
   end
   object loFooter: TLayout
     Align = Bottom
@@ -328,110 +328,23 @@ inherited MainForm: TMainForm
   object loMain: TLayout
     Align = Client
     Size.Width = 1232.000000000000000000
-    Size.Height = 816.000000000000000000
+    Size.Height = 776.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 2
-    object pnlLeftMenu: TPanel
-      Align = Left
-      Size.Width = 54.000000000000000000
-      Size.Height = 816.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 1
-      object lbLeftMenu: TListBox
-        Align = Client
-        Size.Width = 54.000000000000000000
-        Size.Height = 816.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        DisableFocusEffect = True
-        Images = ImageContainer.images
-        DefaultItemStyles.ItemStyle = 'listboxitemnodetail'
-        DefaultItemStyles.GroupHeaderStyle = 'listboxgroupheader'
-        DefaultItemStyles.GroupFooterStyle = ''
-        Viewport.Width = 50.000000000000000000
-        Viewport.Height = 812.000000000000000000
-        object ListBoxGroupHeader1: TListBoxGroupHeader
-          TextSettings.HorzAlign = Center
-          StyledSettings = [Family, Size, Style, FontColor]
-          Size.Width = 50.000000000000000000
-          Size.Height = 34.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-          Text = 'Environ.'
-        end
-        object lbiEnvironment: TListBoxItem
-          ImageIndex = 0
-          Position.Y = 34.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 1
-          OnClick = lbiEnvironmentClick
-        end
-        object ListBoxGroupHeader2: TListBoxGroupHeader
-          TextSettings.HorzAlign = Center
-          StyledSettings = [Family, Size, Style, FontColor]
-          Position.Y = 84.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 34.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 5
-          Text = 'Project'
-        end
-        object lbiProject: TListBoxItem
-          ImageIndex = 9
-          Position.Y = 118.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 6
-          OnClick = lbiProjectClick
-        end
-        object ListBoxGroupHeader3: TListBoxGroupHeader
-          TextSettings.HorzAlign = Center
-          StyledSettings = [Family, Size, Style, FontColor]
-          Position.Y = 168.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 34.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 2
-          Text = 'App'
-        end
-        object lbiBuild: TListBoxItem
-          ImageIndex = 8
-          Position.Y = 202.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 3
-          OnClick = lbiBuildClick
-        end
-        object lbiDeploy: TListBoxItem
-          ImageIndex = 2
-          Position.Y = 252.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 4
-          OnClick = lbiDeployClick
-        end
-      end
-    end
     object loEditor: TLayout
       Align = Client
-      Size.Width = 1178.000000000000000000
-      Size.Height = 816.000000000000000000
+      Size.Width = 1232.000000000000000000
+      Size.Height = 776.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       object spProjectFIles: TSplitter
         Align = Right
         Cursor = crHSplit
         MinSize = 20.000000000000000000
-        Position.X = 896.000000000000000000
-        Position.Y = 38.000000000000000000
+        Position.X = 950.000000000000000000
         ShowGrip = False
         Size.Width = 6.000000000000000000
-        Size.Height = 778.000000000000000000
+        Size.Height = 776.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'splitterstyle'
         object RoundRect1: TRoundRect
@@ -445,35 +358,34 @@ inherited MainForm: TMainForm
       end
       object loProjectOptions: TLayout
         Align = Right
-        Position.X = 902.000000000000000000
-        Position.Y = 38.000000000000000000
+        Position.X = 956.000000000000000000
         Size.Width = 276.000000000000000000
-        Size.Height = 778.000000000000000000
+        Size.Height = 776.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
         OnResized = loProjectOptionsResized
         inline frmProjectFiles: TProjectFilesFrame
           Align = Client
           Size.Width = 276.000000000000000000
-          Size.Height = 745.000000000000000000
+          Size.Height = 776.000000000000000000
           Size.PlatformDefault = False
           inherited tvProjectFiles: TTreeView
             Size.Width = 276.000000000000000000
-            Size.Height = 745.000000000000000000
+            Size.Height = 776.000000000000000000
             Viewport.Width = 272.000000000000000000
-            Viewport.Height = 741.000000000000000000
+            Viewport.Height = 772.000000000000000000
           end
           inherited pmtvProjectFiles: TPopupMenu
-            Left = 24
-            Top = 504
+            Left = 48
+            Top = 840
           end
           inherited odtvProjectFiles: TOpenDialog
-            Left = 208
-            Top = 504
+            Left = 232
+            Top = 840
           end
           inherited altvProjectFiles: TActionList
-            Left = 120
-            Top = 504
+            Left = 144
+            Top = 840
             inherited actAddFile: TAction
               ImageIndex = 13
             end
@@ -482,57 +394,24 @@ inherited MainForm: TMainForm
             end
           end
         end
-        inline frmProjectButtons: TProjectButtonsFrame
-          Align = Top
-          Size.Width = 276.000000000000000000
-          Size.Height = 33.000000000000000000
-          Size.PlatformDefault = False
-          inherited btnCreate: TButton
-            Position.X = 34.000000000000000000
-            OnClick = frmProjectButtonsbtnCreateClick
-          end
-          inherited btnOpen: TButton
-            Position.X = 140.000000000000000000
-            OnClick = frmProjectButtonsbtnOpenClick
-          end
-          inherited btnOptions: TButton
-            Position.X = 245.000000000000000000
-          end
-        end
       end
       inline frmScriptEditor: TScriptEditorFrame
         Align = Client
-        Size.Width = 896.000000000000000000
-        Size.Height = 778.000000000000000000
+        Size.Width = 950.000000000000000000
+        Size.Height = 776.000000000000000000
         Size.PlatformDefault = False
         inherited tbScripts: TTabControl
-          Size.Width = 896.000000000000000000
-          Size.Height = 778.000000000000000000
+          Size.Width = 950.000000000000000000
+          Size.Height = 776.000000000000000000
         end
       end
       object loEditorHeader: TLayout
         Align = Top
-        Size.Width = 1178.000000000000000000
+        Size.Width = 1087.000000000000000000
         Size.Height = 38.000000000000000000
         Size.PlatformDefault = False
+        Visible = False
         TabOrder = 0
-        inline frmDevice: TDeviceFrame
-          Align = Right
-          Position.X = 945.000000000000000000
-          Size.Width = 233.000000000000000000
-          Size.Height = 38.000000000000000000
-          Size.PlatformDefault = False
-          inherited lbDevice: TLayout
-            Position.X = -41.000000000000000000
-            Size.Width = 274.000000000000000000
-            inherited cbDevice: TComboBox
-              Size.Width = 175.000000000000000000
-            end
-            inherited btnRefreshDevice: TSpeedButton
-              Position.X = 233.000000000000000000
-            end
-          end
-        end
       end
     end
     inline frmLoading: TLoadingFrame
@@ -541,6 +420,74 @@ inherited MainForm: TMainForm
       Size.Height = 522.000000000000000000
       Size.PlatformDefault = False
       Visible = False
+    end
+  end
+  object tbMenu: TToolBar
+    Size.Width = 1232.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 8
+    inline frmProjectButtons: TProjectButtonsFrame
+      Align = Left
+      Position.X = 110.000000000000000000
+      Size.Width = 165.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited btnCreate: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited btnOpen: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited btnRemove: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    inline frmDevice: TDeviceFrame
+      Align = Right
+      Position.X = 952.000000000000000000
+      Size.Width = 280.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited aiDevice: TAniIndicator
+        Size.Height = 20.000000000000000000
+      end
+      inherited btnRefreshDevice: TSpeedButton
+        Position.X = 239.000000000000000000
+        Size.Height = 40.000000000000000000
+      end
+      inherited cbDevice: TComboBox
+        Size.Width = 181.000000000000000000
+        Size.Height = 30.000000000000000000
+      end
+    end
+    inline frmEntityButtons: TEntityButtonsFrame
+      Align = Left
+      Size.Width = 110.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbUpdateEnvironment: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbUpdateProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    inline frmBuildButtons: TBuildButtonsFrame
+      Align = Left
+      Position.X = 275.000000000000000000
+      Size.Width = 165.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbBuildCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited spDeployCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbRunCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
     end
   end
 end

@@ -10,6 +10,8 @@ uses
 type
   TADBService = class(TInterfacedObject, IADBServices)
   private
+    class var FActiveDevice: string;
+  private
     procedure ExecCmd(const ACmdLine, ABaseDir: string; ACmdResult: TStrings);
     procedure EnumAssets(const AAssetsBasePath: string; const AProc: TProc<string>);
     procedure EnumLibraries(const ALibBasePath: string; const AProc: TProc<string>);
@@ -18,6 +20,9 @@ type
     function FindDeviceVendorModel(const AAdbPath, ADevice: string): string;
   public
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
+    procedure SetActiveDevice(const ADeviceName: string);
+    function GetActiveDevice(): string;
+
     function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
@@ -236,6 +241,11 @@ begin
   end;
 end;
 
+function TADBService.GetActiveDevice: string;
+begin
+  Result := FActiveDevice;
+end;
+
 function TADBService.InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
 begin
   var LStrings := TStringList.Create();
@@ -280,6 +290,11 @@ begin
   ExecCmd(AAdbPath
     + Format(' -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity', [
         ADevice, APkgName]), String.Empty, AResult);
+end;
+
+procedure TADBService.SetActiveDevice(const ADeviceName: string);
+begin
+  FActiveDevice := ADeviceName;
 end;
 
 end.

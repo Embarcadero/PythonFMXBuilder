@@ -1,13 +1,13 @@
-object ProjectButtonsFrame: TProjectButtonsFrame
+object BuildButtonsFrame: TBuildButtonsFrame
   Size.Width = 165.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
-  object btnCreate: TSpeedButton
-    Action = MenuActionsContainer.actNewProject
+  object sbBuildCurrentProject: TSpeedButton
+    Action = MenuActionsContainer.actBuildCurrentProjectAsync
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 1
+    ImageIndex = 8
     Margins.Left = 5.000000000000000000
     Position.X = 5.000000000000000000
     Size.Width = 50.000000000000000000
@@ -15,12 +15,12 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
   end
-  object btnOpen: TSpeedButton
-    Action = MenuActionsContainer.actOpenProject
+  object spDeployCurrentProject: TSpeedButton
+    Action = MenuActionsContainer.actDeployCurrentProjectAsync
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 10
+    ImageIndex = 5
     Margins.Left = 5.000000000000000000
     Position.X = 60.000000000000000000
     Size.Width = 50.000000000000000000
@@ -28,12 +28,12 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
   end
-  object btnRemove: TSpeedButton
-    Action = MenuActionsContainer.actRemoveCurrentProject
+  object sbRunCurrentProject: TSpeedButton
+    Action = MenuActionsContainer.actRunCurrentProjectAsync
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 4
+    ImageIndex = 2
     Margins.Left = 5.000000000000000000
     Position.X = 115.000000000000000000
     Size.Width = 50.000000000000000000

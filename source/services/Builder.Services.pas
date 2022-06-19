@@ -3,23 +3,44 @@ unit Builder.Services;
 interface
 
 uses
-  System.Classes, System.IOUtils,
+  System.Classes, System.IOUtils, System.SysUtils,
   Builder.Architecture, Builder.PythonVersion,
   Builder.Model.Project, Builder.Model.Environment;
 
 type
+  ILogServices = interface;
+  IDesignServices = interface;
+
   IServices = interface
     ['{0959ED55-8FA5-4D88-88BB-EB2738261A23}']
+    function GetLogServices(): ILogServices;
+    function GetDesignServices(): IDesignServices;
+
+    property LogServices: ILogServices read GetLogServices;
+    property DesignServices: IDesignServices read GetDesignServices;
   end;
 
   ILogServices = interface
     ['{50EDF1E4-BABC-42BD-A93D-957C53ED9663}']
+    procedure Clear();
     procedure Log(const AString: string);
   end;
 
-  IADBServices = interface
+  IDesignServices = interface
+    ['{D42F5686-63D2-4429-9B25-E53983897862}']
+    procedure BeginAsync();
+    procedure EndAsync();
+    procedure ShowException(const AException: Exception);
+    procedure OpenProject(const AProjectModel: TProjectModel);
+    procedure CloseProject(const AProjectModel: TProjectModel);
+  end;
+
+  IAdbServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
+    procedure SetActiveDevice(const ADeviceName: string);
+    function GetActiveDevice(): string;
+
     function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
     function InstallApk(const AAdbPath, AApkPath, ADevice: string;
@@ -27,6 +48,8 @@ type
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
       const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
+
+    property ActiveDevice: string read GetActiveDevice write SetActiveDevice;
   end;
 
   IProjectServices = interface

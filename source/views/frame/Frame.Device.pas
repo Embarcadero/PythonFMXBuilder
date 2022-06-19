@@ -5,18 +5,20 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.ListBox, FMX.Layouts, System.Threading;
+  FMX.Controls.Presentation, FMX.ListBox, FMX.Layouts, System.Threading,
+  Builder.Services;
 
 type
   TDeviceFrame = class(TFrame)
-    lbDevice: TLayout;
     aiDevice: TAniIndicator;
     cbDevice: TComboBox;
     btnRefreshDevice: TSpeedButton;
     procedure btnRefreshDeviceClick(Sender: TObject);
+    procedure cbDeviceChange(Sender: TObject);
   private
     FTask: ITask;
     FDevices: TStrings;
+    FAdbServices: IAdbServices;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -40,6 +42,7 @@ constructor TDeviceFrame.Create(AOwner: TComponent);
 begin
   inherited;
   FDevices := TStringList.Create();
+  FAdbServices := TServiceSimpleFactory.CreateAdb();
 end;
 
 destructor TDeviceFrame.Destroy;
@@ -67,6 +70,11 @@ begin
   LoadDevices();
 end;
 
+procedure TDeviceFrame.cbDeviceChange(Sender: TObject);
+begin
+  FAdbServices.ActiveDevice := GetSelectedDeviceName();
+end;
+
 procedure TDeviceFrame.CheckSelectedDevice;
 begin
   if cbDevice.ItemIndex < 0 then
@@ -75,7 +83,10 @@ end;
 
 function TDeviceFrame.GetSelectedDeviceName: string;
 begin
-  Result := FDevices.Names[cbDevice.ItemIndex];
+  if cbDevice.ItemIndex < 0 then
+    Result := String.Empty
+  else
+    Result := FDevices.Names[cbDevice.ItemIndex];
 end;
 
 procedure TDeviceFrame.LoadDevices;
@@ -88,11 +99,10 @@ begin
   FTask := TTask.Run(procedure begin
     var LStorage := TStorageSimpleFactory.CreateEnvironment();
     try
-      var LService := TServiceSimpleFactory.CreateAdb();
       var LAdbPath := LStorage.GetAdbPath();
 
       if not LAdbPath.IsEmpty() then
-        LService.ListDevices(LAdbPath, FDevices);
+        FAdbServices.ListDevices(LAdbPath, FDevices);
 
       FTask.CheckCanceled();
       TThread.Synchronize(nil, procedure begin

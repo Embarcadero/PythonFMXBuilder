@@ -2,47 +2,40 @@ object DeviceFrame: TDeviceFrame
   Size.Width = 233.000000000000000000
   Size.Height = 38.000000000000000000
   Size.PlatformDefault = False
-  object lbDevice: TLayout
+  object aiDevice: TAniIndicator
+    Align = Left
+    Margins.Left = 10.000000000000000000
+    Margins.Top = 10.000000000000000000
+    Margins.Right = 10.000000000000000000
+    Margins.Bottom = 10.000000000000000000
+    Position.X = 10.000000000000000000
+    Position.Y = 10.000000000000000000
+    Size.Width = 18.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object btnRefreshDevice: TSpeedButton
     Align = Right
-    Position.X = -7.000000000000000000
-    Size.Width = 240.000000000000000000
+    Margins.Left = 10.000000000000000000
+    Margins.Right = 10.000000000000000000
+    Position.X = 192.000000000000000000
+    Size.Width = 31.000000000000000000
     Size.Height = 38.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 0
-    object aiDevice: TAniIndicator
-      Align = Left
-      Margins.Left = 10.000000000000000000
-      Margins.Top = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Margins.Bottom = 10.000000000000000000
-      Position.X = 10.000000000000000000
-      Position.Y = 10.000000000000000000
-      Size.Width = 18.000000000000000000
-      Size.Height = 18.000000000000000000
-      Size.PlatformDefault = False
-    end
-    object cbDevice: TComboBox
-      Align = Client
-      Margins.Left = 5.000000000000000000
-      Margins.Top = 5.000000000000000000
-      Margins.Right = 5.000000000000000000
-      Margins.Bottom = 5.000000000000000000
-      Size.Width = 141.000000000000000000
-      Size.Height = 28.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 59
-    end
-    object btnRefreshDevice: TSpeedButton
-      Align = Right
-      Margins.Left = 10.000000000000000000
-      Margins.Right = 10.000000000000000000
-      Position.X = 199.000000000000000000
-      Size.Width = 31.000000000000000000
-      Size.Height = 38.000000000000000000
-      Size.PlatformDefault = False
-      StyleLookup = 'refreshtoolbutton'
-      Text = 'refreshtoolbutton'
-      OnClick = btnRefreshDeviceClick
-    end
+    StyleLookup = 'refreshtoolbutton'
+    Text = 'refreshtoolbutton'
+    OnClick = btnRefreshDeviceClick
+  end
+  object cbDevice: TComboBox
+    Align = Client
+    Margins.Left = 5.000000000000000000
+    Margins.Top = 5.000000000000000000
+    Margins.Right = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Size.Width = 134.000000000000000000
+    Size.Height = 28.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 58
+    OnChange = cbDeviceChange
   end
 end

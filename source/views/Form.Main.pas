@@ -10,24 +10,16 @@ uses
   FMX.Objects, Form.Base, Builder.Services, Builder.Storage.Factory, Builder.Storage.Default,
   Builder.Model.Project, Builder.Model.Environment, Builder.Model, Frame.Loading, FMX.Menus,
   Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
-  Frame.ScriptEditor, FMX.TreeView, Frame.Device;
+  Frame.ScriptEditor, FMX.TreeView, Frame.Device, Frame.LeftMenu,
+  Frame.EntityButtons, Frame.BuildButtons;
 
 type
-  TMainForm = class(TBaseForm, IServices, ILogServices)
+  TMainForm = class(TBaseForm, IServices, ILogServices, IDesignServices)
     loEditor: TLayout;
-    pnlLeftMenu: TPanel;
-    lbLeftMenu: TListBox;
-    ListBoxGroupHeader1: TListBoxGroupHeader;
-    lbiEnvironment: TListBoxItem;
-    ListBoxGroupHeader2: TListBoxGroupHeader;
-    lbiProject: TListBoxItem;
-    ListBoxGroupHeader3: TListBoxGroupHeader;
-    lbiDeploy: TListBoxItem;
     loFooter: TLayout;
     spLog: TSplitter;
     rrSpliterGrip: TRoundRect;
     mmLog: TMemo;
-    lbiBuild: TListBoxItem;
     frmLoading: TLoadingFrame;
     loMain: TLayout;
     frmProjectFiles: TProjectFilesFrame;
@@ -38,31 +30,29 @@ type
     loEditorHeader: TLayout;
     frmProjectButtons: TProjectButtonsFrame;
     frmDevice: TDeviceFrame;
-    procedure lbiEnvironmentClick(Sender: TObject);
-    procedure lbiProjectClick(Sender: TObject);
+    tbMenu: TToolBar;
+    frmEntityButtons: TEntityButtonsFrame;
+    frmBuildButtons: TBuildButtonsFrame;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure lbiDeployClick(Sender: TObject);
-    procedure lbiBuildClick(Sender: TObject);
     procedure AboutClick(Sender: TObject);
-    procedure frmProjectButtonsbtnCreateClick(Sender: TObject);
-    procedure frmProjectButtonsbtnOpenClick(Sender: TObject);
     procedure tviDblClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
   private
     FProjectServices: IProjectServices;
-
-    FEnvironmentModel: TEnvironmentModel;
-    procedure CheckLoadedProject();
-    function LoadModels(const AValidate: boolean = true): boolean;
-    procedure LoadProject();
-    function BuildApk(): boolean;
-
-    procedure DoBuild();
-    procedure DoDeploy();
-  public
+    //IServices implementation
+    function GetLogServices(): ILogServices;
+    function GetDesignServices(): IDesignServices;
+    //ILogServices implementation
+    procedure Clear();
     procedure Log(const AString: string);
+    //IDesignServices implementation
+    procedure BeginAsync();
+    procedure EndAsync();
+    procedure ShowException(const AException: Exception);
+    procedure OpenProject(const AProjectModel: TProjectModel);
+    procedure CloseProject(const AProjectModel: TProjectModel);
   end;
 
 var
@@ -88,223 +78,21 @@ begin
   // We can add license details also
 end;
 
-function TMainForm.BuildApk: boolean;
+function TMainForm.GetDesignServices: IDesignServices;
 begin
-  LoadModels(true);
-  var LAppService := TServiceSimpleFactory.CreateApp();
-  //Generates the project necessary files and settings
-  LAppService.BuildProject(FProjectServices.GetActiveProject());
-  //Creates and signs the APK file
-  Result := LAppService.BuildApk(FProjectServices.GetActiveProject(), FEnvironmentModel);
+  Result := self;
 end;
 
-procedure TMainForm.CheckLoadedProject;
+function TMainForm.GetLogServices: ILogServices;
 begin
-  if not Assigned(FProjectServices.GetActiveProject()) then
-    raise Exception.Create('Open/Create a project before continue.');
+  Result := self;
 end;
 
-procedure TMainForm.DoBuild;
+procedure TMainForm.Clear;
 begin
-  mmLog.Lines.Clear();
-  frmLoading.StartAni();
-  TTask.Run(procedure begin
-    try
-      try
-        var LResult := BuildApk();
-        TThread.Synchronize(nil, procedure begin
-          frmLoading.StopAni();
-          if LResult then
-            TDialogService.MessageDialog('Build process done.',
-              TMsgDlgType.mtInformation, [TMsgDlgBtn.mbOK], TMsgDlgBtn.mbOK, -1, nil)
-          else
-            raise Exception.Create('Build process failed. Check log for details.');
-        end);
-      finally
-        TThread.Synchronize(nil, procedure begin
-          frmLoading.StopAni();
-        end);
-      end;
-    except
-      on E: exception do begin
-        Application.ShowException(E);
-      end;
-    end;
+  TThread.Synchronize(nil, procedure begin
+    mmLog.Lines.Clear();
   end);
-end;
-
-procedure TMainForm.DoDeploy;
-begin
-  frmDevice.CheckSelectedDevice();
-  mmLog.Lines.Clear();
-  frmLoading.StartAni();
-  TTask.Run(procedure begin
-    try
-      var LErrors := String.Empty;
-      try
-        var LAppService := TServiceSimpleFactory.CreateApp();
-        //Create and sign the APK file
-        if BuildApk() then begin
-          var LProjectModel := FProjectServices.GetActiveProject();
-          //Installs the APK on the device
-          LAppService.UnInstallApk(LProjectModel, FEnvironmentModel,
-            frmDevice.GetSelectedDeviceName());
-
-          if LAppService.InstallApk(LProjectModel, FEnvironmentModel,
-            frmDevice.GetSelectedDeviceName()) then
-          begin
-            var LAdbService := TServiceSimpleFactory.CreateAdb();
-            var LResult := TStringList.Create();
-            try
-              LAdbService.RunApp(FEnvironmentModel.AdbLocation,
-                LProjectModel.PackageName,
-                frmDevice.GetSelectedDeviceName(), LResult);
-            finally
-              LResult.Free();
-            end;
-          end else
-            LErrors := 'Install process failed. Check log for details.';
-        end else
-          LErrors := 'Build process failed. Check log for details.';
-      finally
-        TThread.Synchronize(nil, procedure begin
-          frmLoading.StopAni();
-          if not LErrors.IsEmpty() then
-            raise Exception.Create(LErrors);
-        end);
-      end;
-    except
-      on E: Exception do begin
-        Application.ShowException(E);
-      end;
-    end;
-  end);
-end;
-
-procedure TMainForm.FormCreate(Sender: TObject);
-begin
-  GlobalServices := Self;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-  frmProjectFiles.OnScriptFileDblClick := tviDblClick;
-end;
-
-procedure TMainForm.FormDestroy(Sender: TObject);
-begin
-  GlobalServices := nil;
-  FEnvironmentModel.Free();
-end;
-
-procedure TMainForm.FormShow(Sender: TObject);
-begin
-  frmDevice.LoadDevices();
-  LoadModels(false);
-end;
-
-procedure TMainForm.frmProjectButtonsbtnCreateClick(Sender: TObject);
-begin
-  inherited;
-  frmProjectButtons.btnCreateClick(Sender);
-  LoadProject();
-end;
-
-procedure TMainForm.frmProjectButtonsbtnOpenClick(Sender: TObject);
-begin
-  inherited;
-  frmProjectButtons.btnOpenClick(Sender);
-  LoadProject();
-end;
-
-procedure TMainForm.lbiEnvironmentClick(Sender: TObject);
-begin
-  var LForm := TFormSimpleFactory.CreateEnvironment();
-  try
-    TFormSlider.ShowModal(Self, LForm);
-  finally
-    LForm.Free();
-  end;
-end;
-
-procedure TMainForm.lbiBuildClick(Sender: TObject);
-begin
-  inherited;
-  CheckLoadedProject();
-  DoBuild();
-end;
-
-procedure TMainForm.lbiDeployClick(Sender: TObject);
-begin
-  inherited;
-  CheckLoadedProject();
-  DoDeploy();
-end;
-
-procedure TMainForm.lbiProjectClick(Sender: TObject);
-begin
-  CheckLoadedProject();
-  var LForm := TFormSimpleFactory.CreateProject();
-  try
-    LForm.Id := FProjectServices.GetActiveProject().Id;
-    TFormSlider.ShowModal(Self, LForm);
-    LoadModels(false);
-    frmProjectFiles.LoadProject(FProjectServices.GetActiveProject());
-  finally
-    LForm.Free();
-  end;
-end;
-
-function TMainForm.LoadModels(const AValidate: boolean): boolean;
-begin
-  var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  var LProjectStorage := TDefaultStorage<TProjectModel>.Make();
-
-  if not LEnvironmentStorage.LoadModel(FEnvironmentModel) then
-    if AValidate then
-      raise Exception.Create('The Environment Settings are empty.')
-    else
-      Exit(false);
-
-  var LProjectModel := FProjectServices.GetActiveProject();
-  if not Assigned(LProjectModel)
-    or not LProjectStorage.LoadModel(LProjectModel, String.Empty, LProjectModel.Id) then
-      if AValidate then
-        raise Exception.Create('The Project Settings are empty.')
-      else
-        Exit(false);
-
-  if not AValidate then
-    Exit(true);
-
-  var LModelErrors := TStringList.Create();
-  try
-    if not FEnvironmentModel.Validate(LModelErrors) then
-      raise EModelValidationError.Create('The Environment Settings has invalid arguments:'
-        + sLineBreak
-        + sLineBreak
-        + LModelErrors.Text);
-
-    if not LProjectModel.Validate(LModelErrors) then
-      raise EModelValidationError.Create('The Project Settings has invalid arguments:'
-        + sLineBreak
-        + sLineBreak
-        + LModelErrors.Text);
-  finally
-    LModelErrors.Free();
-  end;
-
-  Result := true;
-end;
-
-procedure TMainForm.LoadProject;
-begin
-  var LProjectModel := FProjectServices.GetActiveProject();
-  if not Assigned(LProjectModel) then
-    Exit;
-
-  frmProjectFiles.LoadProject(LProjectModel);
-  frmScriptEditor.CloseAll();
-  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
-  if TFile.Exists(LMainScript) then
-    frmScriptEditor.OpenEditor(LMainScript);
 end;
 
 procedure TMainForm.Log(const AString: string);
@@ -319,6 +107,59 @@ begin
     mmLog.GoToTextEnd();
     mmLog.GoToLineBegin();
   end);
+end;
+
+procedure TMainForm.BeginAsync;
+begin
+  TThread.Synchronize(nil, procedure begin
+    frmLoading.StartAni();
+  end);
+end;
+
+procedure TMainForm.EndAsync;
+begin
+  TThread.Synchronize(nil, procedure begin
+    frmLoading.StopAni();
+  end);
+end;
+
+procedure TMainForm.ShowException(const AException: Exception);
+begin
+  Application.ShowException(AException);
+end;
+
+procedure TMainForm.OpenProject(const AProjectModel: TProjectModel);
+begin
+  if not Assigned(AProjectModel) then
+    Exit;
+
+  frmProjectFiles.LoadProject(AProjectModel);
+  frmScriptEditor.CloseAll();
+  var LMainScript := frmProjectFiles.GetDefaultScriptFilePath();
+  if TFile.Exists(LMainScript) then
+    frmScriptEditor.OpenEditor(LMainScript);
+end;
+
+procedure TMainForm.CloseProject(const AProjectModel: TProjectModel);
+begin
+
+end;
+
+procedure TMainForm.FormCreate(Sender: TObject);
+begin
+  GlobalServices := Self;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
+  frmProjectFiles.OnScriptFileDblClick := tviDblClick;
+end;
+
+procedure TMainForm.FormDestroy(Sender: TObject);
+begin
+  GlobalServices := nil;
+end;
+
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+  frmDevice.LoadDevices();
 end;
 
 procedure TMainForm.loProjectOptionsResized(Sender: TObject);

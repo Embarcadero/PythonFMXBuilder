@@ -1,0 +1,139 @@
+object LeftMenuFrame: TLeftMenuFrame
+  Align = Client
+  Size.Width = 57.000000000000000000
+  Size.Height = 515.000000000000000000
+  Size.PlatformDefault = False
+  object lbLeftMenu: TListBox
+    Align = Client
+    Size.Width = 57.000000000000000000
+    Size.Height = 515.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    DisableFocusEffect = True
+    Images = ImageContainer.images
+    DefaultItemStyles.ItemStyle = 'listboxitemnodetail'
+    DefaultItemStyles.GroupHeaderStyle = 'listboxgroupheader'
+    DefaultItemStyles.GroupFooterStyle = ''
+    Viewport.Width = 53.000000000000000000
+    Viewport.Height = 511.000000000000000000
+    object ListBoxGroupHeader1: TListBoxGroupHeader
+      TextSettings.HorzAlign = Center
+      StyledSettings = [Family, Size, Style, FontColor]
+      Size.Width = 53.000000000000000000
+      Size.Height = 34.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Environ.'
+    end
+    object lbiEnvironment: TListBoxItem
+      Position.Y = 34.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object sbUpdateEnvironment: TSpeedButton
+        Action = MenuActionsContainer.actUpdateEnvironment
+        Align = Client
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 0
+        Size.Width = 53.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'actiontoolbutton'
+      end
+    end
+    object ListBoxGroupHeader2: TListBoxGroupHeader
+      TextSettings.HorzAlign = Center
+      StyledSettings = [Family, Size, Style, FontColor]
+      Position.Y = 84.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 34.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      Text = 'Project'
+    end
+    object lbiProject: TListBoxItem
+      Position.Y = 118.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      object sbUpdateProject: TSpeedButton
+        Action = MenuActionsContainer.actUpdateCurrentProject
+        Align = Client
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 9
+        Size.Width = 53.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'actiontoolbutton'
+      end
+    end
+    object ListBoxGroupHeader3: TListBoxGroupHeader
+      TextSettings.HorzAlign = Center
+      StyledSettings = [Family, Size, Style, FontColor]
+      Position.Y = 168.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 34.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'App'
+    end
+    object lbiBuild: TListBoxItem
+      Position.Y = 202.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      object sbBuildCurrentProject: TSpeedButton
+        Action = MenuActionsContainer.actBuildCurrentProjectAsync
+        Align = Left
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 8
+        Size.Width = 53.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'actiontoolbutton'
+      end
+    end
+    object lbiDeploy: TListBoxItem
+      Position.Y = 252.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      object spDeployCurrentProject: TSpeedButton
+        Action = MenuActionsContainer.actDeployCurrentProjectAsync
+        Align = Client
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 5
+        Size.Width = 53.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'actiontoolbutton'
+      end
+    end
+    object lbiRunCurrentProject: TListBoxItem
+      Position.Y = 302.000000000000000000
+      Size.Width = 53.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      object sbRunCurrentProject: TSpeedButton
+        Action = MenuActionsContainer.actRunCurrentProjectAsync
+        Align = Client
+        Enabled = True
+        Images = ImageContainer.images
+        ImageIndex = 2
+        Size.Width = 53.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'actiontoolbutton'
+      end
+    end
+  end
+end
