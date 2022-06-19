@@ -52,6 +52,8 @@ type
     constructor Create(AOwner: TComponent); override;
 
     procedure LoadProject(const AProjectModel: TProjectModel);
+    procedure UnLoadProject(const AProjectModel: TProjectModel);
+
     function GetDefaultScriptFilePath(): string;
     function GetItemFilePath(const AItem: TTreeViewItem): string;
 
@@ -62,7 +64,9 @@ type
 implementation
 
 uses
-  System.StrUtils, System.IOUtils, Builder.Services.Factory, System.SysUtils;
+  System.StrUtils, System.IOUtils, System.SysUtils,
+  FMX.DialogService,
+  Builder.Services.Factory;
 
 type
   TProjectFilesTreeViewItem = class(FMX.TreeView.TTreeViewItem)
@@ -214,6 +218,13 @@ begin
   GetProjectServices().SaveProject(FProjectModel);
 end;
 
+procedure TProjectFilesFrame.UnLoadProject(const AProjectModel: TProjectModel);
+begin
+  tvProjectFiles.Clear();
+  FRoot := nil;
+  FProjectModel := nil;
+end;
+
 function TProjectFilesFrame.BuildNode(const AParent: TFmxObject;
   const ANodeType: TNodeType; const AFilePath: string): TTreeViewItem;
 begin
@@ -262,6 +273,7 @@ begin
           odtvProjectFiles.FileName);
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
         SaveChanges();
+        tvProjectFiles.Selected := LItem;
       end;
     finally
       LStream.Free();
@@ -278,6 +290,19 @@ begin
   var LInfo := LNode.Data.AsType<TNodeInfo>();
   if not NodeIsType(LNode, TNodeType.ntModule) then
     Exit;
+
+  var LRemove := true;
+  if not IsConsole then
+    TDialogService.MessageDialog('Do you really want to remove this file?',
+      TMsgDlgType.mtConfirmation,
+      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
+      procedure(const AResult: TModalResult) begin
+        LRemove := AResult = mrYes;
+      end);
+
+  if not LRemove then
+    Exit;
+
 
   LNode.Free();
 
