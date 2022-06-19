@@ -146,10 +146,8 @@ begin
     Exit(String.Empty);
 
   //We try to find the main script
-  for var LScriptFile in FProjectModel.Files.Files do begin
-    if (TPath.GetFileName(LScriptFile) = 'main.py') and TFile.Exists(LScriptFile) then
-      Exit(LScriptFile);
-  end;
+  if TFile.Exists(FProjectModel.Files.MainFile) then
+    Exit(FProjectModel.Files.MainFile);
 
   //If we don't have a main script, we try to get the first existent script
   for var LScriptFile in FProjectModel.Files.Files do begin
