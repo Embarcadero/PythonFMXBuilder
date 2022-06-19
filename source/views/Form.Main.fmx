@@ -3,7 +3,6 @@ inherited MainForm: TMainForm
   ClientHeight = 934
   ClientWidth = 1232
   Position = ScreenCenter
-  WindowState = wsMaximized
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -429,8 +428,8 @@ inherited MainForm: TMainForm
     TabOrder = 8
     inline frmProjectButtons: TProjectButtonsFrame
       Align = Left
-      Position.X = 110.000000000000000000
-      Size.Width = 165.000000000000000000
+      Position.X = 70.000000000000000000
+      Size.Width = 105.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
       inherited btnCreate: TSpeedButton
@@ -463,7 +462,7 @@ inherited MainForm: TMainForm
     end
     inline frmEntityButtons: TEntityButtonsFrame
       Align = Left
-      Size.Width = 110.000000000000000000
+      Size.Width = 70.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
       inherited sbUpdateEnvironment: TSpeedButton
@@ -475,8 +474,8 @@ inherited MainForm: TMainForm
     end
     inline frmBuildButtons: TBuildButtonsFrame
       Align = Left
-      Position.X = 275.000000000000000000
-      Size.Width = 165.000000000000000000
+      Position.X = 175.000000000000000000
+      Size.Width = 105.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
       inherited sbBuildCurrentProject: TSpeedButton
@@ -487,6 +486,90 @@ inherited MainForm: TMainForm
       end
       inherited sbRunCurrentProject: TSpeedButton
         Size.Height = 40.000000000000000000
+      end
+    end
+  end
+  object mmMenu: TMainMenu
+    Images = ImageContainer.images
+    Left = 376
+    Top = 840
+    object miFile: TMenuItem
+      Text = '&File'
+      object miRemoveFile: TMenuItem
+        Action = frmProjectFiles.actAddFile
+        Enabled = True
+        Locked = True
+        ImageIndex = 13
+      end
+      object miAddFile: TMenuItem
+        Action = frmProjectFiles.actRemoveFile
+        Enabled = True
+        Locked = True
+        ImageIndex = 14
+      end
+      object miSetToMain: TMenuItem
+        Action = frmProjectFiles.actSetToMain
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+    end
+    object miProject: TMenuItem
+      Text = '&Project'
+      object miNewProject: TMenuItem
+        Action = MenuActionsContainer.actNewProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 1
+      end
+      object miOpenProject: TMenuItem
+        Action = MenuActionsContainer.actOpenProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 10
+      end
+      object miUpdateProject: TMenuItem
+        Action = MenuActionsContainer.actUpdateCurrentProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 9
+      end
+      object miRemoveProject: TMenuItem
+        Action = MenuActionsContainer.actRemoveCurrentProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 4
+      end
+    end
+    object MenuItem1: TMenuItem
+      Locked = True
+      Text = '&Run'
+      object miBuild: TMenuItem
+        Action = MenuActionsContainer.actBuildCurrentProjectAsync
+        Enabled = True
+        Locked = True
+        ImageIndex = 8
+      end
+      object miDeploy: TMenuItem
+        Action = MenuActionsContainer.actDeployCurrentProjectAsync
+        Enabled = True
+        Locked = True
+        ImageIndex = 5
+      end
+      object miRun: TMenuItem
+        Action = MenuActionsContainer.actRunCurrentProjectAsync
+        Enabled = True
+        Locked = True
+        ImageIndex = 2
+      end
+    end
+    object miTools: TMenuItem
+      Text = '&Tools'
+      object miUpdateEnvironment: TMenuItem
+        Action = MenuActionsContainer.actUpdateEnvironment
+        Enabled = True
+        Locked = True
+        ImageIndex = 0
       end
     end
   end

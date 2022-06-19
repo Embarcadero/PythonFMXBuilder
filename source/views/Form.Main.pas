@@ -33,6 +33,22 @@ type
     tbMenu: TToolBar;
     frmEntityButtons: TEntityButtonsFrame;
     frmBuildButtons: TBuildButtonsFrame;
+    mmMenu: TMainMenu;
+    miFile: TMenuItem;
+    miProject: TMenuItem;
+    miTools: TMenuItem;
+    MenuItem1: TMenuItem;
+    miUpdateEnvironment: TMenuItem;
+    miBuild: TMenuItem;
+    miDeploy: TMenuItem;
+    miRun: TMenuItem;
+    miUpdateProject: TMenuItem;
+    miAddFile: TMenuItem;
+    miRemoveFile: TMenuItem;
+    miOpenProject: TMenuItem;
+    miNewProject: TMenuItem;
+    miRemoveProject: TMenuItem;
+    miSetToMain: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -62,7 +78,8 @@ implementation
 
 uses
   System.IOUtils, System.Threading, FMX.DialogService,
-  Container.Images, Form.Factory, Form.Slider,
+  Container.Images, Container.Menu.Actions,
+  Form.Factory, Form.Slider,
   Builder.Services.Factory, Builder.Services.ADB;
 
 const

@@ -237,13 +237,13 @@ end;
 procedure TProjectFilesFrame.altvProjectFilesUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
-  actAddFile.Visible := Assigned(tvProjectFiles.Selected)
-    and NodeIsType(tvProjectFiles.Selected, TNodeType.ntProject);
+  actAddFile.Enabled := Assigned(FRoot)
+    and NodeIsType(FRoot, TNodeType.ntProject);
 
-  actRemoveFile.Visible := Assigned(tvProjectFiles.Selected)
+  actRemoveFile.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule);
 
-  actSetToMain.Visible := Assigned(tvProjectFiles.Selected)
+  actSetToMain.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
     and not FProjectServices.IsMainScriptFile(FProjectModel,
       GetItemFilePath(tvProjectFiles.Selected));
