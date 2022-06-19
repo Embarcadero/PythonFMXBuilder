@@ -1,5 +1,5 @@
 object EntityButtonsFrame: TEntityButtonsFrame
-  Size.Width = 129.000000000000000000
+  Size.Width = 70.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object sbUpdateEnvironment: TSpeedButton
@@ -10,7 +10,7 @@ object EntityButtonsFrame: TEntityButtonsFrame
     ImageIndex = 0
     Margins.Left = 5.000000000000000000
     Position.X = 5.000000000000000000
-    Size.Width = 50.000000000000000000
+    Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
@@ -22,8 +22,8 @@ object EntityButtonsFrame: TEntityButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 9
     Margins.Left = 5.000000000000000000
-    Position.X = 60.000000000000000000
-    Size.Width = 50.000000000000000000
+    Position.X = 40.000000000000000000
+    Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'

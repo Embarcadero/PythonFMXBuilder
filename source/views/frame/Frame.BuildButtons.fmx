@@ -1,5 +1,5 @@
 object BuildButtonsFrame: TBuildButtonsFrame
-  Size.Width = 165.000000000000000000
+  Size.Width = 105.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object sbBuildCurrentProject: TSpeedButton
@@ -10,7 +10,7 @@ object BuildButtonsFrame: TBuildButtonsFrame
     ImageIndex = 8
     Margins.Left = 5.000000000000000000
     Position.X = 5.000000000000000000
-    Size.Width = 50.000000000000000000
+    Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
@@ -22,8 +22,8 @@ object BuildButtonsFrame: TBuildButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 5
     Margins.Left = 5.000000000000000000
-    Position.X = 60.000000000000000000
-    Size.Width = 50.000000000000000000
+    Position.X = 40.000000000000000000
+    Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
@@ -35,8 +35,8 @@ object BuildButtonsFrame: TBuildButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 2
     Margins.Left = 5.000000000000000000
-    Position.X = 115.000000000000000000
-    Size.Width = 50.000000000000000000
+    Position.X = 75.000000000000000000
+    Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
