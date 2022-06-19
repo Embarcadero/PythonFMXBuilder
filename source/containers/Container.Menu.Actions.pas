@@ -173,7 +173,21 @@ end;
 procedure TMenuActionsContainer.actRemoveCurrentProjectExecute(Sender: TObject);
 begin
   CheckCurrentProject();
+
+  var LRemove := true;
+  if not IsConsole then
+    TDialogService.MessageDialog('Do you really want to remove this project?',
+      TMsgDlgType.mtConfirmation,
+      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
+      procedure(const AResult: TModalResult) begin
+        LRemove := AResult = mrYes;
+      end);
+
+  if not LRemove then
+    Exit;
+
   FProjectServices.RemoveProject(FProjectModel.ProjectName);
+  GlobalServices.DesignServices.CloseProject(FProjectModel);
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
