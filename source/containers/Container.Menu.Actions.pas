@@ -3,11 +3,13 @@ unit Container.Menu.Actions;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Actions, FMX.ActnList,
-  Form.Slider, FMX.Forms,
+  System.SysUtils, System.Classes, System.Actions, FMX.ActnList, FMX.Forms,
+  Form.Slider, Form.Project.Create, Form.SelectProject,
+  Builder.Chain,
   Builder.Model.Project,
   Builder.Model.Environment,
-  Builder.Services, Builder.Storage, Form.Project.Create, Form.SelectProject,
+  Builder.Services,
+  Builder.Storage,
   Builder.Model;
 
 type
@@ -24,6 +26,12 @@ type
     actBuildCurrentProjectAsync: TAction;
     actDeployCurrentProjectAsync: TAction;
     actRunCurrentProjectAsync: TAction;
+    actDebug: TAction;
+    actStepInto: TAction;
+    actStepOver: TAction;
+    actStepOut: TAction;
+    actPause: TAction;
+    actStop: TAction;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure DataModuleCreate(Sender: TObject);
@@ -37,7 +45,18 @@ type
     procedure actDeployCurrentProjectAsyncExecute(Sender: TObject);
     procedure actRunCurrentProjectAsyncExecute(Sender: TObject);
     procedure actlMenuUpdate(Action: TBasicAction; var Handled: Boolean);
+    procedure actDebugExecute(Sender: TObject);
+    procedure actPauseExecute(Sender: TObject);
+    procedure actStopExecute(Sender: TObject);
+    procedure actStepOutExecute(Sender: TObject);
+    procedure actStepOverExecute(Sender: TObject);
+    procedure actStepIntoExecute(Sender: TObject);
   private
+    //Async control
+    FLoadingProject: integer;
+    FAsyncOperationStartedEvent: IDisconnectable;
+    FAsyncOperationEndedEvent: IDisconnectable;
+    FDebugSessionEndedEvent: IDisconnectable;
     //Models
     FProjectModel: TProjectModel;
     FEnvironmentModel: TEnvironmentModel;
@@ -48,14 +67,23 @@ type
     //Storages
     FEnvironmentStorage: IStorage<TEnvironmentModel>;
     FProjectStorage: IStorage<TProjectModel>;
+    //Debugger
+    FDebugger: IDebugServices;
+    //Predicates
+    function IsLoadingProject(): boolean; inline;
+    function HasActiveProject(): boolean; inline;
+    function IsDebugging(): boolean; inline;
+    //Validators
     procedure CheckCurrentProject();
     procedure CheckActiveDevice();
     procedure UpdateModels();
     procedure DoBuildProject();
     procedure DoDeployProject();
     procedure DoRunProject();
+    procedure DoDebugProject();
   public
-    { Public declarations }
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
   end;
 
 var
@@ -68,12 +96,63 @@ implementation
 {$R *.dfm}
 
 uses
-  System.Threading, System.UITypes,
+  System.Threading, System.UITypes, System.SyncObjs, System.Net.Socket,
+  System.DateUtils,
   FMX.DialogService,
   Container.Images,
+  Form.Factory,
   Builder.Storage.Factory,
   Builder.Services.Factory,
-  Form.Factory, Builder.Storage.Default;
+  Builder.Storage.Default;
+
+const
+  DEFAULT_HOST = '127.0.0.1';
+  DEFAULT_PORT = 5678;
+
+constructor TMenuActionsContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDebugger := TServiceSimpleFactory.CreateDebug();
+  FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
+    procedure(const AEventNotification: TAsyncOperationStartedEvent)
+    begin
+      case AEventNotification.Body.Operation of
+        TAsyncOperation.OpenProject: TInterlocked.Add(FLoadingProject, 1);
+      end;
+    end);
+
+  FAsyncOperationEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationEndedEvent>(
+    procedure(const AEventNotification: TAsyncOperationEndedEvent)
+    begin
+      case AEventNotification.Body.Operation of
+        TAsyncOperation.OpenProject: TInterlocked.Add(FLoadingProject, -1);
+      end;
+    end);
+
+  FDebugSessionEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+    procedure(const AEventNotification: TDebugSessionStoppedEvent)
+    begin
+      var LResult := TStringList.Create();
+      try
+        FAdbServices.StopDebugSession(FEnvironmentModel.AdbLocation, DEFAULT_PORT, LResult);
+        FAdbServices.ForceStopApp(
+          FEnvironmentModel.AdbLocation,
+          FProjectModel.PackageName,
+          FAdbServices.ActiveDevice,
+          LResult);
+      finally
+        LResult.Free();
+      end;
+    end);
+end;
+
+destructor TMenuActionsContainer.Destroy;
+begin
+  FDebugSessionEndedEvent.Disconnect();
+  FAsyncOperationEndedEvent.Disconnect();
+  FAsyncOperationStartedEvent.Disconnect();
+  inherited;
+end;
 
 procedure TMenuActionsContainer.actBuildCurrentProjectAsyncExecute(
   Sender: TObject);
@@ -81,16 +160,17 @@ begin
   CheckCurrentProject();
   UpdateModels();
   
-  GlobalServices.LogServices.Clear();
-  GlobalServices.DesignServices.BeginAsync();
+  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.BuildProject));
+
   TTask.Run(procedure begin
     try
       DoBuildProject();
-      GlobalServices.DesignServices.EndAsync();     
+      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
     except
       on E: exception do begin
-        GlobalServices.DesignServices.EndAsync();
-        GlobalServices.DesignServices.ShowException(E);
+        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
+        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -103,23 +183,47 @@ begin
   DoBuildProject();
 end;
 
+procedure TMenuActionsContainer.actDebugExecute(Sender: TObject);
+begin
+  CheckCurrentProject();
+  CheckActiveDevice();
+  UpdateModels();
+
+  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.DebugProject));
+
+  TTask.Run(procedure begin
+    try
+      DoDebugProject();
+      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
+    except
+      on E: Exception do begin
+
+        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
+        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
+      end;
+    end;
+  end);
+end;
+
 procedure TMenuActionsContainer.actDeployCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
   CheckCurrentProject();
   CheckActiveDevice();
   UpdateModels();
-  
-  GlobalServices.LogServices.Clear();
-  GlobalServices.DesignServices.BeginAsync();
+
+  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.DeployProject));
+
   TTask.Run(procedure begin
     try
       DoDeployProject();
-      GlobalServices.DesignServices.EndAsync();
+      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
     except
       on E: Exception do begin
-        GlobalServices.DesignServices.EndAsync();
-        Application.ShowException(E);
+        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
+        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -136,14 +240,28 @@ end;
 procedure TMenuActionsContainer.actlMenuUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
-  actUpdateCurrentProject.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actRemoveCurrentProject.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actBuildCurrentProject.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actDeployCurrentProject.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actRunCurrentProject.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actBuildCurrentProjectAsync.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actDeployCurrentProjectAsync.Enabled := Assigned(FProjectServices.GetActiveProject());
-  actRunCurrentProjectAsync.Enabled := Assigned(FProjectServices.GetActiveProject());
+  //Entities
+  actUpdateEnvironment.Enabled := not IsLoadingProject() and not IsDebugging();
+  actUpdateCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  //Project
+  actNewProject.Enabled := not IsLoadingProject() and not IsDebugging();
+  actOpenProject.Enabled := not IsLoadingProject() and not IsDebugging();
+  actRemoveCurrentProject.Enabled := not IsLoadingProject() and not IsDebugging();
+  //Build
+  actBuildCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  actDeployCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  actRunCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  //Build Async
+  actBuildCurrentProjectAsync.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  actDeployCurrentProjectAsync.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  actRunCurrentProjectAsync.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
+  //Debug
+  actDebug.Enabled := HasActiveProject and not IsLoadingProject() and not IsDebugging();
+  actStepInto.Enabled := IsDebugging();
+  actStepOver.Enabled := IsDebugging();
+  actStepOut.Enabled := IsDebugging();
+  actPause.Enabled := (FDebugger.Status in [TDebuggerStatus.Started]);
+  actStop.Enabled := (FDebugger.Status in [TDebuggerStatus.Started]);
 end;
 
 procedure TMenuActionsContainer.actNewProjectExecute(Sender: TObject);
@@ -153,7 +271,7 @@ begin
   if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
     FProjectModel := FProjectServices.CreateProject(LProjectName, LCreateMainFile);
     FProjectServices.SaveProject(FProjectModel);
-    GlobalServices.DesignServices.OpenProject(FProjectModel);
+    TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel), true, false);
   end;
 end;
 
@@ -164,10 +282,15 @@ begin
     var LSelected := TSelectProjectForm.Select(LProjects);
     if not LSelected.IsEmpty() then begin
       FProjectModel := FProjectServices.LoadProject(LSelected);
-      GlobalServices.DesignServices.OpenProject(FProjectModel);
+      TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel), true, false);
     end;
   end else
     raise Exception.Create('Your workspace is empty. Try to create a new project.');
+end;
+
+procedure TMenuActionsContainer.actPauseExecute(Sender: TObject);
+begin
+  FDebugger.Pause();
 end;
 
 procedure TMenuActionsContainer.actRemoveCurrentProjectExecute(Sender: TObject);
@@ -187,7 +310,7 @@ begin
     Exit;
 
   FProjectServices.RemoveProject(FProjectModel.ProjectName);
-  GlobalServices.DesignServices.CloseProject(FProjectModel);
+  TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FProjectModel));
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
@@ -197,16 +320,17 @@ begin
   CheckActiveDevice();
   UpdateModels();
 
-  GlobalServices.LogServices.Clear();
-  GlobalServices.DesignServices.BeginAsync();
+  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.RunProject));
+
   TTask.Run(procedure begin
     try
       DoRunProject();
-      GlobalServices.DesignServices.EndAsync();
+      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
     except
       on E: Exception do begin
-        GlobalServices.DesignServices.EndAsync();
-        Application.ShowException(E);
+        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
+        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -218,6 +342,26 @@ begin
   CheckActiveDevice();
   UpdateModels();
   DoRunProject();
+end;
+
+procedure TMenuActionsContainer.actStepIntoExecute(Sender: TObject);
+begin
+  FDebugger.StepIn();
+end;
+
+procedure TMenuActionsContainer.actStepOutExecute(Sender: TObject);
+begin
+  FDebugger.StepOut();
+end;
+
+procedure TMenuActionsContainer.actStepOverExecute(Sender: TObject);
+begin
+  FDebugger.Next();
+end;
+
+procedure TMenuActionsContainer.actStopExecute(Sender: TObject);
+begin
+  FDebugger.Stop();
 end;
 
 procedure TMenuActionsContainer.actUpdateCurrentProjectExecute(Sender: TObject);
@@ -270,7 +414,34 @@ begin
   //Creates and signs the APK file
   if not FAppServices.BuildApk(FProjectModel, FEnvironmentModel) then
     raise Exception.Create('Build process failed. Check log for details.');
-  GlobalServices.LogServices.Log('Build process done.');
+  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create('Build process done.'));
+end;
+
+procedure TMenuActionsContainer.DoDebugProject;
+begin
+  //DoDeployProject();
+  //Launch app on device and debug the Python script
+  var LResult := TStringList.Create();
+  try
+    FAdbServices.DebugApp(
+      FEnvironmentModel.AdbLocation,
+      FProjectModel.PackageName,
+      FAdbServices.ActiveDevice,
+      DEFAULT_HOST,
+      DEFAULT_PORT,
+      LResult);
+    FAdbServices.StartDebugSession(FEnvironmentModel.AdbLocation, DEFAULT_PORT, LResult);
+    try
+      FDebugger.Start(DEFAULT_HOST, DEFAULT_PORT);
+    except
+      on E: Exception do begin
+        FAdbServices.StopDebugSession(FEnvironmentModel.AdbLocation, DEFAULT_PORT, LResult);
+        raise;
+      end;
+    end;
+  finally
+    LResult.Free();
+  end;
 end;
 
 procedure TMenuActionsContainer.DoDeployProject;
@@ -296,6 +467,21 @@ begin
   finally
     LResult.Free();
   end;
+end;
+
+function TMenuActionsContainer.HasActiveProject: boolean;
+begin
+  Result := Assigned(FProjectServices.GetActiveProject());
+end;
+
+function TMenuActionsContainer.IsDebugging: boolean;
+begin
+  Result := (FDebugger.Status in [TDebuggerStatus.Connecting, TDebuggerStatus.Started, TDebuggerStatus.Disconnecting]);
+end;
+
+function TMenuActionsContainer.IsLoadingProject: boolean;
+begin
+  Result := FLoadingProject <> 0;
 end;
 
 procedure TMenuActionsContainer.UpdateModels;

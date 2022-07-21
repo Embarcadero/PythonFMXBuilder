@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.ListBox, FMX.Layouts, System.Threading,
-  Builder.Services;
+  Builder.Services, Builder.Chain;
 
 type
   TDeviceFrame = class(TFrame)
@@ -16,14 +16,22 @@ type
     procedure btnRefreshDeviceClick(Sender: TObject);
     procedure cbDeviceChange(Sender: TObject);
   private
-    FTask: ITask;
+    FDevicesMonitor: TThread;
+    FRunning: boolean;
+    FUpdate: boolean;
     FDevices: TStrings;
     FAdbServices: IAdbServices;
+    FAdbPath: string;
+    FDebugSessionStarted: IDisconnectable;
+    FDebugSessionStopped: IDisconnectable;
+    procedure LoadDevices();
+
+    procedure StartDevicesMonitor();
+    procedure StopDevicesMonitor();
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
 
-    procedure LoadDevices();
     procedure CheckSelectedDevice();
     function GetSelectedDeviceName(): string;
   end;
@@ -43,24 +51,35 @@ begin
   inherited;
   FDevices := TStringList.Create();
   FAdbServices := TServiceSimpleFactory.CreateAdb();
+  StartDevicesMonitor();
+  LoadDevices();
+
+  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+    procedure(const AEventNotification: TDebugSessionStartedEvent)
+    begin
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          btnRefreshDevice.Enabled := false;
+          cbDevice.Enabled := false;
+        end);
+    end);
+
+  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+    procedure(const AEventNotification: TDebugSessionStoppedEvent)
+    begin
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          btnRefreshDevice.Enabled := true;
+          cbDevice.Enabled := true;
+        end);
+    end);
 end;
 
 destructor TDeviceFrame.Destroy;
 begin
-  if Assigned(FTask) then begin
-    FTask.Cancel();
-    try
-      while not FTask.Wait(100)do begin
-        Application.ProcessMessages();
-      end;
-    except
-      on E: EOperationCancelled do begin
-        //
-      end;
-      on E: Exception do
-        raise;
-    end;
-  end;
+  StopDevicesMonitor();
   FDevices.Free();
   inherited;
 end;
@@ -83,7 +102,7 @@ end;
 
 function TDeviceFrame.GetSelectedDeviceName: string;
 begin
-  if cbDevice.ItemIndex < 0 then
+  if (cbDevice.ItemIndex < 0) then
     Result := String.Empty
   else
     Result := FDevices.Names[cbDevice.ItemIndex];
@@ -91,37 +110,60 @@ end;
 
 procedure TDeviceFrame.LoadDevices;
 begin
+  //Users might update environment settings while task is running
+  var LStorage := TStorageSimpleFactory.CreateEnvironment();
+  FAdbPath := LStorage.GetAdbPath();
   FDevices.Clear();
   cbDevice.Clear();
   aiDevice.Enabled := true;
   aiDevice.Visible := true;
   btnRefreshDevice.Enabled := false;
-  FTask := TTask.Run(procedure begin
-    var LStorage := TStorageSimpleFactory.CreateEnvironment();
+  FUpdate := true;
+end;
+
+procedure TDeviceFrame.StartDevicesMonitor;
+begin
+  FRunning := true;
+  FDevicesMonitor := TThread.CreateAnonymousThread(procedure begin
     try
-      var LAdbPath := LStorage.GetAdbPath();
+      while FRunning do begin
+        { TODO : Listen to devices updates }
+        //Let's listen to user's update request
+        if FUpdate and not FAdbPath.IsEmpty() then begin
+          try
+            FAdbServices.ListDevices(FAdbPath, FDevices);
+            TThread.Queue(TThread.Current,
+              procedure
+              begin
+                for var I := 0 to FDevices.Count - 1 do
+                  cbDevice.Items.Add(FDevices.ValueFromIndex[I]);
 
-      if not LAdbPath.IsEmpty() then
-        FAdbServices.ListDevices(LAdbPath, FDevices);
+                if (cbDevice.Count > 0)  then
+                  cbDevice.ItemIndex := 0;
 
-      FTask.CheckCanceled();
-      TThread.Synchronize(nil, procedure begin
-        for var I := 0 to FDevices.Count - 1 do
-          cbDevice.Items.Add(FDevices.ValueFromIndex[I]);
-
-        if (cbDevice.Count > 0)  then
-          cbDevice.ItemIndex := 0;
-      end);
+                aiDevice.Enabled := false;
+                aiDevice.Visible := false;
+                btnRefreshDevice.Enabled := true;
+              end);
+          finally
+            FUpdate := false;
+          end;
+        end;
+        Sleep(100);
+      end;
     finally
-      FTask.CheckCanceled();
-      TThread.Queue(nil, procedure begin
-        aiDevice.Enabled := false;
-        aiDevice.Visible := false;
-        btnRefreshDevice.Enabled := true;
-      end);
-      FTask := nil;
+      TThread.RemoveQueuedEvents(TThread.Current);
     end;
   end);
+  FDevicesMonitor.FreeOnTerminate := false;
+  FDevicesMonitor.Start();
+end;
+
+procedure TDeviceFrame.StopDevicesMonitor;
+begin
+  FRunning := false;
+  FDevicesMonitor.WaitFor();
+  FDevicesMonitor.Free();
 end;
 
 end.

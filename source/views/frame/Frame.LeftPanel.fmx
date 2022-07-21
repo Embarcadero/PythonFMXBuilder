@@ -1,0 +1,77 @@
+object LeftPanelFrame: TLeftPanelFrame
+  Size.Width = 453.000000000000000000
+  Size.Height = 842.000000000000000000
+  Size.PlatformDefault = False
+  object tcLeftPanelControls: TTabControl
+    Align = Client
+    Size.Width = 453.000000000000000000
+    Size.Height = 842.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = PlatformDefault
+    Sizes = (
+      453s
+      837s
+      453s
+      837s)
+    object tiLeftPanelDesignSession: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 0.000000000000000000
+      Size.Height = 5.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Design Session'
+      ExplicitSize.cx = 8.000000000000000000
+      ExplicitSize.cy = 8.000000000000000000
+    end
+    object tiLeftPanelDebugSession: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 0.000000000000000000
+      Size.Height = 5.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Debug Session'
+      ExplicitSize.cx = 8.000000000000000000
+      ExplicitSize.cy = 8.000000000000000000
+      inline frmLeftPanelDebug: TLeftPanelDebugFrame
+        Align = Client
+        Size.Width = 453.000000000000000000
+        Size.Height = 837.000000000000000000
+        Size.PlatformDefault = False
+        inherited frmLocalVariables: TLocalVariablesDebugFrame
+          Size.Width = 453.000000000000000000
+          Size.Height = 406.000000000000000000
+          inherited tbFrame: TToolBar
+            Size.Width = 453.000000000000000000
+            inherited lbDescription: TLabel
+              Size.Width = 448.000000000000000000
+            end
+          end
+        end
+        inherited frmStackTrace: TStackTraceDebugFrame
+          Size.Width = 453.000000000000000000
+          Size.Height = 425.000000000000000000
+          inherited tbFrame: TToolBar
+            Size.Width = 453.000000000000000000
+            inherited lbDescription: TLabel
+              Size.Width = 448.000000000000000000
+            end
+          end
+        end
+        inherited spHorizontal: TSplitter
+          Position.Y = 425.000000000000000000
+          Size.Width = 453.000000000000000000
+        end
+      end
+    end
+  end
+end

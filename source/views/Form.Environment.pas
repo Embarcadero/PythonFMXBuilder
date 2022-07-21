@@ -158,17 +158,21 @@ begin
             try
               LText := ATask();
             finally
-              TThread.Queue(nil, procedure() begin
-                AEdit.Text := LText;
-                LAni.Visible := false;
-                LAni.Enabled := false;
-                AEdit.Enabled := true;
-              end);
+              TThread.Queue(TThread.Current,
+                procedure()
+                begin
+                  AEdit.Text := LText;
+                  LAni.Visible := false;
+                  LAni.Enabled := false;
+                  AEdit.Enabled := true;
+                end);
             end;
           finally
-            TThread.Queue(nil, procedure() begin
-              LAni.Free();
-            end);
+            TThread.Queue(TThread.Current,
+              procedure()
+              begin
+                LAni.Free();
+              end);
           end;
         end));
   except

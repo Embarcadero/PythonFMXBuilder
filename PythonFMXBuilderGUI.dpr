@@ -21,7 +21,19 @@ uses
   Container.Menu.Actions in 'source\containers\Container.Menu.Actions.pas' {MenuActionsContainer: TDataModule},
   Frame.LeftMenu in 'source\views\frame\Frame.LeftMenu.pas' {LeftMenuFrame: TFrame},
   Frame.EntityButtons in 'source\views\frame\Frame.EntityButtons.pas' {EntityButtonsFrame: TFrame},
-  Frame.BuildButtons in 'source\views\frame\Frame.BuildButtons.pas' {BuildButtonsFrame: TFrame};
+  Frame.BuildButtons in 'source\views\frame\Frame.BuildButtons.pas' {BuildButtonsFrame: TFrame},
+  Frame.Debug.StackTrace in 'source\views\frame\debug\Frame.Debug.StackTrace.pas' {StackTraceDebugFrame: TFrame},
+  Frame.Debug.LocalVariables in 'source\views\frame\debug\Frame.Debug.LocalVariables.pas' {LocalVariablesDebugFrame: TFrame},
+  Frame.Debug.Threads in 'source\views\frame\debug\Frame.Debug.Threads.pas' {ThreadsDebugFrame: TFrame},
+  Frame.Debug.Breakpoints in 'source\views\frame\debug\Frame.Debug.Breakpoints.pas' {BreakpointsDebugFrame: TFrame},
+  Frame.Debug.Events in 'source\views\frame\debug\Frame.Debug.Events.pas' {EventsDebugFrame: TFrame},
+  Frame.Debug in 'source\views\frame\debug\Frame.Debug.pas' {DebugFrame: TFrame},
+  Frame.Debug.LeftPanel in 'source\views\frame\debug\Frame.Debug.LeftPanel.pas' {LeftPanelDebugFrame: TFrame},
+  Frame.Debug.BottomPanel in 'source\views\frame\debug\Frame.Debug.BottomPanel.pas' {BottomPanelDebugFrame: TFrame},
+  Frame.DebugButtons in 'source\views\frame\Frame.DebugButtons.pas' {DebugButtonsFrame: TFrame},
+  Frame.LeftPanel in 'source\views\frame\Frame.LeftPanel.pas' {LeftPanelFrame: TFrame},
+  Frame.BottomPanel in 'source\views\frame\Frame.BottomPanel.pas' {BottomPanelFrame: TFrame},
+  Frame.Log in 'source\views\frame\Frame.Log.pas' {LogFrame: TFrame};
 
 {$R *.res}
 

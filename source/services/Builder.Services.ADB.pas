@@ -23,17 +23,23 @@ type
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
 
-    function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
-    function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
-    procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
-
     function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
+
+    function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
+    function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+
+    procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
+    procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+    procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+    procedure DebugApp(const AAdbPath, APkgName, ADevice, AHost: string; const APort: integer; const AResult: TStrings);
+    procedure ForceStopApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
   end;
 
 implementation
 
 uses
+  Builder.Chain,
   Builder.Storage.Default,
   {$IFDEF MSWINDOWS}
   Builder.Services.ADB.Win;
@@ -213,17 +219,14 @@ end;
 
 procedure TADBService.ExecCmd(const ACmdLine, ABaseDir: string; ACmdResult: TStrings);
 begin
-  var LLog: ILogServices := nil;
-  if Supports(GlobalServices, ILogServices, LLog) then
-    LLog.Log('ExecCmd: ' + ACmdLine);
+  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create('ExecCmd: ' + ACmdLine));
 
   var LCmdResults := TStringList.Create();
   try
     ExecCmdine(ACmdLine, ABaseDir, LCmdResults);
     ACmdResult.AddStrings(LCmdResults);
 
-    if Assigned(LLog) then
-      LLog.Log(LCmdResults.Text);
+    TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(LCmdResults.Text));
   finally
     LCmdResults.Free();
   end;
@@ -239,6 +242,14 @@ begin
   finally
     LStrings.Free();
   end;
+end;
+
+procedure TADBService.ForceStopApp(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings);
+const
+  CMD = '%s -s %s shell am force-stop %s';
+begin
+  ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
 end;
 
 function TADBService.GetActiveDevice: string;
@@ -286,15 +297,37 @@ end;
 
 procedure TADBService.RunApp(const AAdbPath, APkgName, ADevice: string;
   const AResult: TStrings);
+const
+  CMD = '%s -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity';
 begin
-  ExecCmd(AAdbPath
-    + Format(' -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity', [
-        ADevice, APkgName]), String.Empty, AResult);
+  ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
+end;
+
+procedure TADBService.DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;
+  const APort: integer; const AResult: TStrings);
+const
+  CMD_START = '%s -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity --es args ''"--debugpy -port %d"''';
+begin
+  ExecCmd(Format(CMD_START, [AAdbPath, ADevice, APkgName, APort]), String.Empty, AResult);
 end;
 
 procedure TADBService.SetActiveDevice(const ADeviceName: string);
 begin
   FActiveDevice := ADeviceName;
+end;
+
+procedure TADBService.StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+const
+  CMD_REDIRECT = '%0:s forward tcp:%1:d tcp:%1:d';
+begin
+  ExecCmd(Format(CMD_REDIRECT, [AAdbPath, APort]), String.Empty, AResult);
+end;
+
+procedure TADBService.StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+const
+  CMD_REDIRECT = '%0:s forward --remove tcp:%1:d';
+begin
+  ExecCmd(Format(CMD_REDIRECT, [AAdbPath, APort]), String.Empty, AResult);
 end;
 
 end.

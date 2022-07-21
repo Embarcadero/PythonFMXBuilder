@@ -8,33 +8,6 @@ uses
   Builder.Model.Project, Builder.Model.Environment;
 
 type
-  ILogServices = interface;
-  IDesignServices = interface;
-
-  IServices = interface
-    ['{0959ED55-8FA5-4D88-88BB-EB2738261A23}']
-    function GetLogServices(): ILogServices;
-    function GetDesignServices(): IDesignServices;
-
-    property LogServices: ILogServices read GetLogServices;
-    property DesignServices: IDesignServices read GetDesignServices;
-  end;
-
-  ILogServices = interface
-    ['{50EDF1E4-BABC-42BD-A93D-957C53ED9663}']
-    procedure Clear();
-    procedure Log(const AString: string);
-  end;
-
-  IDesignServices = interface
-    ['{D42F5686-63D2-4429-9B25-E53983897862}']
-    procedure BeginAsync();
-    procedure EndAsync();
-    procedure ShowException(const AException: Exception);
-    procedure OpenProject(const AProjectModel: TProjectModel);
-    procedure CloseProject(const AProjectModel: TProjectModel);
-  end;
-
   IAdbServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
@@ -48,6 +21,11 @@ type
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
       const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
+    procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+    procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+    procedure DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;
+      const APort: integer; const AResult: TStrings);
+    procedure ForceStopApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
 
     property ActiveDevice: string read GetActiveDevice write SetActiveDevice;
   end;
@@ -105,8 +83,28 @@ type
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 
-var
-  GlobalServices: IServices;
+  {$SCOPEDENUMS ON}
+  TDebuggerStatus = (
+    OutOfWork,
+    Connecting, //We are ordering a conenction to the debugger
+    Started, //We are conected to the debugger - Debugger has confirmed
+    Disconnecting, //We ordered to disconnect from the debugger
+    Stopped //We are disconnected from the debugger - Debugger has confirmed
+  );
+  {$SCOPEDENUMS OFF}
+  IDebugServices = interface
+    ['{568CC96C-4A33-4CA1-8972-1F2C7280B0EE}']
+    function GetStatus: TDebuggerStatus;
+
+    procedure Start(const AHost: string; const APort: integer; const ATimeOut: Int64 = 120);
+    procedure Pause();
+    procedure Stop();
+    procedure StepIn();
+    procedure StepOut();
+    procedure Next();
+
+    property Status: TDebuggerStatus read GetStatus;
+  end;
 
 implementation
 

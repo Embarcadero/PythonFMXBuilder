@@ -6,12 +6,15 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Memo.Types, FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo,
-  FMX.TabControl, FMX.Objects, System.Rtti;
+  FMX.TabControl, FMX.Objects, System.Rtti, Builder.Chain;
 
 type
   TScriptEditorFrame = class(TFrame)
     tbScripts: TTabControl;
   private
+    FOpenProjectEvent: IDisconnectable;
+    FCloseProjectEvent: IDisconnectable;
+    FOpenFileEvent: IDisconnectable;
     function DoCreateTab(const AText: string;
       const ACanCloes: boolean = true): TTabItem;
     procedure DoCloseTab(Sender: TObject);  
@@ -19,6 +22,9 @@ type
     procedure DoCloseEditor(const AItem: TTabItem);
     procedure LoadEditorFile(const AItem: TTabItem; const AFilePath: string = '');
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
+
     procedure OpenEditor(const AFilePath: string);
     procedure CloseEditor(const AFilePath: string);
     procedure CloseAll();
@@ -120,6 +126,46 @@ begin
 end;
 
 { TScriptEditorFrame }
+
+constructor TScriptEditorFrame.Create(AOwner: TComponent);
+begin
+  inherited;
+  { TODO : Concurrency handler enhancement }
+  FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
+    procedure(const AEventNotification: TOpenProjectEvent)
+    begin
+      //
+    end);
+
+  FCloseProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TCloseProjectEvent>(
+    procedure(const AEventNotification: TCloseProjectEvent)
+    begin
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          CloseAll();
+        end);
+    end);
+
+  FOpenFileEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenFileEvent>(
+    procedure(const AEventNotification: TOpenFileEvent)
+    begin
+      var LFilePath := AEventNotification.Body.FilePath;
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          OpenEditor(LFilePath);
+        end);
+    end);
+end;
+
+destructor TScriptEditorFrame.Destroy;
+begin
+  FOpenFileEvent.Disconnect();
+  FOpenProjectEvent.Disconnect();
+  FCloseProjectEvent.Disconnect();
+  inherited;
+end;
 
 procedure TScriptEditorFrame.LoadEditorFile(const AItem: TTabItem;
   const AFilePath: string);

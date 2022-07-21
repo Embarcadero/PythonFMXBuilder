@@ -87,5 +87,45 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actRunCurrentProjectAsyncExecute
       ImageIndex = 2
     end
+    object actDebug: TAction
+      Category = 'Debug'
+      Text = 'Debug'
+      ImageIndex = 16
+      OnExecute = actDebugExecute
+      ImageIndex = 16
+    end
+    object actStepInto: TAction
+      Category = 'Debug'
+      Text = 'Step Into'
+      ImageIndex = 17
+      OnExecute = actStepIntoExecute
+      ImageIndex = 17
+    end
+    object actStepOver: TAction
+      Category = 'Debug'
+      Text = 'Step Over'
+      ImageIndex = 19
+      OnExecute = actStepOverExecute
+      ImageIndex = 19
+    end
+    object actStepOut: TAction
+      Category = 'Debug'
+      Text = 'Step Out'
+      ImageIndex = 18
+      OnExecute = actStepOutExecute
+      ImageIndex = 18
+    end
+    object actPause: TAction
+      Category = 'Debug'
+      Text = 'Pause'
+      Hint = 'Pause'
+      OnExecute = actPauseExecute
+    end
+    object actStop: TAction
+      Category = 'Debug'
+      Text = 'Stop'
+      Hint = 'Stop'
+      OnExecute = actStopExecute
+    end
   end
 end

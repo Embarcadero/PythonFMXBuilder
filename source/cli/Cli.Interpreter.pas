@@ -38,38 +38,19 @@ implementation
 
 uses
   PyTools.ExecCmd,
+  Builder.Protocol,
   Builder.Exception,
   Builder.Services, Builder.Services.Factory,
   Builder.Storage.Default,
   Cli.Commands, Cli.Options, Cli.Exception;
-
-type
-  TCliServices = class(TInterfacedObject, IServices, ILogServices)
-  public
-    procedure Log(const AString: string);
-  end;
-
-{ TCliServices }
-
-procedure TCliServices.Log(const AString: string);
-begin
-  WriteLn(AString);
-end;
 
 { TCommandInterpreter }
 
 class function TCommandInterpreter.ExecuteAction(
   const AVerbose: boolean; const AAction: TFunc<boolean>): boolean;
 begin
-  if AVerbose then begin
-    GlobalServices := TCliServices.Create();
-    try
-      Result := AAction();
-    finally
-      GlobalServices := nil;
-    end;
-  end else
-    Result := AAction();
+  { TODO : Manage verbosity }
+  Result := AAction();
 end;
 
 class procedure TCommandInterpreter.DoHelpCommand(const ACommand: string);
