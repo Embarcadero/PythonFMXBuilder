@@ -66,7 +66,8 @@ type
         TAsyncOperation.OpenProject,
         TAsyncOperation.BuildProject,
         TAsyncOperation.DeployProject,
-        TAsyncOperation.RunProject];
+        TAsyncOperation.RunProject,
+        TAsyncOperation.DebugProject];
   private
     FProjectServices: IProjectServices;
     FAsyncExcpetionEvent: IDisconnectable;

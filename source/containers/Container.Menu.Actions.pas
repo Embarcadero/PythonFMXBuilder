@@ -198,7 +198,6 @@ begin
       TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
     except
       on E: Exception do begin
-
         TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
         TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
       end;
@@ -419,7 +418,7 @@ end;
 
 procedure TMenuActionsContainer.DoDebugProject;
 begin
-  //DoDeployProject();
+  DoDeployProject();
   //Launch app on device and debug the Python script
   var LResult := TStringList.Create();
   try
