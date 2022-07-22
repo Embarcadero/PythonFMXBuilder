@@ -160,17 +160,17 @@ begin
   CheckCurrentProject();
   UpdateModels();
   
-  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.BuildProject));
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.BuildProject));
 
   TTask.Run(procedure begin
     try
       DoBuildProject();
-      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
+      TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
     except
       on E: exception do begin
-        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
-        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -189,18 +189,18 @@ begin
   CheckActiveDevice();
   UpdateModels();
 
-  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.DebugProject));
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.DebugProject));
 
   TTask.Run(procedure begin
     try
       DoDebugProject();
-      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
+      TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
     except
       on E: Exception do begin
 
-        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
-        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -213,17 +213,17 @@ begin
   CheckActiveDevice();
   UpdateModels();
 
-  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.DeployProject));
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.DeployProject));
 
   TTask.Run(procedure begin
     try
       DoDeployProject();
-      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
+      TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
     except
       on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
-        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -271,7 +271,7 @@ begin
   if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
     FProjectModel := FProjectServices.CreateProject(LProjectName, LCreateMainFile);
     FProjectServices.SaveProject(FProjectModel);
-    TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel), true, false);
+    TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel));
   end;
 end;
 
@@ -282,7 +282,7 @@ begin
     var LSelected := TSelectProjectForm.Select(LProjects);
     if not LSelected.IsEmpty() then begin
       FProjectModel := FProjectServices.LoadProject(LSelected);
-      TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel), true, false);
+      TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel));
     end;
   end else
     raise Exception.Create('Your workspace is empty. Try to create a new project.');
@@ -310,7 +310,7 @@ begin
     Exit;
 
   FProjectServices.RemoveProject(FProjectModel.ProjectName);
-  TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FProjectModel));
+  TGlobalBuilderChain.BroadcastEventAsync(TCloseProjectEvent.Create(FProjectModel));
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
@@ -320,17 +320,17 @@ begin
   CheckActiveDevice();
   UpdateModels();
 
-  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEvent(TAsyncOperationStartedEvent.Create(TAsyncOperation.RunProject));
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.RunProject));
 
   TTask.Run(procedure begin
     try
       DoRunProject();
-      TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
+      TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
     except
       on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEvent(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
-        TGlobalBuilderChain.BroadcastEvent(TAsyncExceptionEvent.Create());
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
+        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
       end;
     end;
   end);
@@ -414,7 +414,7 @@ begin
   //Creates and signs the APK file
   if not FAppServices.BuildApk(FProjectModel, FEnvironmentModel) then
     raise Exception.Create('Build process failed. Check log for details.');
-  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create('Build process done.'));
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create('Build process done.'));
 end;
 
 procedure TMenuActionsContainer.DoDebugProject;

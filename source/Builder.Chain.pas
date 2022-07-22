@@ -319,14 +319,18 @@ type
     end;
   private
     FPool: TThreadPool;
-    FLock: TSemaphore;
     FBroadcasting: boolean;
     FBroadcastTask: TThread;
+    //The TThreadedQueue uses a TMonitor to its lock and a TMonitor accepts the same thread twice
+    FLock: TSemaphore;
     FEventQueue: TQueue<TQueuedEventInfo>;
     FEventSubscribers: TThreadList<TChainEventNotification>;
     FRequestHandlers: TThreadList<TChainReverseRequestNotification>;
     procedure StartBroadcasting();
     procedure StopBroadcasting();
+
+    function InternalBroadcastEvent(const AEvent: TChainEvent;
+      const AOwned: boolean = true; const ACompletitionCallback: TProc = nil): boolean;
   public
     constructor Create();
     destructor Destroy(); override;
@@ -336,10 +340,16 @@ type
 
     procedure SendRequest<T: TChainResponse>(const ARequest: TChainRequest;
       const AResolve: TChainResolve<T>; const AReject: TChainReject;
-      const AOwned: boolean = true; const AAsync: boolean = true);
+      const AOwned: boolean = true);
+    procedure SendRequestAsync<T: TChainResponse>(const ARequest: TChainRequest;
+      const AResolve: TChainResolve<T>; const AReject: TChainReject;
+      const AOwned: boolean = true);
 
-    procedure BroadcastEvent(const AEvent: TChainEvent;
-      const AOwned: boolean = true; const AAsync: boolean = true);
+    function BroadcastEvent(const AEvent: TChainEvent;
+      const AOwned: boolean = true): boolean;
+    procedure BroadcastEventAsync(const AEvent: TChainEvent;
+      const AOwned: boolean = true; const ARejectedCallback: TProc = nil);
+
     function SubscribeToEvent(
       const AEventNotification: TChainEventNotification): IDisconnectable; overload;
     function SubscribeToEvent<T: TChainEvent>(
@@ -358,10 +368,16 @@ type
 
     class procedure SendRequest<T: TChainResponse>(const ARequest: TChainRequest;
       const AResolve: TChainResolve<T>; const AReject: TChainReject;
-      const AOwned: boolean = true; const AAsync: boolean = true);
+      const AOwned: boolean = true);
+    class procedure SendRequestAsync<T: TChainResponse>(const ARequest: TChainRequest;
+      const AResolve: TChainResolve<T>; const AReject: TChainReject;
+      const AOwned: boolean = true);
 
     class procedure BroadcastEvent(const AEvent: TChainEvent;
-      const AOwned: boolean = true; const AAsync: boolean = true); reintroduce;
+      const AOwned: boolean = true); reintroduce;
+    class procedure BroadcastEventAsync(const AEvent: TChainEvent;
+      const AOwned: boolean = true; const ARejectedCallback: TProc = nil); reintroduce;
+
     class function SubscribeToEvent<T: TChainEvent>(
       const AEventNotification: TChainEventNotification<T>): IDisconnectable; reintroduce;
 
@@ -577,66 +593,56 @@ end;
 function TBuilderChain.SubscribeToReverseRequest<T>(
   const AReverseRequestNotification: TChainReverseRequestNotification<T>): IDisconnectable;
 begin
-  TMonitor.Enter(FRequestHandlers);
-  try
-    FRequestHandlers.Add(
-      TChainReverseRequestNotification(AReverseRequestNotification));
-    TMonitor.PulseAll(FRequestHandlers);
-  finally
-    TMonitor.Exit(FRequestHandlers);
-  end;
-
+  FRequestHandlers.Add(TChainReverseRequestNotification(AReverseRequestNotification));
   Result := TDisconnectable.Create(
     procedure()
     begin
-      TMonitor.Enter(FRequestHandlers);
-      try
-        FRequestHandlers.Remove(
-          TChainReverseRequestNotification(AReverseRequestNotification));
-        TMonitor.PulseAll(FRequestHandlers);
-      finally
-        TMonitor.Exit(FRequestHandlers);
-      end;
+      FRequestHandlers.Remove(
+        TChainReverseRequestNotification(AReverseRequestNotification));
     end);
 end;
 
 procedure TBuilderChain.SendRequest<T>(const ARequest: TChainRequest;
   const AResolve: TChainResolve<T>; const AReject: TChainReject;
-  const AOwned: boolean; const AAsync: boolean);
+  const AOwned: boolean);
+var
+  LHandlers: TArray<TChainReverseRequestNotification>;
 begin
-  var LTask := TTask.Run(
-    procedure()
-    var
-      LHandlers: TArray<TChainReverseRequestNotification>;
+  try
+    var LList := FRequestHandlers.LockList();
+    try
+      LHandlers := LList.ToArray();
+    finally
+      FRequestHandlers.UnlockList();
+    end;
+
+    var LHandled := false;
+    for var LHandler in LHandlers do begin
+      var LResponse := LHandler(ARequest, LHandled);
+      if LHandled then
+        if LResponse.Success then
+          AResolve(LResponse as T)
+        else
+          AReject(LResponse.Message);
+    end;
+
+    if not LHandled then
+      AReject('Handler unavailable');
+  finally
+    if AOwned then
+      ARequest.Free();
+  end;
+end;
+
+procedure TBuilderChain.SendRequestAsync<T>(const ARequest: TChainRequest;
+  const AResolve: TChainResolve<T>; const AReject: TChainReject;
+  const AOwned: boolean);
+begin
+  TTask.Run(
+    procedure
     begin
-      try
-        var LList := FRequestHandlers.LockList();
-        try
-          LHandlers := LList.ToArray();
-        finally
-          FRequestHandlers.UnlockList();
-        end;
-
-        var LHandled := false;
-        for var LHandler in LHandlers do begin
-          var LResponse := LHandler(ARequest, LHandled);
-          if LHandled then
-            if LResponse.Success then
-              AResolve(LResponse as T)
-            else
-              AReject(LResponse.Message);
-        end;
-
-        if not LHandled then
-          AReject('Handler unavailable');
-      finally
-        if AOwned then
-          ARequest.Free();
-      end;
+      SendRequest<T>(ARequest, AResolve, AReject, AOwned);
     end);
-
-  if not AAsync then
-    LTask.Wait();
 end;
 
 procedure TBuilderChain.StartBroadcasting;
@@ -700,24 +706,19 @@ begin
   FBroadcastTask.Free();
 end;
 
-procedure TBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
-  const AOwned: boolean; const AAsync: boolean);
+function TBuilderChain.InternalBroadcastEvent(const AEvent: TChainEvent;
+  const AOwned: boolean; const ACompletitionCallback: TProc):boolean;
 var
   LQueuedEventInfo: TQueuedEventInfo;
-  LDone: boolean;
 begin
   if not FBroadcasting then
-    Exit;
+    Exit(false);
 
   LQueuedEventInfo := Default(TQueuedEventInfo);
   LQueuedEventInfo.Event := AEvent;
   LQueuedEventInfo.Owned := AOwned;
-  if not AAsync then
-    LQueuedEventInfo.Callback := procedure() begin
-      LDone := true;
-    end;
+  LQueuedEventInfo.Callback := ACompletitionCallback;
 
-  LDone := false;
   FLock.Acquire();
   try
     FEventQueue.Enqueue(LQueuedEventInfo);
@@ -725,12 +726,39 @@ begin
     FLock.Release();
   end;
 
-  if not AAsync then
+  Result := true;
+end;
+
+function TBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
+  const AOwned: boolean): boolean;
+var
+  LDone: boolean;
+begin
+  LDone := false;
+  Result := InternalBroadcastEvent(AEvent, AOwned,
+    procedure()
+    begin
+      LDone := true;
+    end);
+
+  if Result then
     TSpinWait.SpinUntil(
       function(): boolean
       begin
         Result := LDone;
       end);
+end;
+
+procedure TBuilderChain.BroadcastEventAsync(const AEvent: TChainEvent;
+  const AOwned: boolean; const ARejectedCallback: TProc);
+begin
+  TTask.Run(
+    procedure()
+    begin
+      if not InternalBroadcastEvent(AEvent) then
+        if Assigned(ARejectedCallback) then
+          ARejectedCallback();
+    end);
 end;
 
 function TBuilderChain.SubscribeToEvent(
@@ -786,17 +814,32 @@ begin
 end;
 
 class procedure TGlobalBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
-  const AOwned, AAsync: boolean);
+      const AOwned: boolean);
 begin
-  TGlobalBuilderChain.Instance.BroadcastEvent(AEvent, AOwned, AAsync);
+  TGlobalBuilderChain.Instance.BroadcastEvent(AEvent, AOwned);
+end;
+
+class procedure TGlobalBuilderChain.BroadcastEventAsync(
+  const AEvent: TChainEvent; const AOwned: boolean;
+  const ARejectedCallback: TProc);
+begin
+  TGlobalBuilderChain.Instance.BroadcastEventAsync(AEvent, AOwned, ARejectedCallback);
 end;
 
 class procedure TGlobalBuilderChain.SendRequest<T>(const ARequest: TChainRequest;
-  const AResolve: TChainResolve<T>; const AReject: TChainReject; const AOwned,
-  AAsync: boolean);
+  const AResolve: TChainResolve<T>; const AReject: TChainReject;
+  const AOwned: boolean);
 begin
   TGlobalBuilderChain.Instance.SendRequest<T>(ARequest, AResolve, AReject,
-    AOwned, AAsync);
+    AOwned);
+end;
+
+class procedure TGlobalBuilderChain.SendRequestAsync<T>(
+  const ARequest: TChainRequest; const AResolve: TChainResolve<T>;
+  const AReject: TChainReject; const AOwned: boolean);
+begin
+  TGlobalBuilderChain.Instance.SendRequestAsync<T>(ARequest, AResolve, AReject,
+    AOwned);
 end;
 
 class function TGlobalBuilderChain.SubscribeToEvent<T>(

@@ -219,14 +219,14 @@ end;
 
 procedure TADBService.ExecCmd(const ACmdLine, ABaseDir: string; ACmdResult: TStrings);
 begin
-  TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create('ExecCmd: ' + ACmdLine));
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create('ExecCmd: ' + ACmdLine));
 
   var LCmdResults := TStringList.Create();
   try
     ExecCmdine(ACmdLine, ABaseDir, LCmdResults);
     ACmdResult.AddStrings(LCmdResults);
 
-    TGlobalBuilderChain.BroadcastEvent(TMessageEvent.Create(LCmdResults.Text));
+    TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(LCmdResults.Text));
   finally
     LCmdResults.Free();
   end;

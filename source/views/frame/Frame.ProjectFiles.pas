@@ -140,7 +140,7 @@ begin
   FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
     procedure(const AEventNotification: TOpenProjectEvent)
     begin
-      TGlobalBuilderChain.BroadcastEvent(
+      TGlobalBuilderChain.BroadcastEventAsync(
         TAsyncOperationStartedEvent.Create(TAsyncOperation.OpenProject));
 
       var LProject := AEventNotification.Body.Project;
@@ -153,7 +153,7 @@ begin
             if TFile.Exists(LDefaultScriptFile) then
               BroadcastOpenFile(LDefaultScriptFile);
           finally
-            TGlobalBuilderChain.BroadcastEvent(
+            TGlobalBuilderChain.BroadcastEventAsync(
               TAsyncOperationEndedEvent.Create(TAsyncOperation.OpenProject));
           end;
         end);
@@ -281,7 +281,7 @@ end;
 
 procedure TProjectFilesFrame.BroadcastOpenFile(const AFilePath: string);
 begin
-  TGlobalBuilderChain.BroadcastEvent(
+  TGlobalBuilderChain.BroadcastEventAsync(
     TOpenFileEvent.Create(AFilePath));
 end;
 

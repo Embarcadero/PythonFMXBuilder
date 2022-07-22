@@ -183,13 +183,13 @@ begin
   FDebugger.Port := APort;
   FStatus := TDebuggerStatus.Connecting;
 
-  TGlobalBuilderChain.BroadcastEvent(TDebugSessionStartedEvent.Create(FDebugger), true, false);
+  TGlobalBuilderChain.BroadcastEvent(TDebugSessionStartedEvent.Create(FDebugger));
   try
     InternalConnect(ATimeOut);
   except
     on E: Exception do begin
       FStatus := TDebuggerStatus.Stopped;
-      TGlobalBuilderChain.BroadcastEvent(TDebugSessionStoppedEvent.Create());
+      TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create());
       raise;
     end;
   end;
@@ -201,7 +201,7 @@ begin
     raise Exception.Create('Debugger is still connected.');
 
   FStatus := TDebuggerStatus.Stopped;
-  TGlobalBuilderChain.BroadcastEvent(TDebugSessionStoppedEvent.Create());
+  TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create());
   FDebugger.Active := false;
 end;
 
@@ -346,7 +346,7 @@ begin
     procedure(const AArg: string)
     begin
       LResult := TDebuggerConnectionFrozenAction.ForceDisconnection;
-    end, true, false);
+    end);
   Result := LResult;
 end;
 
