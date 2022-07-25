@@ -318,12 +318,9 @@ type
       Callback: TProc;
     end;
   private
-    FPool: TThreadPool;
     FBroadcasting: boolean;
     FBroadcastTask: TThread;
-    //The TThreadedQueue uses a TMonitor to its lock and a TMonitor accepts the same thread twice
-    FLock: TSemaphore;
-    FEventQueue: TQueue<TQueuedEventInfo>;
+    FEventQueue: TThreadedQueue<TQueuedEventInfo>;
     FEventSubscribers: TThreadList<TChainEventNotification>;
     FRequestHandlers: TThreadList<TChainReverseRequestNotification>;
     procedure StartBroadcasting();
@@ -571,10 +568,8 @@ end;
 
 constructor TBuilderChain.Create;
 begin
-  FPool := TThreadPool.Create();
-  FLock := TSemaphore.Create();
   FBroadcasting := true;
-  FEventQueue := TQueue<TQueuedEventInfo>.Create();
+  FEventQueue := TThreadedQueue<TQueuedEventInfo>.Create();
   FRequestHandlers := TThreadList<TChainReverseRequestNotification>.Create();
   FEventSubscribers := TThreadList<TChainEventNotification>.Create();
   StartBroadcasting();
@@ -586,8 +581,6 @@ begin
   FEventSubscribers.Free();
   FRequestHandlers.Free();
   FEventQueue.Free();
-  FLock.Free();
-  FPool.Free();
 end;
 
 function TBuilderChain.SubscribeToReverseRequest<T>(
@@ -627,7 +620,7 @@ begin
     end;
 
     if not LHandled then
-      AReject('Handler unavailable');
+      AReject('Handler unavailable.');
   finally
     if AOwned then
       ARequest.Free();
@@ -656,18 +649,7 @@ begin
     begin
       try
         while FBroadcasting do begin
-          Sleep(100);
-
-          FLock.Acquire();
-          try
-            if FEventQueue.Count > 0 then
-              LCurrent := FEventQueue.Dequeue()
-            else
-              Continue;
-          finally
-            FLock.Release();
-          end;
-
+          LCurrent := FEventQueue.PopItem();
           try
             var LList := FEventSubscribers.LockList();
             try
@@ -701,6 +683,7 @@ end;
 
 procedure TBuilderChain.StopBroadcasting;
 begin
+  FEventQueue.DoShutDown();
   FBroadcasting := false;
   FBroadcastTask.WaitFor();
   FBroadcastTask.Free();
@@ -719,12 +702,7 @@ begin
   LQueuedEventInfo.Owned := AOwned;
   LQueuedEventInfo.Callback := ACompletitionCallback;
 
-  FLock.Acquire();
-  try
-    FEventQueue.Enqueue(LQueuedEventInfo);
-  finally
-    FLock.Release();
-  end;
+  FEventQueue.PushItem(LQueuedEventInfo);
 
   Result := true;
 end;
