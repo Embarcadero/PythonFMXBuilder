@@ -649,11 +649,11 @@ begin
     begin
       try
         while FBroadcasting do begin
-          if FEventQueue.ShutDown then
-            Break;
-
           if (FEventQueue.PopItem(LCurrent) <> TWaitResult.wrSignaled) then
             Continue;
+
+          if FEventQueue.ShutDown then
+            Break;
 
           try
             var LList := FEventSubscribers.LockList();
