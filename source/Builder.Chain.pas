@@ -649,7 +649,12 @@ begin
     begin
       try
         while FBroadcasting do begin
-          LCurrent := FEventQueue.PopItem();
+          if FEventQueue.ShutDown then
+            Break;
+
+          if (FEventQueue.PopItem(LCurrent) <> TWaitResult.wrSignaled) then
+            Continue;
+
           try
             var LList := FEventSubscribers.LockList();
             try
@@ -702,9 +707,8 @@ begin
   LQueuedEventInfo.Owned := AOwned;
   LQueuedEventInfo.Callback := ACompletitionCallback;
 
-  FEventQueue.PushItem(LQueuedEventInfo);
-
-  Result := true;
+  Result := (FEventQueue.PushItem(LQueuedEventInfo) = TWaitResult.wrSignaled)
+    and not FEventQueue.ShutDown;
 end;
 
 function TBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
@@ -723,7 +727,7 @@ begin
     TSpinWait.SpinUntil(
       function(): boolean
       begin
-        Result := LDone;
+        Result := LDone or FEventQueue.ShutDown;
       end);
 end;
 
