@@ -12,8 +12,16 @@
 		},
 		"https://github.com/embarcadero/pythonenviroments": {
 			"name": "pythonenviroments",
-			"version": "v0.0.1-alpha",
-			"hash": "265ab3f33b5fd70f289ff7bfa2dd380e",
+			"version": "v0.1.1-alpha",
+			"hash": "50a82143ad13f272d50728fba8616bbb",
+			"artifacts": {},
+			"failed": false,
+			"changed": false
+		},
+		"https://github.com/lmbelo/dap4delphi": {
+			"name": "dap4delphi",
+			"version": "v0.1.0-alpha",
+			"hash": "03295ffd551d3ac0227a0401d689d0bc",
 			"artifacts": {},
 			"failed": false,
 			"changed": false
