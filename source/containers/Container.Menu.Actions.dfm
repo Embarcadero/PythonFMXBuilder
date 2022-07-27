@@ -1,16 +1,18 @@
 object MenuActionsContainer: TMenuActionsContainer
   OnCreate = DataModuleCreate
-  Height = 480
-  Width = 640
+  Height = 720
+  Width = 960
+  PixelsPerInch = 144
   object actlMenu: TActionList
     Images = ImageContainer.images
     OnUpdate = actlMenuUpdate
-    Left = 304
-    Top = 224
+    Left = 456
+    Top = 336
     object actUpdateEnvironment: TAction
       Tag = 1
       Category = 'Entities'
       Text = 'Update Environment'
+      Hint = 'Update Environment'
       ImageIndex = 0
       OnExecute = actUpdateEnvironmentExecute
       ImageIndex = 0
@@ -19,6 +21,7 @@ object MenuActionsContainer: TMenuActionsContainer
       Tag = 2
       Category = 'Entities'
       Text = 'Update Project'
+      Hint = 'Update Project'
       ImageIndex = 9
       OnExecute = actUpdateCurrentProjectExecute
       ImageIndex = 9
