@@ -3,7 +3,10 @@ program PyApp;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  MainForm in 'MainForm.pas' {PyMainForm};
+  MainForm in 'MainForm.pas' {PyMainForm},
+  Dependencies.Setup in 'Dependencies.Setup.pas',
+  Dependencies.Pip in 'Dependencies.Pip.pas',
+  Dependencies in 'Dependencies.pas';
 
 {$R *.res}
 

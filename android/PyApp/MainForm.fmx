@@ -11,22 +11,6 @@ object PyMainForm: TPyMainForm
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   DesignerMasterStyle = 3
-  object tbTop: TToolBar
-    Size.Width = 360.000000000000000000
-    Size.Height = 48.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 0
-    object Label1: TLabel
-      Align = Contents
-      Size.Width = 360.000000000000000000
-      Size.Height = 48.000000000000000000
-      Size.PlatformDefault = False
-      StyleLookup = 'toollabel'
-      TextSettings.HorzAlign = Center
-      Text = 'PyApp'
-      TabOrder = 1
-    end
-  end
   object StyleBook1: TStyleBook
     Styles = <
       item
@@ -37983,78 +37967,86 @@ object PyMainForm: TPyMainForm
     Left = 32
     Top = 616
   end
-  object tbBottom: TToolBar
-    Align = Bottom
-    Position.Y = 673.000000000000000000
-    Size.Width = 360.000000000000000000
-    Size.Height = 48.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 1
-    object btnRun: TButton
-      Action = actRun
-      Align = Center
-      Enabled = True
-      ImageIndex = -1
-      Size.Width = 48.000000000000000000
-      Size.Height = 48.000000000000000000
-      Size.PlatformDefault = False
-      StyleLookup = 'playtoolbutton'
-      TabOrder = 0
-    end
-  end
-  object mmMainScript: TMemo
-    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
-    DataDetectorTypes = []
+  object loEditor: TLayout
     Align = Client
     Size.Width = 360.000000000000000000
-    Size.Height = 496.000000000000000000
+    Size.Height = 743.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 7
-    Viewport.Width = 352.000000000000000000
-    Viewport.Height = 488.000000000000000000
-  end
-  object mmOutput: TMemo
-    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
-    DataDetectorTypes = []
-    Align = Top
-    Position.Y = 48.000000000000000000
-    Size.Width = 360.000000000000000000
-    Size.Height = 121.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 8
-    Viewport.Width = 352.000000000000000000
-    Viewport.Height = 113.000000000000000000
-  end
-  object spInputOutput: TSplitter
-    Align = Top
-    Cursor = crVSplit
-    MinSize = 20.000000000000000000
-    Position.Y = 169.000000000000000000
-    Size.Width = 360.000000000000000000
-    Size.Height = 8.000000000000000000
-    Size.PlatformDefault = False
-    object RoundRect1: TRoundRect
-      Align = Center
-      HitTest = False
-      Size.Width = 40.000000000000000000
-      Size.Height = 8.000000000000000000
-      Size.PlatformDefault = False
-    end
-  end
-  object sbPythonStatus: TStatusBar
-    Position.Y = 721.000000000000000000
-    ShowSizeGrip = True
-    Size.Width = 360.000000000000000000
-    Size.Height = 22.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 17
-    object lbPythonStatus: TLabel
+    TabOrder = 13
+    object mmMainScript: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
       Align = Client
       Size.Width = 360.000000000000000000
-      Size.Height = 22.000000000000000000
+      Size.Height = 518.000000000000000000
       Size.PlatformDefault = False
-      TextSettings.HorzAlign = Center
+      TabOrder = 7
+      Viewport.Width = 352.000000000000000000
+      Viewport.Height = 510.000000000000000000
+    end
+    object mmOutput: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Align = Top
+      Position.Y = 48.000000000000000000
+      Size.Width = 360.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 8
+      Viewport.Width = 352.000000000000000000
+      Viewport.Height = 113.000000000000000000
+    end
+    object spInputOutput: TSplitter
+      Align = Top
+      Cursor = crVSplit
+      MinSize = 20.000000000000000000
+      Position.Y = 169.000000000000000000
+      Size.Width = 360.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+      object RoundRect1: TRoundRect
+        Align = Center
+        HitTest = False
+        Size.Width = 40.000000000000000000
+        Size.Height = 8.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+    object tbBottom: TToolBar
+      Align = Bottom
+      Position.Y = 695.000000000000000000
+      Size.Width = 360.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object btnRun: TButton
+        Action = actRun
+        Align = Center
+        Enabled = True
+        ImageIndex = -1
+        Size.Width = 48.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'playtoolbutton'
+        TabOrder = 0
+      end
+    end
+    object tbTop: TToolBar
+      Align = MostTop
+      Size.Width = 360.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
       TabOrder = 0
+      object lblTop: TLabel
+        Align = Contents
+        Size.Width = 360.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'toollabel'
+        TextSettings.HorzAlign = Center
+        Text = 'PyApp'
+        TabOrder = 1
+      end
     end
   end
   object PythonEngine1: TPythonEngine
@@ -38092,14 +38084,8 @@ object PyMainForm: TPyMainForm
     Top = 369
   end
   object PyEmbeddedEnvironment1: TPyEmbeddedEnvironment
-    BeforeSetup = PyEmbeddedEnvironment1BeforeSetup
-    AfterSetup = PyEmbeddedEnvironment1AfterSetup
-    BeforeActivate = PyEmbeddedEnvironment1BeforeActivate
-    AfterActivate = PyEmbeddedEnvironment1AfterActivate
-    OnReady = PyEmbeddedEnvironment1Ready
     AutoLoad = False
     PythonEngine = PythonEngine1
-    OnZipProgress = PyEmbeddedEnvironment1ZipProgress
     Distributions = <>
     Scanner.AutoScan = True
     Scanner.ScanRule = srFileName
@@ -38108,10 +38094,13 @@ object PyMainForm: TPyMainForm
     Left = 224
     Top = 200
   end
+  object NotificationCenter1: TNotificationCenter
+    Left = 208
+    Top = 616
+  end
   object PyEnvironmentAddOnEnsurePip1: TPyEnvironmentAddOnEnsurePip
     Environment = PyEmbeddedEnvironment1
-    OnExecute = PyEnvironmentAddOnEnsurePip1Execute
     Left = 224
-    Top = 256
+    Top = 264
   end
 end
