@@ -321,8 +321,8 @@ inherited MainForm: TMainForm
             inherited mmLog: TMemo
               Size.Width = 1927.000000000000000000
               Size.Height = 143.000000000000000000
-              Viewport.Width = 1927.000000000000000000
-              Viewport.Height = 143.000000000000000000
+              Viewport.Width = 1923.000000000000000000
+              Viewport.Height = 139.000000000000000000
             end
             inherited tbFrame: TToolBar
               Size.Width = 1927.000000000000000000
@@ -620,19 +620,19 @@ inherited MainForm: TMainForm
     end
     inline frmDevice: TDeviceFrame
       Align = Right
-      Position.X = 1652.000000000000000000
-      Size.Width = 285.000000000000000000
+      Position.X = 1651.000000000000000000
+      Size.Width = 286.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
       inherited aiDevice: TAniIndicator
         Size.Height = 20.000000000000000000
       end
       inherited btnRefreshDevice: TSpeedButton
-        Position.X = 244.000000000000000000
+        Position.X = 245.000000000000000000
         Size.Height = 40.000000000000000000
       end
       inherited cbDevice: TComboBox
-        Size.Width = 186.000000000000000000
+        Size.Width = 187.000000000000000000
         Size.Height = 30.000000000000000000
       end
     end

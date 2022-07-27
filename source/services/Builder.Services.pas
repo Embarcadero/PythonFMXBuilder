@@ -20,6 +20,7 @@ type
       const AResult: TStrings): boolean;
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
       const AResult: TStrings): boolean;
+    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
     procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
     procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
@@ -80,6 +81,9 @@ type
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
     //Remove APK from user's device
     function UnInstallApk(const AProjectModel: TProjectModel;
+      const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+    //Check if app is installed
+    function IsAppInstalled(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 

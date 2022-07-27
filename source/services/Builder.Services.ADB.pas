@@ -26,6 +26,8 @@ type
     function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
 
+    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+
     function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
 
@@ -75,8 +77,9 @@ const
   CMD_11 = '"$APKSIGNER" sign --ks-key-alias PyApp --ks cert\PyApp.keystore --ks-pass pass:delphirocks --key-pass pass:delphirocks bin\$PROJNAME.apk';
 begin
   var LAppBinPath := TPath.Combine(AAppBasePath, 'bin');
-  if not TDirectory.Exists(LAppBinPath) then
-    TDirectory.CreateDirectory(LAppBinPath);
+  if TDirectory.Exists(LAppBinPath) then
+    TDirectory.Delete(LAppBinPath, true);
+  TDirectory.CreateDirectory(LAppBinPath);
 
   var LCmd := CMD_1
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
@@ -205,7 +208,7 @@ begin
   if not Assigned(AProc) then
     Exit;
 
-  for var LFile in TDirectory.GetFiles(ALibBasePath, '*.so', TSearchOption.soAllDirectories) do begin
+  for var LFile in TDirectory.GetFiles(ALibBasePath, '*', TSearchOption.soAllDirectories) do begin
     var LRelativeFilePath := LFile
       .Replace(ALibBasePath, String.Empty)
       .Replace('\', '/');
@@ -264,6 +267,19 @@ begin
     ExecCmd(AAdbPath + Format(' -s %s install ', [ADevice]) + AApkPath, String.Empty, LStrings);
     AResult.AddStrings(LStrings);
     Result := (not LStrings.Text.Contains('failure')) and (not LStrings.Text.Contains('failed'));
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TADBService.IsAppInstalled(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings): boolean;
+begin
+  var LStrings := TStringList.Create();
+  try
+    ExecCmd(Format('%s -s %s shell pm list packages | grep %s', [AAdbPath, ADevice, APkgName]), String.Empty, LStrings);
+    AResult.AddStrings(LStrings);
+    Result := LStrings.Text.Contains(APkgName);
   finally
     LStrings.Free();
   end;

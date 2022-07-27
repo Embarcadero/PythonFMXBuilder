@@ -728,6 +728,46 @@ object ImageContainer: TImageContainer
               'thonFMXBuilder\icons\step-over-50.png'
           end>
         Name = 'step-over'
+      end
+      item
+        MultiResBitmap.Height = 50
+        MultiResBitmap.Width = 50
+        MultiResBitmap = <
+          item
+            Width = 50
+            Height = 50
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000320000003208060000001E3F88
+              B1000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              0065494441546843EDD9C10A8020144541EBFFFFB908DED28A90E0A2339BB710
+              85A34B1B000CD86A7E71D47C7377F6E8FEAEBDE692AE1B7DBAD5BFD7BBA67911
+              216984A4119246481A216984A4119246481A216984A4119246481A216984A4F1
+              3F0200F368ED0493D80C39BFAD05760000000049454E44AE426082}
+            FileName = 
+              'C:\Users\lucas\OneDrive\Documents\Embarcadero\Studio\Projects\Py' +
+              'thonFMXBuilder\icons\pause-debug-50.png'
+          end>
+        Name = 'pause-debug'
+      end
+      item
+        MultiResBitmap.Height = 50
+        MultiResBitmap.Width = 50
+        MultiResBitmap = <
+          item
+            Width = 50
+            Height = 50
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000320000003208060000001E3F88
+              B1000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              005E494441546843EDD9310A80301000C1E8FFFFAC08A98360E1A233CD95B9E5
+              CA0C0078609B73E598F36DCB5DF7397FE1BAC89B57B9F5FE672E22A446488D90
+              1A2135426A84D408A9115223A446488D901A2135426A84D4F81F0180EF18E304
+              31E3063DC537FAB60000000049454E44AE426082}
+            FileName = 
+              'C:\Users\lucas\OneDrive\Documents\Embarcadero\Studio\Projects\Py' +
+              'thonFMXBuilder\icons\stopdebug-50.png'
+          end>
+        Name = 'stop-debug'
       end>
     Destination = <
       item
@@ -872,6 +912,22 @@ object ImageContainer: TImageContainer
         Layers = <
           item
             Name = 'step-over'
+            SourceRect.Right = 50.000000000000000000
+            SourceRect.Bottom = 50.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'pause-debug'
+            SourceRect.Right = 50.000000000000000000
+            SourceRect.Bottom = 50.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'stop-debug'
             SourceRect.Right = 50.000000000000000000
             SourceRect.Bottom = 50.000000000000000000
           end>

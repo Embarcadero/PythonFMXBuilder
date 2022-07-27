@@ -3,7 +3,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object sbDebugCurrentProject: TSpeedButton
-    Action = MenuActionsContainer.actDebug
+    Action = MenuActionsContainer.actDebugCurrentProjectAsync
     Align = Left
     Enabled = True
     Images = ImageContainer.images
@@ -59,7 +59,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = -1
+    ImageIndex = 21
     Margins.Left = 5.000000000000000000
     Position.X = 180.000000000000000000
     Size.Width = 30.000000000000000000
@@ -72,7 +72,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = -1
+    ImageIndex = 20
     Margins.Left = 5.000000000000000000
     Position.X = 145.000000000000000000
     Size.Width = 30.000000000000000000

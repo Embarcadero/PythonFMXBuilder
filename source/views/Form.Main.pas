@@ -115,7 +115,7 @@ begin
       TInterlocked.Add(FBackgroundOperationCount, 1);
       if (AEventNotification.Body.Operation in ANI_OPS) then
         TThread.Queue(TThread.Current, procedure begin
-          frmLoading.StartAni();
+          //frmLoading.StartAni();
         end);
     end);
 
@@ -125,7 +125,7 @@ begin
       TInterlocked.Add(FBackgroundOperationCount, -1);
       if (AEventNotification.Body.Operation in ANI_OPS) then
         TThread.Queue(TThread.Current, procedure begin
-          frmLoading.StopAni();
+          //frmLoading.StopAni();
         end);
     end);
 

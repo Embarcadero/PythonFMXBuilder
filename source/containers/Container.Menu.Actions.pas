@@ -26,7 +26,7 @@ type
     actBuildCurrentProjectAsync: TAction;
     actDeployCurrentProjectAsync: TAction;
     actRunCurrentProjectAsync: TAction;
-    actDebug: TAction;
+    actDebugCurrentProjectAsync: TAction;
     actStepInto: TAction;
     actStepOver: TAction;
     actStepOut: TAction;
@@ -45,7 +45,7 @@ type
     procedure actDeployCurrentProjectAsyncExecute(Sender: TObject);
     procedure actRunCurrentProjectAsyncExecute(Sender: TObject);
     procedure actlMenuUpdate(Action: TBasicAction; var Handled: Boolean);
-    procedure actDebugExecute(Sender: TObject);
+    procedure actDebugCurrentProjectAsyncExecute(Sender: TObject);
     procedure actPauseExecute(Sender: TObject);
     procedure actStopExecute(Sender: TObject);
     procedure actStepOutExecute(Sender: TObject);
@@ -70,15 +70,18 @@ type
     //Debugger
     FDebugger: IDebugServices;
     //Predicates
+    FBuilding: boolean;
     function IsLoadingProject(): boolean; inline;
     function HasActiveProject(): boolean; inline;
     function IsDebugging(): boolean; inline;
+    function IsBuilding(): boolean; inline;
+    function GetActionEnabledByTag(AAction: TBasicAction): boolean;
     //Validators
     procedure CheckCurrentProject();
     procedure CheckActiveDevice();
     procedure UpdateModels();
     procedure DoBuildProject();
-    procedure DoDeployProject();
+    procedure DoDeployProject(const ABuildProject: boolean = true);
     procedure DoRunProject();
     procedure DoDebugProject();
   public
@@ -163,9 +166,14 @@ begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
   TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.BuildProject));
 
+  FBuilding := true;
   TTask.Run(procedure begin
     try
-      DoBuildProject();
+      try
+        DoBuildProject();
+      finally
+        FBuilding := false;
+      end;
       TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
     except
       on E: exception do begin
@@ -180,10 +188,15 @@ procedure TMenuActionsContainer.actBuildCurrentProjectExecute(Sender: TObject);
 begin
   CheckCurrentProject();
   UpdateModels();
-  DoBuildProject();
+  FBuilding := true;
+  try
+    DoBuildProject();
+  finally
+    FBuilding := false;
+  end;
 end;
 
-procedure TMenuActionsContainer.actDebugExecute(Sender: TObject);
+procedure TMenuActionsContainer.actDebugCurrentProjectAsyncExecute(Sender: TObject);
 begin
   CheckCurrentProject();
   CheckActiveDevice();
@@ -192,9 +205,14 @@ begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
   TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.DebugProject));
 
+  FBuilding := true;
   TTask.Run(procedure begin
     try
-      DoDebugProject();
+      try
+        DoDebugProject();
+      finally
+        FBuilding := false;
+      end;
       TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
     except
       on E: Exception do begin
@@ -215,9 +233,14 @@ begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
   TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.DeployProject));
 
+  FBuilding := true;
   TTask.Run(procedure begin
     try
-      DoDeployProject();
+      try
+        DoDeployProject();
+      finally
+        FBuilding := false;
+      end;
       TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
     except
       on E: Exception do begin
@@ -233,34 +256,19 @@ begin
   CheckCurrentProject();
   CheckActiveDevice();
   UpdateModels();
-  DoDeployProject();
+  FBuilding := true;
+  try
+    DoDeployProject();
+  finally
+    FBuilding := false;
+  end;
 end;
 
 procedure TMenuActionsContainer.actlMenuUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
-  //Entities
-  actUpdateEnvironment.Enabled := not IsLoadingProject() and not IsDebugging();
-  actUpdateCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  //Project
-  actNewProject.Enabled := not IsLoadingProject() and not IsDebugging();
-  actOpenProject.Enabled := not IsLoadingProject() and not IsDebugging();
-  actRemoveCurrentProject.Enabled := not IsLoadingProject() and not IsDebugging();
-  //Build
-  actBuildCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  actDeployCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  actRunCurrentProject.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  //Build Async
-  actBuildCurrentProjectAsync.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  actDeployCurrentProjectAsync.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  actRunCurrentProjectAsync.Enabled := HasActiveProject() and not IsLoadingProject() and not IsDebugging();
-  //Debug
-  actDebug.Enabled := HasActiveProject and not IsLoadingProject() and not IsDebugging();
-  actStepInto.Enabled := IsDebugging();
-  actStepOver.Enabled := IsDebugging();
-  actStepOut.Enabled := IsDebugging();
-  actPause.Enabled := (FDebugger.Status in [TDebuggerStatus.Started]);
-  actStop.Enabled := (FDebugger.Status in [TDebuggerStatus.Started]);
+  if Action is TAction then
+    TAction(Action).Enabled := GetActionEnabledByTag(Action);
 end;
 
 procedure TMenuActionsContainer.actNewProjectExecute(Sender: TObject);
@@ -322,9 +330,14 @@ begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
   TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationStartedEvent.Create(TAsyncOperation.RunProject));
 
+  FBuilding := true;
   TTask.Run(procedure begin
     try
-      DoRunProject();
+      try
+        DoRunProject();
+      finally
+        FBuilding := false;
+      end;
       TGlobalBuilderChain.BroadcastEventAsync(TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
     except
       on E: Exception do begin
@@ -406,7 +419,7 @@ begin
   FProjectStorage := TDefaultStorage<TProjectModel>.Make();
 end;
 
-procedure TMenuActionsContainer.DoBuildProject;
+procedure TMenuActionsContainer.DoBuildProject();
 begin
   //Generates the project necessary files and settings
   FAppServices.BuildProject(FProjectServices.GetActiveProject());
@@ -416,9 +429,9 @@ begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create('Build process done.'));
 end;
 
-procedure TMenuActionsContainer.DoDebugProject;
+procedure TMenuActionsContainer.DoDebugProject();
 begin
-  DoDeployProject();
+  DoDeployProject(true);
   //Launch app on device and debug the Python script
   var LResult := TStringList.Create();
   try
@@ -443,11 +456,13 @@ begin
   end;
 end;
 
-procedure TMenuActionsContainer.DoDeployProject;
+procedure TMenuActionsContainer.DoDeployProject(const ABuildProject: boolean);
 begin
-  DoBuildProject();
+  if ABuildProject then
+    DoBuildProject();
   //Installs the APK on the device
-  FAppServices.UnInstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice);
+  if FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
+    FAppServices.UnInstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice);
   if not FAppServices.InstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
     raise Exception.Create('Install process failed. Check log for details.');
 end;
@@ -468,9 +483,52 @@ begin
   end;
 end;
 
+function TMenuActionsContainer.GetActionEnabledByTag(
+  AAction: TBasicAction): boolean;
+begin
+  var LPredicate1 := function(AAction: TBasicAction): boolean
+  begin
+    Result := not IsLoadingProject()
+      and not IsBuilding
+        and not IsDebugging()
+  end;
+
+  var LPredicate2 := function(AAction: TBasicAction): boolean
+  begin
+    Result := HasActiveProject()
+      and not IsLoadingProject()
+        and not IsBuilding
+          and not IsDebugging();
+  end;
+
+  var LPredicate3 := function(AAction: TBasicAction): boolean
+  begin
+    Result := IsDebugging();
+  end;
+
+  var LPredicate4 := function(AAction: TBasicAction): boolean
+  begin
+    Result := (FDebugger.Status in [TDebuggerStatus.Started]);
+  end;
+
+  case AAction.Tag of
+    0: Result := true;
+    1: Result := LPredicate1(AAction);
+    2: Result := LPredicate2(AAction);
+    3: Result := LPredicate3(AAction);
+    4: Result := LPredicate4(AAction);
+    else Result := false;
+  end;
+end;
+
 function TMenuActionsContainer.HasActiveProject: boolean;
 begin
   Result := Assigned(FProjectServices.GetActiveProject());
+end;
+
+function TMenuActionsContainer.IsBuilding: boolean;
+begin
+  Result := FBuilding;
 end;
 
 function TMenuActionsContainer.IsDebugging: boolean;

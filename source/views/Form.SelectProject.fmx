@@ -1,6 +1,7 @@
 object SelectProjectForm: TSelectProjectForm
   Left = 0
   Top = 0
+  ActiveControl = btnSelect
   BorderStyle = None
   Caption = 'Select a project'
   ClientHeight = 86
