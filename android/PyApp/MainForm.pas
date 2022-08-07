@@ -37,7 +37,7 @@ uses
   PyEnvironment.Embeddable, PythonEngine, FMX.PythonGUIInputOutput, WrapDelphi,
   System.Actions, FMX.ActnList, FMX.Objects, FMX.StdCtrls, FMX.ScrollBox,
   FMX.Memo, FMX.Controls, FMX.Types, FMX.Controls.Presentation, Dependencies,
-  FMX.Platform;
+  FMX.Platform, WrapDelphiFmx;
 
 type
   TPyMainForm = class(TForm)
