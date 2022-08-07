@@ -21,6 +21,8 @@ type
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
       const AResult: TStrings): boolean;
     function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+    function IsAppRunning(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+    function GetAppInstallationPath(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): string;
     procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
     procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
     procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
@@ -85,10 +87,13 @@ type
     //Check if app is installed
     function IsAppInstalled(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+    //Check if app is running
+    function IsAppRunning(const AProjectModel: TProjectModel;
+      const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 
   {$SCOPEDENUMS ON}
-  TDebuggerStatus = (
+  TDebuggerConnectionStatus = (
     OutOfWork,
     Connecting, //We are ordering a conenction to the debugger
     Started, //We are conected to the debugger - Debugger has confirmed
@@ -98,16 +103,27 @@ type
   {$SCOPEDENUMS OFF}
   IDebugServices = interface
     ['{568CC96C-4A33-4CA1-8972-1F2C7280B0EE}']
-    function GetStatus: TDebuggerStatus;
+    function GetConnectionStatus(): TDebuggerConnectionStatus;
+    function GetIsDebugging(): boolean;
 
     procedure Start(const AHost: string; const APort: integer; const ATimeOut: Int64 = 120);
     procedure Pause();
     procedure Stop();
     procedure StepIn();
+    procedure StepOver();
     procedure StepOut();
-    procedure Next();
+    procedure Continue();
 
-    property Status: TDebuggerStatus read GetStatus;
+    function CanStart(): boolean;
+    function CanPause(): boolean;
+    function CanStop(): boolean;
+    function CanStepIn(): boolean;
+    function CanStepOut(): boolean;
+    function CanStepOver(): boolean;
+    function CanContinue(): boolean;
+
+    property ConnectionStatus: TDebuggerConnectionStatus read GetConnectionStatus;
+    property IsDebugging: boolean read GetIsDebugging;
   end;
 
 implementation

@@ -23,10 +23,13 @@ type
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
 
+    //App helpers
+    function GetAppInstallationPath(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): string;
+    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+    function IsAppRunning(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+
     function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
-
-    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
 
     function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
@@ -260,6 +263,21 @@ begin
   Result := FActiveDevice;
 end;
 
+function TADBService.GetAppInstallationPath(const AAdbPath, APkgName,
+  ADevice: string; const AResult: TStrings): string;
+const
+  CMD = '%s -s %s shell pm path %s';
+begin
+  var LStrings := TStringList.Create();
+  try
+    AResult.AddStrings(LStrings);
+    ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
+    Result := LStrings.Text.Replace(sLineBreak, '', [rfReplaceAll]);
+  finally
+    LStrings.Free();
+  end;
+end;
+
 function TADBService.InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
 begin
   var LStrings := TStringList.Create();
@@ -280,6 +298,21 @@ begin
     ExecCmd(Format('%s -s %s shell pm list packages | grep %s', [AAdbPath, ADevice, APkgName]), String.Empty, LStrings);
     AResult.AddStrings(LStrings);
     Result := LStrings.Text.Contains(APkgName);
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TADBService.IsAppRunning(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings): boolean;
+var
+  LPid: integer;
+begin
+  var LStrings := TStringList.Create();
+  try
+    ExecCmd(Format('%s -s %s shell pidof %s', [AAdbPath, ADevice, APkgName]), String.Empty, LStrings);
+    AResult.AddStrings(LStrings);
+    Result := TryStrToInt(LStrings.Text.Replace(sLineBreak, '', [rfReplaceAll]), LPid);
   finally
     LStrings.Free();
   end;

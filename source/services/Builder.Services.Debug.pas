@@ -9,7 +9,10 @@ uses
   System.SyncObjs,
   Builder.Chain,
   Builder.Services,
+  Builder.Model.Project,
+  Builder.Model.Environment,
   BaseProtocol,
+  BaseProtocol.Json,
   BaseProtocol.Types,
   BaseProtocol.Events,
   BaseProtocol.Requests,
@@ -19,14 +22,31 @@ uses
 type
   TDebugService = class(TInterfacedObject, IDebugServices)
   private
+    //Models
+    FProjectModule: TProjectModel;
+    FEnvironmentModel: TEnvironmentModel;
+    //Services
+    FProjectServices: IProjectServices;
+    FAppServices: IAppServices;
+    FAdbServices: IAdbServices;
+    //DAP Debugger
     FDebugger: TBaseProtocolClientSocket;
+    //Subscriptions
     FInitializedEvent: IUnsubscribable;
-    FStatus: TDebuggerStatus;
+    FStoppedEvent: IUnsubscribable;
+    FContinuedEvent: IUnsubscribable;
+    FTerminatedEvent: IUnsubscribable;
+    //Status
+    FConnectionStatus: TDebuggerConnectionStatus;
+    FStopped: boolean;
+    FCurrentStoppedThreadId: integer;
     //We are connected to the debugger, but debugger doesn't proceed with process execution
     //or we ordered disconnection, but debugger doesn't confirm it.
     FMonitoringDebugger: boolean;
     FFrozenDebuggerMonitor: System.Classes.TThread;
-    function GetStatus: TDebuggerStatus;
+    function GetConnectionStatus: TDebuggerConnectionStatus;
+    function GetIsDebugging(): boolean;
+
     procedure InternalConnect(const ATimeOut: Int64);
     procedure StartSession(const AHost: string; const APort: integer;
       const ATimeOut: Int64);
@@ -34,8 +54,11 @@ type
 
     function AskForFrozenDebuggerAction(): TDebuggerConnectionFrozenAction;
     function AskForFrozenDebuggerActionButReconnectBefore(): TDebuggerConnectionFrozenAction;
+    function AskForFrozenDebuggerActionButWaitForRunningApp(): TDebuggerConnectionFrozenAction;
+    procedure CheckForGhostDebugger();
+
     procedure MonitorFrozenDebugger(const ATriggerStatus,
-      ALeaveStatus: TDebuggerStatus; const ATimeOut: integer = 10;
+      ALeaveStatus: TDebuggerConnectionStatus; const ATimeOut: integer = 10;
       const AAction: TFunc<TDebuggerConnectionFrozenAction> = nil);
     procedure StartFrozenDebuggerMonitor();
     procedure StopFrozenDebuggerMonitor();
@@ -43,6 +66,21 @@ type
     procedure DoStart(const AHost: string; const APort: integer; const ATimeOut: Int64);
     procedure Reconnect(const ATimeOut: Int64 = 5000);
     procedure ForceDisconnection();
+
+    function IsAppRunning(): boolean;
+  private
+    //Events subscriptions
+    procedure SubscribeToEvents();
+    procedure UnsubscribeAll();
+    //Debug handlers
+    procedure InitializeRequest();
+    procedure OnInitializeResponse();
+    procedure OnInitializedEvent();
+    procedure AttachRequest();
+    procedure OnAttachResponse();
+    procedure OnLastConfiguration();
+    procedure ConfigurationDoneRequest();
+    procedure OnConfigurationDoneResponse();
   public
     constructor Create();
     destructor Destroy(); override;
@@ -50,54 +88,49 @@ type
     procedure Start(const AHost: string; const APort: integer; const ATimeOut: Int64 = 60);
     procedure Pause();
     procedure Stop();
-
     procedure StepIn();
+    procedure StepOver();
     procedure StepOut();
-    procedure Next();
+    procedure Continue();
+
+    function CanStart(): boolean;
+    function CanPause(): boolean;
+    function CanStop(): boolean;
+    function CanStepIn(): boolean;
+    function CanStepOver(): boolean;
+    function CanStepOut(): boolean;
+    function CanContinue(): boolean;
   end;
 
 implementation
 
 uses
-  System.DateUtils, System.Net.Socket;
+  System.DateUtils, System.Net.Socket, System.IOUtils,
+  Builder.Storage.Default,
+  Builder.Storage.Environment,
+  Builder.Services.Factory;
 
 { TDebugService }
 
 constructor TDebugService.Create;
 begin
   inherited;
-  FStatus := TDebuggerStatus.OutOfWork;
+  FStopped := false;
+  FCurrentStoppedThreadId := 0;
+  FConnectionStatus := TDebuggerConnectionStatus.OutOfWork;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
+  FAppServices := TServiceSimpleFactory.CreateApp();
+  FAdbServices := TServiceSimpleFactory.CreateAdb();
   TEventsRegistration.RegisterAll();
   TRequestsRegistration.RegisterAll();
   FDebugger := TBaseProtocolClientSocket.Create();
   StartFrozenDebuggerMonitor();
-  FInitializedEvent := FDebugger.SubscribeToEvent<TInitializedEvent>(
-    procedure(const AEvent: TInitializedEvent)
-    begin
-      if (FStatus <> TDebuggerStatus.Connecting) then
-        raise Exception.Create('Debugger is not connected.');
-
-      FStatus := TDebuggerStatus.Started;
-      //Set breakpoints
-      var LConfDone := TConfigurationDoneRequest.Create();
-      try
-        FDebugger.SendRequest<TConfigurationDoneResponse>(
-          LConfDone,
-          procedure(const AArg: TConfigurationDoneResponse)
-          begin
-          end,
-          procedure(const AArg: TResponseMessage)
-          begin
-          end);
-      finally
-        LConfDone.Free();
-      end;
-    end);
+  SubscribeToEvents();
 end;
 
 destructor TDebugService.Destroy;
 begin
-  FInitializedEvent.Unsubscribe();
+  UnsubscribeAll();
   StopFrozenDebuggerMonitor;
   FDebugger.Free();
   TEventsRegistration.UnregisterAll();
@@ -109,44 +142,21 @@ procedure TDebugService.DoStart(const AHost: string; const APort: integer;
   const ATimeOut: Int64);
 begin
   StartSession(AHost, APort, ATimeOut);
-
-  var LInitialize := TInitializeRequest.Create();
-    try
-      var LArguments := LInitialize.Arguments;
-      LArguments.AdapterId := 'python';
-
-      FDebugger.SendRequest<TInitializeResponse>(
-        LInitialize,
-        procedure(const AArg: TInitializeResponse)
-        begin
-          var LAttach := TAttachRequest.Create();
-          try
-            FDebugger.SendRequest<TAttachResponse>(
-              LAttach,
-              procedure(const AArg: TAttachResponse)
-              begin
-
-              end,
-              procedure(const AArg: TResponseMessage)
-              begin
-
-              end);
-          finally
-            LAttach.Free();
-          end;
-        end,
-        procedure(const AArg: TResponseMessage)
-        begin
-
-        end);
-    finally
-      LInitialize.Free();
-    end;
+  if FDebugger.Active then
+    InitializeRequest();
 end;
 
-function TDebugService.GetStatus: TDebuggerStatus;
+function TDebugService.GetConnectionStatus: TDebuggerConnectionStatus;
 begin
-  Result := FStatus;
+  Result := FConnectionStatus;
+end;
+
+function TDebugService.GetIsDebugging: boolean;
+begin
+  Result := (FConnectionStatus in [
+    TDebuggerConnectionStatus.Connecting,
+    TDebuggerConnectionStatus.Started,
+    TDebuggerConnectionStatus.Disconnecting]);
 end;
 
 procedure TDebugService.InternalConnect(const ATimeOut: Int64);
@@ -175,21 +185,33 @@ begin
   end;
 end;
 
+function TDebugService.IsAppRunning: boolean;
+begin
+  Result := FAppServices.IsAppRunning(
+    FProjectModule, FEnvironmentModel, FAdbServices.ActiveDevice);
+end;
+
 procedure TDebugService.StartSession(const AHost: string; const APort: integer;
   const ATimeOut: Int64);
 begin
-  FDebugger.Active := false;
+  try
+    FDebugger.Active := false;
+  except
+    //
+  end;
   FDebugger.Host := AHost;
   FDebugger.Port := APort;
-  FStatus := TDebuggerStatus.Connecting;
 
-  TGlobalBuilderChain.BroadcastEvent(TDebugSessionStartedEvent.Create(FDebugger));
+  //No refire on reconnection
+  if (FConnectionStatus <> TDebuggerConnectionStatus.Connecting) then
+    TGlobalBuilderChain.BroadcastEvent(TDebugSessionStartedEvent.Create(FDebugger));
+
+  FConnectionStatus := TDebuggerConnectionStatus.Connecting;
   try
     InternalConnect(ATimeOut);
   except
     on E: Exception do begin
-      FStatus := TDebuggerStatus.Stopped;
-      TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create());
+      ForceDisconnection();
       raise;
     end;
   end;
@@ -197,35 +219,81 @@ end;
 
 procedure TDebugService.StopSession;
 begin
-  if (FStatus <> TDebuggerStatus.Disconnecting) then
+  if (FConnectionStatus <> TDebuggerConnectionStatus.Disconnecting) then
     raise Exception.Create('Debugger is still connected.');
 
-  FStatus := TDebuggerStatus.Stopped;
-  TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create());
+  FConnectionStatus := TDebuggerConnectionStatus.Stopped;
+  TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create(FDebugger));
   FDebugger.Active := false;
+end;
+
+function TDebugService.CanStart(): boolean;
+begin
+  Result := not GetIsDebugging();
+end;
+
+function TDebugService.CanPause(): boolean;
+begin
+  Result := (FConnectionStatus = TDebuggerConnectionStatus.Started) and not FStopped;
+end;
+
+function TDebugService.CanStop(): boolean;
+begin
+  Result := (FConnectionStatus = TDebuggerConnectionStatus.Started);
+end;
+
+procedure TDebugService.CheckForGhostDebugger;
+begin
+  if (FConnectionStatus = TDebuggerConnectionStatus.Started) and not IsAppRunning() then
+    ForceDisconnection();
+end;
+
+function TDebugService.CanStepIn(): boolean;
+begin
+  Result := GetIsDebugging() and FStopped;
+end;
+
+function TDebugService.CanStepOver(): boolean;
+begin
+  Result := GetIsDebugging() and FStopped;
+end;
+
+function TDebugService.CanStepOut(): boolean;
+begin
+  Result := GetIsDebugging() and FStopped;
+end;
+
+function TDebugService.CanContinue(): boolean;
+begin
+  Result := GetIsDebugging() and FStopped;
 end;
 
 procedure TDebugService.Start(const AHost: string; const APort: integer; const ATimeOut: Int64);
 begin
-  if not (FStatus in [TDebuggerStatus.OutOfWork, TDebuggerStatus.Stopped]) then
+  if not (FConnectionStatus in [TDebuggerConnectionStatus.OutOfWork, TDebuggerConnectionStatus.Stopped]) then
     raise Exception.Create('Debugger is busy');
+
+  FProjectModule := FProjectServices.GetActiveProject();
+  var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
+  LEnvironmentStorage.LoadModel(FEnvironmentModel);
 
   DoStart(AHost, APort, ATimeOut);
 end;
 
 procedure TDebugService.Stop;
 begin
-  if (FStatus <> TDebuggerStatus.Started) then
+  if (FConnectionStatus <> TDebuggerConnectionStatus.Started) then
     raise Exception.Create('Debugger is not started.');
 
-  FStatus := TDebuggerStatus.Disconnecting;
+  FConnectionStatus := TDebuggerConnectionStatus.Disconnecting;
+
   var LStop := TTerminateRequest.Create();
   try
     FDebugger.SendRequest<TTerminateResponse>(
       LStop,
       procedure(const AArg: TTerminateResponse)
       begin
-        StopSession();
+
       end,
       procedure(const AArg: TResponseMessage)
       begin
@@ -237,13 +305,14 @@ begin
   end;
 end;
 
-procedure TDebugService.Next;
+procedure TDebugService.Continue;
 begin
-  var LNext := TNextRequest.Create();
+  var LContinue := TContinueRequest.Create();
   try
-    FDebugger.SendRequest<TNextResponse>(
-      LNext,
-      procedure(const AArg: TNextResponse)
+    LContinue.Arguments.SingleThread := false;
+    FDebugger.SendRequest<TContinueResponse>(
+      LContinue,
+      procedure(const AArg: TContinueResponse)
       begin
 
       end,
@@ -253,7 +322,7 @@ begin
       end
     );
   finally
-    LNext.Free();
+    LContinue.Free();
   end;
 end;
 
@@ -277,20 +346,18 @@ begin
   end;
 end;
 
-procedure TDebugService.Reconnect(const ATimeOut: Int64);
-begin
-  DoStart(FDebugger.Host, FDebugger.Port, 60);
-  TSpinWait.SpinUntil(
-    function: boolean
-    begin
-      Result := (FStatus = TDebuggerStatus.Started);
-    end, ATimeOut);
-end;
-
 procedure TDebugService.StepIn;
 begin
   var LStepIn := TStepInRequest.Create();
   try
+    if FCurrentStoppedThreadId = 0 then
+      LStepIn.Arguments.SingleThread := true
+    else begin
+      LStepIn.Arguments.SingleThread := false;
+      LStepIn.Arguments.ThreadId := FCurrentStoppedThreadId;
+    end;
+    LStepIn.Arguments.Granularity := TSteppingGranularity.Statement;
+
     FDebugger.SendRequest<TStepInResponse>(
       LStepIn,
       procedure(const AArg: TStepInResponse)
@@ -299,7 +366,7 @@ begin
       end,
       procedure(const AArg: TResponseMessage)
       begin
-
+        StepOver();
       end
     );
   finally
@@ -307,13 +374,21 @@ begin
   end;
 end;
 
-procedure TDebugService.StepOut;
+procedure TDebugService.StepOver;
 begin
-  var LStepOut := TStepOutRequest.Create();
+  var LNext := TNextRequest.Create();
   try
-    FDebugger.SendRequest<TStepOutResponse>(
-      LStepOut,
-      procedure(const AArg: TStepOutResponse)
+    if FCurrentStoppedThreadId = 0 then
+      LNext.Arguments.SingleThread := true
+    else begin
+      LNext.Arguments.SingleThread := false;
+      LNext.Arguments.ThreadId := FCurrentStoppedThreadId;
+    end;
+    LNext.Arguments.Granularity := TSteppingGranularity.Line;
+
+    FDebugger.SendRequest<TNextResponse>(
+      LNext,
+      procedure(const AArg: TNextResponse)
       begin
 
       end,
@@ -323,13 +398,53 @@ begin
       end
     );
   finally
+    LNext.Free();
+  end;
+end;
+
+
+procedure TDebugService.StepOut;
+begin
+  var LStepOut := TStepOutRequest.Create();
+  try
+    if FCurrentStoppedThreadId = 0 then
+      LStepOut.Arguments.SingleThread := true
+    else begin
+      LStepOut.Arguments.SingleThread := false;
+      LStepOut.Arguments.ThreadId := FCurrentStoppedThreadId;
+    end;
+    LStepOut.Arguments.Granularity := TSteppingGranularity.Statement;
+
+    FDebugger.SendRequest<TStepOutResponse>(
+      LStepOut,
+      procedure(const AArg: TStepOutResponse)
+      begin
+
+      end,
+      procedure(const AArg: TResponseMessage)
+      begin
+        StepOver();
+      end
+    );
+  finally
     LStepOut.Free();
   end;
 end;
 
+procedure TDebugService.Reconnect(const ATimeOut: Int64);
+begin
+  DoStart(FDebugger.Host, FDebugger.Port, 60);
+
+  TSpinWait.SpinUntil(
+    function: boolean
+    begin
+      Result := (FConnectionStatus = TDebuggerConnectionStatus.Started);
+    end, ATimeOut);
+end;
+
 procedure TDebugService.ForceDisconnection;
 begin
-  FStatus := TDebuggerStatus.Disconnecting;
+  FConnectionStatus := TDebuggerConnectionStatus.Disconnecting;
   StopSession();
 end;
 
@@ -353,34 +468,49 @@ end;
 function TDebugService.AskForFrozenDebuggerActionButReconnectBefore: TDebuggerConnectionFrozenAction;
 begin
   //Maybe we only lost connection. Let's reconnect.
-  if (FStatus = TDebuggerStatus.Connecting) then begin
+  if (FConnectionStatus = TDebuggerConnectionStatus.Connecting) then
     Reconnect();
-  end;
 
-  if (FStatus = TDebuggerStatus.Connecting) then begin
+  if (FConnectionStatus = TDebuggerConnectionStatus.Connecting) then
     Exit(AskForFrozenDebuggerAction());
-  end;
 
   Result := TDebuggerConnectionFrozenAction.TryAgain
 end;
 
+function TDebugService.AskForFrozenDebuggerActionButWaitForRunningApp: TDebuggerConnectionFrozenAction;
+begin
+  TSpinWait.SpinUntil(
+    function(): boolean
+    begin
+      Result := (FConnectionStatus = TDebuggerConnectionStatus.Started) or not IsAppRunning();
+
+      if not Result and (FConnectionStatus = TDebuggerConnectionStatus.Connecting) then
+        Reconnect();
+    end, 30000);
+
+  if not IsAppRunning() then
+    Exit(TDebuggerConnectionFrozenAction.ForceDisconnection);
+
+  Result := AskForFrozenDebuggerActionButReconnectBefore();
+end;
+
 procedure TDebugService.MonitorFrozenDebugger(
-  const ATriggerStatus, ALeaveStatus: TDebuggerStatus; const ATimeOut: integer;
+  const ATriggerStatus, ALeaveStatus: TDebuggerConnectionStatus; const ATimeOut: integer;
   const AAction: TFunc<TDebuggerConnectionFrozenAction>);
 begin
   var LTryAgain := true;
-  while FMonitoringDebugger and (FStatus = ATriggerStatus) and LTryAgain do begin
+  while FMonitoringDebugger and (FConnectionStatus = ATriggerStatus) and LTryAgain do begin
     //Let's wait a time interval for debugger response
     TSpinWait.SpinUntil(
       function(): boolean
       begin
-        Result := (FStatus = ALeaveStatus) or not FMonitoringDebugger;
+        Result := (FConnectionStatus = ALeaveStatus) or not FMonitoringDebugger or not IsAppRunning();
       end, ATimeOut * 1000);
 
     if not FMonitoringDebugger then
       Exit;
 
-    if (FStatus = ATriggerStatus) then begin
+    if (FConnectionStatus = ATriggerStatus) then begin
       if not Assigned(AAction) then
         ForceDisconnection()
       else begin
@@ -396,27 +526,36 @@ end;
 procedure TDebugService.StartFrozenDebuggerMonitor;
 begin
   FMonitoringDebugger := true;
-  FFrozenDebuggerMonitor := System.Classes.TThread.CreateAnonymousThread(procedure() begin
-    try
-      while FMonitoringDebugger do begin
-        MonitorFrozenDebugger(
-          TDebuggerStatus.Connecting,
-          TDebuggerStatus.Started,
-          5,
-          AskForFrozenDebuggerActionButReconnectBefore);
+  FFrozenDebuggerMonitor := System.Classes.TThread.CreateAnonymousThread(
+    procedure()
+    begin
+      try
+        while FMonitoringDebugger do begin
+          try
+            MonitorFrozenDebugger(
+              TDebuggerConnectionStatus.Connecting,
+              TDebuggerConnectionStatus.Started,
+              1,
+              AskForFrozenDebuggerActionButWaitForRunningApp);
 
-        MonitorFrozenDebugger(
-          TDebuggerStatus.Disconnecting,
-          TDebuggerStatus.Stopped,
-          3);
+            MonitorFrozenDebugger(
+              TDebuggerConnectionStatus.Disconnecting,
+              TDebuggerConnectionStatus.Stopped,
+              1);
 
-        Sleep(100);
+            CheckForGhostDebugger();
+          except
+            on E: Exception do
+              TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
+          end;
+
+          Sleep(100);
+        end;
+      finally
+        System.Classes.TThread.RemoveQueuedEvents(
+          System.Classes.TThread.CurrentThread);
       end;
-    finally
-      System.Classes.TThread.RemoveQueuedEvents(
-        System.Classes.TThread.CurrentThread);
-    end;
-  end);
+    end);
   FFrozenDebuggerMonitor.FreeOnTerminate := false;
   FFrozenDebuggerMonitor.Start();
 end;
@@ -426,6 +565,152 @@ begin
   FMonitoringDebugger := false;
   FFrozenDebuggerMonitor.WaitFor();
   FFrozenDebuggerMonitor.Free();
+end;
+
+procedure TDebugService.SubscribeToEvents;
+begin
+  FInitializedEvent := FDebugger.SubscribeToEvent<TInitializedEvent>(
+    procedure(const AEvent: TInitializedEvent)
+    begin
+      if (FConnectionStatus <> TDebuggerConnectionStatus.Connecting) then
+        raise Exception.Create('Debugger is not connected.');
+      //The debugger has confirmed we're down
+      FConnectionStatus := TDebuggerConnectionStatus.Started;
+      FStopped := false;
+      FCurrentStoppedThreadId := 0;
+      OnInitializedEvent();
+    end);
+
+  FStoppedEvent := FDebugger.SubscribeToEvent<TStoppedEvent>(
+    procedure(const AEvent: TStoppedEvent)
+    begin
+      FStopped := true;
+      FCurrentStoppedThreadId := AEvent.Body.ThreadId;
+    end);
+
+  FContinuedEvent := FDebugger.SubscribeToEvent<TContinuedEvent>(
+    procedure(const AEvent: TContinuedEvent)
+    begin
+      FStopped := false;
+      FCurrentStoppedThreadId := 0;
+    end);
+
+  FTerminatedEvent := FDebugger.SubscribeToEvent<TTerminatedEvent>(
+    procedure(const AEvent: TTerminatedEvent)
+    begin
+      StopSession();
+    end);
+end;
+
+procedure TDebugService.UnsubscribeAll;
+begin
+  FStoppedEvent.Unsubscribe();
+  FInitializedEvent.Unsubscribe();
+end;
+
+procedure TDebugService.InitializeRequest();
+begin
+  var LInitialize := TInitializeRequest.Create();
+  try
+    var LArguments := LInitialize.Arguments;
+    //LArguments.ClientId := 'delphi4python';
+    //LArguments.ClientName := 'delphi4python4android';
+    LArguments.AdapterId := 'python';
+    //LArguments.Locale := 'en-US';
+    LArguments.LinesStartAt1 := true;
+    LArguments.ColumnsStartAt1 := true;
+    //LArguments.PathFormat := TPathFormat.None;
+    LArguments.SupportsVariableType := true;
+    LArguments.SupportsVariablePaging := true;
+    LArguments.SupportsRunInTerminalRequest := false;
+    LArguments.SupportsMemoryReferences := true;
+    LArguments.SupportsProgressReporting := false;
+    LArguments.SupportsInvalidatedEvent := true;
+    LArguments.SupportsMemoryEvent := true;
+
+    FDebugger.SendRequest<TInitializeResponse>(
+      LInitialize,
+      procedure(const AArg: TInitializeResponse)
+      begin
+        OnInitializeResponse();
+      end,
+      procedure(const AArg: TResponseMessage)
+      begin
+        raise Exception.Create(
+          'Failed initializing the debugger.'
+          + sLineBreak
+          + sLineBreak
+          + AArg);
+      end);
+  finally
+    LInitialize.Free();
+  end;
+end;
+
+procedure TDebugService.OnInitializeResponse();
+begin
+  AttachRequest();
+end;
+
+procedure TDebugService.OnInitializedEvent();
+begin
+  try
+    TGlobalBuilderChain.BroadcastEvent(TSetupDebuggerEvent.Create(FDebugger));
+  finally
+    OnLastConfiguration();
+  end;
+end;
+
+procedure TDebugService.AttachRequest();
+begin
+  var LAttach := TAttachRequest.Create();
+  try
+    FDebugger.SendRequest<TAttachResponse>(
+      LAttach,
+      procedure(const AArg: TAttachResponse)
+      begin
+        OnAttachResponse();
+      end,
+      procedure(const AArg: TResponseMessage)
+      begin
+
+      end);
+  finally
+    LAttach.Free();
+  end;
+end;
+
+procedure TDebugService.OnAttachResponse();
+begin
+
+end;
+
+procedure TDebugService.OnLastConfiguration;
+begin
+  ConfigurationDoneRequest();
+end;
+
+procedure TDebugService.ConfigurationDoneRequest();
+begin
+  var LConfDone := TConfigurationDoneRequest.Create();
+  try
+    FDebugger.SendRequest<TConfigurationDoneResponse>(
+      LConfDone,
+      procedure(const AArg: TConfigurationDoneResponse)
+      begin
+        OnConfigurationDoneResponse();
+      end,
+      procedure(const AArg: TResponseMessage)
+      begin
+      end);
+  finally
+    LConfDone.Free();
+  end;
+end;
+
+procedure TDebugService.OnConfigurationDoneResponse();
+begin
+  TGlobalBuilderChain.BroadcastEvent(TSetupDebuggerDoneEvent.Create(FDebugger));
 end;
 
 end.

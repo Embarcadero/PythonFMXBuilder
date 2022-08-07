@@ -55,12 +55,15 @@ type
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
     function IsAppInstalled(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+    function IsAppRunning(const AProjectModel: TProjectModel;
+      const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 
 implementation
 
 uses
   System.SysUtils, System.JSON,
+  Builder.Environment,
   Builder.Services.Factory;
 
 const
@@ -233,6 +236,19 @@ begin
   var LStrings := TStringList.Create();
   try
     Result := LService.IsAppInstalled(AEnvironmentModel.AdbLocation,
+      AProjectModel.PackageName, ADevice, LStrings);
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TAppService.IsAppRunning(const AProjectModel: TProjectModel;
+  const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+begin
+  var LService := TServiceSimpleFactory.CreateAdb();
+  var LStrings := TStringList.Create();
+  try
+    Result := LService.IsAppRunning(AEnvironmentModel.AdbLocation,
       AProjectModel.PackageName, ADevice, LStrings);
   finally
     LStrings.Free();
@@ -533,6 +549,7 @@ begin
   var LJSON := TJSONObject.Create();
   try
     LJSON.AddPair('main_file', AModel.Files.MainFile);
+    LJSON.AddPair('environment', AModel.Environment.AsString());
 
     var LDependencies := TJSONArray.Create();
     try

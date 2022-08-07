@@ -54,7 +54,8 @@ contains
   Builder.Storage in '..\source\storage\Builder.Storage.pas',
   Builder.Exception in '..\source\Builder.Exception.pas',
   Builder.Chain in '..\source\Builder.Chain.pas',
-  Builder.Services.Debug in '..\source\services\Builder.Services.Debug.pas';
+  Builder.Services.Debug in '..\source\services\Builder.Services.Debug.pas',
+  Builder.Environment in '..\source\Builder.Environment.pas';
 
 end.
 

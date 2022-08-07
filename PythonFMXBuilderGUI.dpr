@@ -15,7 +15,6 @@ uses
   Frame.ProjectButtons in 'source\views\frame\Frame.ProjectButtons.pas' {ProjectButtonsFrame: TFrame},
   Frame.Loading in 'source\views\frame\Frame.Loading.pas' {LoadingFrame: TFrame},
   Form.SelectProject in 'source\views\Form.SelectProject.pas' {SelectProjectForm},
-  Frame.ScriptEditor in 'source\views\frame\Frame.ScriptEditor.pas' {ScriptEditorFrame: TFrame},
   Form.Project.Create in 'source\views\Form.Project.Create.pas' {ProjectCreateForm},
   Frame.Device in 'source\views\frame\Frame.Device.pas' {DeviceFrame: TFrame},
   Container.Menu.Actions in 'source\containers\Container.Menu.Actions.pas' {MenuActionsContainer: TDataModule},
@@ -33,13 +32,19 @@ uses
   Frame.DebugButtons in 'source\views\frame\Frame.DebugButtons.pas' {DebugButtonsFrame: TFrame},
   Frame.LeftPanel in 'source\views\frame\Frame.LeftPanel.pas' {LeftPanelFrame: TFrame},
   Frame.BottomPanel in 'source\views\frame\Frame.BottomPanel.pas' {BottomPanelFrame: TFrame},
-  Frame.Log in 'source\views\frame\Frame.Log.pas' {LogFrame: TFrame};
+  Frame.Log in 'source\views\frame\Frame.Log.pas' {LogFrame: TFrame},
+  Frame.Editor.Memo in 'source\views\frame\editor\Frame.Editor.Memo.pas' {MemoEditorFrame: TFrame},
+  Frame.Editor.TMSMemo in 'source\views\frame\editor\Frame.Editor.TMSMemo.pas' {TMSMemoEditorFrame: TFrame},
+  Frame.Editor.TabItem in 'source\views\frame\editor\Frame.Editor.TabItem.pas',
+  Frame.Editor.Control in 'source\views\frame\editor\Frame.Editor.Control.pas' {EditorControlFrame: TFrame},
+  Container.DataSet.Debugger in 'source\containers\Container.DataSet.Debugger.pas' {DebuggerDataSetContainer: TDataModule};
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.CreateForm(TImageContainer, ImageContainer);
+  Application.CreateForm(TDebuggerDataSetContainer, DebuggerDataSetContainer);
   Application.CreateForm(TMenuActionsContainer, MenuActionsContainer);
   Application.CreateForm(TMainForm, MainForm);
   Application.Run;
