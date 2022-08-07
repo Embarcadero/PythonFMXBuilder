@@ -1,6 +1,6 @@
 inherited EnvironmentForm: TEnvironmentForm
   Caption = 'Environment'
-  ClientHeight = 697
+  ClientHeight = 897
   ClientWidth = 449
   OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
@@ -13,12 +13,12 @@ inherited EnvironmentForm: TEnvironmentForm
   end
   inherited loBody: TLayout
     Size.Width = 449.000000000000000000
-    Size.Height = 597.000000000000000000
+    Size.Height = 797.000000000000000000
     inherited lbProject: TListBox
       Size.Width = 449.000000000000000000
-      Size.Height = 597.000000000000000000
+      Size.Height = 797.000000000000000000
       Viewport.Width = 445.000000000000000000
-      Viewport.Height = 593.000000000000000000
+      Viewport.Height = 793.000000000000000000
       object lbghSdkttings: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
@@ -27,7 +27,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 1
+        TabOrder = 0
         Text = 'SDK Settings:'
       end
       object lbiSdkBasePath: TListBoxItem
@@ -35,7 +35,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 2
+        TabOrder = 1
         object edtSdkBasePath: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -70,7 +70,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 3
+        TabOrder = 2
         object edtApkSigner: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -104,7 +104,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 4
+        TabOrder = 3
         object edtAdbLocation: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -138,7 +138,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 5
+        TabOrder = 4
         object edtAaptLocation: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -172,7 +172,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 6
+        TabOrder = 5
         object lblSdkApi: TLabel
           Align = Top
           Margins.Left = 5.000000000000000000
@@ -206,7 +206,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 7
+        TabOrder = 6
         object edtZipAlign: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -244,7 +244,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 0
+        TabOrder = 7
         Text = 'JDK Settings:'
       end
       object lbiJdkBasePath: TListBoxItem
@@ -321,7 +321,7 @@ inherited EnvironmentForm: TEnvironmentForm
         Size.Width = 445.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 11
+        TabOrder = 10
         object edtJarSignerLocation: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -350,10 +350,125 @@ inherited EnvironmentForm: TEnvironmentForm
           TabOrder = 40
         end
       end
+      object lbghDebuggerSettings: TListBoxGroupHeader
+        TextSettings.Font.Size = 13.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        StyledSettings = [Family, Other]
+        Position.Y = 588.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'listboxplainheader'
+        TabOrder = 11
+        Text = 'Debugger Settings:'
+      end
+      object lbiRemoteDebuggerHost: TListBoxItem
+        Position.Y = 612.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 12
+        object edtRemoteDebuggerHost: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 0
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '127.0.0.1'
+          OnChange = edtJdkBasePathChange
+        end
+        object lblRemoteDebuggerHost: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Remote debugger host:'
+          TabOrder = 40
+        end
+      end
+      object lbiRemoteDebuggerPort: TListBoxItem
+        Position.Y = 672.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 13
+        object edtRemoteDebuggerPort: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 6
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '5678'
+        end
+        object lblRemoteDebuggerPort: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Remote debugger port:'
+          TabOrder = 40
+        end
+      end
+      object lbiRemoteDebuggerRoot: TListBoxItem
+        Position.Y = 732.000000000000000000
+        Size.Width = 445.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 14
+        object edtRemoteDebuggerRoot: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 1
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = '/data/data/$(package_name)/files/'
+        end
+        object lblRemoteDebuggerRoot: TLabel
+          Align = Top
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Position.X = 5.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 435.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Remote root:'
+          TabOrder = 40
+        end
+      end
     end
   end
   inherited loFooter: TLayout
-    Position.Y = 647.000000000000000000
+    Position.Y = 847.000000000000000000
     Size.Width = 449.000000000000000000
     inherited loLeftActions: TLayout
       inherited btnSave: TButton

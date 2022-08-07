@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, REST.Json.Types,
-  Builder.Architecture, Builder.PythonVersion,
+  Builder.Architecture, Builder.PythonVersion, Builder.Environment,
   Builder.Model, Builder.Model.Project.Icon, Builder.Model.Project.Files;
 
 type
@@ -30,6 +30,8 @@ type
     FIcons: TProjectIconModel;
     [JSONName('files')]
     FFiles: TProjectFilesModel;
+    [JSONName('environment')]
+    FEnvironment: TEnvironment;
   private
     function GetId(): string;
     function GetProjectName: string;
@@ -49,6 +51,7 @@ type
     property VersionName: string read FVersionName write FVersionName;
     property PythonVersion: TPythonVersion read FPythonVersion write FPythonVersion;
     property Architecture: TArchitecture read FArchitecture write FArchitecture;
+    property Environment: TEnvironment read FEnvironment write FEnvironment;
     property Icons: TProjectIconModel read FIcons write FIcons;
     property Files: TProjectFilesModel read FFiles write FFiles;
   end;
@@ -77,6 +80,7 @@ begin
   FVersionName := '1.0.0';
   FPythonVersion := TPythonVersion.cp39;
   FArchitecture := TArchitecture.aarch64;
+  FEnvironment := TEnvironment.private;
 end;
 
 constructor TProjectModel.Create(const AProjectName: string);

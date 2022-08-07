@@ -27,6 +27,9 @@ type
     ListBoxGroupHeader4: TListBoxGroupHeader;
     ListBoxItem5: TListBoxItem;
     cbArchitecture: TComboBox;
+    lbghEnvironment: TListBoxGroupHeader;
+    lbiEnvironment: TListBoxItem;
+    cbEnvironment: TComboBox;
     ListBoxGroupHeader5: TListBoxGroupHeader;
     ListBoxItem6: TListBoxItem;
     edtAppName: TEdit;
@@ -94,7 +97,7 @@ implementation
 uses
   System.IOUtils,
   Container.Images,
-  Builder.Architecture, Builder.PythonVersion;
+  Builder.Architecture, Builder.PythonVersion, Builder.Environment;
 
 {$R *.fmx}
 
@@ -104,6 +107,7 @@ procedure TProjectForm.FormUpdate;
 const
   PY_VER: array[cp38..cp310] of integer = (0, 1, 2);
   ARCH: array[arm..aarch64] of integer = (0, 1);
+  ENV: array[TEnvironment.private..TEnvironment.public] of integer = (0, 1);
 begin
   with Model as TProjectModel do begin
     edtAppName.Text := ApplicationName;
@@ -112,6 +116,7 @@ begin
     edtVersionName.Text := VersionName;
     cbPythonVersion.ItemIndex := PY_VER[PythonVersion];
     cbArchitecture.ItemIndex := ARCH[Architecture];
+    cbEnvironment.ItemIndex := ENV[Environment];
 
     with Files do begin
       cbMainFile.Clear();
@@ -144,6 +149,7 @@ procedure TProjectForm.ModelUpdate;
 const
   PY_VER: array[0..2] of TPythonVersion = (cp38, cp39, cp310);
   ARCH: array[0..1] of TArchitecture = (arm, aarch64);
+  ENV: array[0..1] of TEnvironment = (TEnvironment.private, TEnvironment.public);
 var
   LInt: integer;
 begin
@@ -157,6 +163,7 @@ begin
     VersionName := edtVersionName.Text;
     PythonVersion := PY_VER[cbPythonVersion.ItemIndex];
     Architecture := ARCH[cbArchitecture.ItemIndex];
+    Environment := ENV[cbEnvironment.ItemIndex];
 
     with Files do begin
       if Assigned(cbMainFile.Selected) then

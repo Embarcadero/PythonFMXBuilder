@@ -41,6 +41,16 @@ type
     edtJdkBasePath: TEdit;
     lblJdkBasePath: TLabel;
     edtSdkApiLocation: TEdit;
+    lbghDebuggerSettings: TListBoxGroupHeader;
+    lbiRemoteDebuggerHost: TListBoxItem;
+    edtRemoteDebuggerHost: TEdit;
+    lblRemoteDebuggerHost: TLabel;
+    lbiRemoteDebuggerPort: TListBoxItem;
+    edtRemoteDebuggerPort: TEdit;
+    lblRemoteDebuggerPort: TLabel;
+    lbiRemoteDebuggerRoot: TListBoxItem;
+    edtRemoteDebuggerRoot: TEdit;
+    lblRemoteDebuggerRoot: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -231,6 +241,9 @@ begin
     edtJdkBasePath.Text := JdkBasePath;
     edtKeyTool.Text := KeyToolLocation;
     edtJarSignerLocation.Text := JarSignerLocation;
+    edtRemoteDebuggerHost.Text := RemoteDebuggerHost;
+    edtRemoteDebuggerPort.Text := RemoteDebuggerPort.ToString();
+    edtRemoteDebuggerRoot.Text := RemoteDebuggerRoot;
   end;
 end;
 
@@ -246,6 +259,9 @@ begin
     JdkBasePath := edtJdkBasePath.Text;
     KeyToolLocation := edtKeyTool.Text;
     JarSignerLocation := edtJarSignerLocation.Text;
+    RemoteDebuggerHost := edtRemoteDebuggerHost.Text;
+    RemoteDebuggerPort := edtRemoteDebuggerPort.Text.ToInteger();
+    RemoteDebuggerRoot := edtRemoteDebuggerRoot.Text;
   end;
 end;
 
