@@ -9,7 +9,8 @@ uses
   System.SyncObjs,
   System.Generics.Collections,
   Builder.Model.Project,
-  BaseProtocol.Client;
+  BaseProtocol.Requests,
+  BaseProtocol.Client, BaseProtocol.Types;
 
 type
   {$SCOPEDENUMS ON}
@@ -25,6 +26,8 @@ type
     CloseFile,
     DebugSessionStarted,
     DebugSessionStopped,
+    SetupDebugger,
+    SetupDebuggerDone,
     //App can keep track of async ops for thread safety
     AsyncOperationStarted,
     AsyncOperationEnded,
@@ -172,6 +175,8 @@ type
     property Body: TBody read FBody;
   end;
 
+  {|| EVENTS ||}
+
   TMessageEventBody = class
   private
     FMessage: string;
@@ -218,14 +223,24 @@ type
   TOpenFileBody = class
   private
     FFilePath: string;
+    FFileName: string;
+    FBreakpoints: TArray<integer>;
+    FActiveLine: integer;
+    FShowActiveLineIndicator: boolean;
   public
     property FilePath: string read FFilePath write FFilePath;
+    property FileName: string read FFileName write FFileName;
+    property Breakpoints: TArray<integer> read FBreakpoints write FBreakpoints;
+    property ActiveLine: integer read FActiveLine write FActiveLine;
+    property ShowActiveLineIndicator: boolean read FShowActiveLineIndicator write FShowActiveLineIndicator;
   end;
 
   [EventType(TBuilderEvent.OpenFile)]
   TOpenFileEvent = class(TChainEvent<TOpenFileBody>)
   public
-    constructor Create(const AFilePath: string); reintroduce;
+    constructor Create(const AFilePath: string; const AActiveLine: integer;
+      const AShowActiveLineIndicator: boolean); reintroduce; overload;
+    constructor Create(const AFilePath: string); reintroduce; overload;
   end;
 
   TAsyncOperationStartedBody = class
@@ -282,8 +297,46 @@ type
     constructor Create(const ADebugger: TBaseProtocolClient); reintroduce;
   end;
 
+  TDebugSessionStoppedEventBoby = class
+  private
+    FDebugger: TBaseProtocolClient;
+  public
+    property Debugger: TBaseProtocolClient read FDebugger write FDebugger;
+  end;
+
   [EventType(TBuilderEvent.DebugSessionStopped)]
-  TDebugSessionStoppedEvent = class(TChainEvent<TEmptyBody>);
+  TDebugSessionStoppedEvent = class(TChainEvent<TDebugSessionStoppedEventBoby>)
+  public
+    constructor Create(const ADebugger: TBaseProtocolClient); reintroduce;
+  end;
+
+  TSetupDebuggerEventBoby = class
+  private
+    FDebugger: TBaseProtocolClient;
+  public
+    property Debugger: TBaseProtocolClient read FDebugger write FDebugger;
+  end;
+
+  [EventType(TBuilderEvent.SetupDebugger)]
+  TSetupDebuggerEvent = class(TChainEvent<TSetupDebuggerEventBoby>)
+  public
+    constructor Create(const ADebugger: TBaseProtocolClient); reintroduce;
+  end;
+
+  TSetupDebuggerDoneEventBoby = class
+  private
+    FDebugger: TBaseProtocolClient;
+  public
+    property Debugger: TBaseProtocolClient read FDebugger write FDebugger;
+  end;
+
+  [EventType(TBuilderEvent.SetupDebuggerDone)]
+  TSetupDebuggerDoneEvent = class(TChainEvent<TSetupDebuggerDoneEventBoby>)
+  public
+    constructor Create(const ADebugger: TBaseProtocolClient); reintroduce;
+  end;
+
+  {|| REQUESTS ||}
 
   [RequestType(TBuilderRequest.DebuggerConnectionFrozen)]
   TDebuggerConnectionFrozenActionRequest = class(TChainRequest<TEmptyArguments>);
@@ -301,6 +354,9 @@ type
     constructor Create(const AAction: TDebuggerConnectionFrozenAction); reintroduce;
   end;
 
+
+  {|| Builder Chain ||}
+
   TBuilderChain = class
   private type
     TDisconnectable = class(TInterfacedObject, IDisconnectable)
@@ -310,6 +366,7 @@ type
       FOnDisconnect: TOnDisconnect;
     public
       constructor Create(const AOnDisconnect: TOnDisconnect);
+      destructor Destroy(); override;
       procedure Disconnect();
     end;
     TQueuedEventInfo = record
@@ -317,12 +374,16 @@ type
       Owned: boolean;
       Callback: TProc;
     end;
+    TRequestHandlerInfo = record
+      RequestType: TClass;
+      Notification: TChainReverseRequestNotification;
+    end;
   private
     FBroadcasting: boolean;
-    FBroadcastTask: TThread;
+    FBroadcastTask: System.Classes.TThread;
     FEventQueue: TThreadedQueue<TQueuedEventInfo>;
     FEventSubscribers: TThreadList<TChainEventNotification>;
-    FRequestHandlers: TThreadList<TChainReverseRequestNotification>;
+    FRequestHandlers: TThreadList<TRequestHandlerInfo>;
     procedure StartBroadcasting();
     procedure StopBroadcasting();
 
@@ -570,7 +631,7 @@ constructor TBuilderChain.Create;
 begin
   FBroadcasting := true;
   FEventQueue := TThreadedQueue<TQueuedEventInfo>.Create();
-  FRequestHandlers := TThreadList<TChainReverseRequestNotification>.Create();
+  FRequestHandlers := TThreadList<TRequestHandlerInfo>.Create();
   FEventSubscribers := TThreadList<TChainEventNotification>.Create();
   StartBroadcasting();
 end;
@@ -585,13 +646,17 @@ end;
 
 function TBuilderChain.SubscribeToReverseRequest<T>(
   const AReverseRequestNotification: TChainReverseRequestNotification<T>): IDisconnectable;
+var
+  LRequestHandlerInfo: TRequestHandlerInfo;
 begin
-  FRequestHandlers.Add(TChainReverseRequestNotification(AReverseRequestNotification));
+  LRequestHandlerInfo.RequestType := T;
+  LRequestHandlerInfo.Notification := TChainReverseRequestNotification(AReverseRequestNotification);
+
+  FRequestHandlers.Add(LRequestHandlerInfo);
   Result := TDisconnectable.Create(
     procedure()
     begin
-      FRequestHandlers.Remove(
-        TChainReverseRequestNotification(AReverseRequestNotification));
+      FRequestHandlers.Remove(LRequestHandlerInfo);
     end);
 end;
 
@@ -599,7 +664,7 @@ procedure TBuilderChain.SendRequest<T>(const ARequest: TChainRequest;
   const AResolve: TChainResolve<T>; const AReject: TChainReject;
   const AOwned: boolean);
 var
-  LHandlers: TArray<TChainReverseRequestNotification>;
+  LHandlers: TArray<TRequestHandlerInfo>;
 begin
   try
     var LList := FRequestHandlers.LockList();
@@ -611,12 +676,18 @@ begin
 
     var LHandled := false;
     for var LHandler in LHandlers do begin
-      var LResponse := LHandler(ARequest, LHandled);
-      if LHandled then
+      if not (ARequest is LHandler.RequestType) then
+        Continue;
+
+      var LResponse := LHandler.Notification(ARequest, LHandled);
+      if LHandled then begin
         if LResponse.Success then
           AResolve(LResponse as T)
         else
           AReject(LResponse.Message);
+
+        Break;
+      end;
     end;
 
     if not LHandled then
@@ -641,7 +712,7 @@ end;
 procedure TBuilderChain.StartBroadcasting;
 begin
   FBroadcasting := true;
-  FBroadcastTask := TThread.CreateAnonymousThread(
+  FBroadcastTask := System.Classes.TThread.CreateAnonymousThread(
     procedure()
     var
       LCurrent: TQueuedEventInfo;
@@ -679,7 +750,7 @@ begin
           end;
         end;
       finally
-        TThread.RemoveQueuedEvents(TThread.Current);
+        System.Classes.TThread.RemoveQueuedEvents(System.Classes.TThread.Current);
       end;
     end);
   FBroadcastTask.FreeOnTerminate := false;
@@ -777,10 +848,17 @@ begin
   FOnDisconnect := AOnDisconnect;
 end;
 
+destructor TBuilderChain.TDisconnectable.Destroy;
+begin
+  Disconnect();
+  inherited;
+end;
+
 procedure TBuilderChain.TDisconnectable.Disconnect;
 begin
   if Assigned(FOnDisconnect) then
     FOnDisconnect();
+  FOnDisconnect := nil;
 end;
 
 { TGlobalBuilderChain }
@@ -864,10 +942,18 @@ end;
 
 { TOpenFileEvent }
 
-constructor TOpenFileEvent.Create(const AFilePath: string);
+constructor TOpenFileEvent.Create(const AFilePath: string;
+  const AActiveLine: integer; const AShowActiveLineIndicator: boolean);
 begin
   inherited Create();
   Body.FilePath := AFilePath;
+  Body.ActiveLine := AActiveLine;
+  Body.ShowActiveLineIndicator := AShowActiveLineIndicator;
+end;
+
+constructor TOpenFileEvent.Create(const AFilePath: string);
+begin
+  Create(AFilePath, 0, false);
 end;
 
 { TAsyncOperationStartedEvent }
@@ -920,6 +1006,32 @@ begin
   inherited Create();
   Success := true;
   Body.Action := AAction;
+end;
+
+{ TDebugSessionStoppedEvent }
+
+constructor TDebugSessionStoppedEvent.Create(
+  const ADebugger: TBaseProtocolClient);
+begin
+  inherited Create();
+  Body.Debugger := ADebugger;
+end;
+
+{ TSetupDebuggerEvent }
+
+constructor TSetupDebuggerEvent.Create(const ADebugger: TBaseProtocolClient);
+begin
+  inherited Create();
+  Body.Debugger := ADebugger;
+end;
+
+{ TSetupDebuggerDoneEvent }
+
+constructor TSetupDebuggerDoneEvent.Create(
+  const ADebugger: TBaseProtocolClient);
+begin
+  inherited Create();
+  Body.Debugger := ADebugger;
 end;
 
 end.
