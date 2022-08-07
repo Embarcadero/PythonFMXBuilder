@@ -1,0 +1,32 @@
+object TMSMemoEditorFrame: TTMSMemoEditorFrame
+  Size.Width = 1174.000000000000000000
+  Size.Height = 733.000000000000000000
+  Size.PlatformDefault = False
+  object mmEditor: TTMSFMXMemo
+    Align = Client
+    Cursor = crIBeam
+    DisableFocusEffect = False
+    TabOrder = 1
+    Size.Width = 1174.000000000000000000
+    Size.Height = 733.000000000000000000
+    Size.PlatformDefault = False
+    OnMouseWheel = mmEditorMouseWheel
+    ActiveLineSettings.ShowActiveLine = False
+    ActiveLineSettings.ShowActiveLineIndicator = False
+    ActiveLineSettings.ActiveLineAtCursor = True
+    AutoCompletion.StartToken = '(.'
+    CaseSensitive = False
+    Font.Family = 'Cascadia Code'
+    Font.Size = 14.000000000000000000
+    Gutter.Font.Family = 'Courier New'
+    KeyboardType = Default
+    ReadOnly = False
+    RightMargin = 120
+    SmartTabs = True
+    TabSize = 4
+    TrimTrailingSpaces = False
+    UseStyler = False
+    Version = '1.6.0.1'
+    OnGutterClick = mmEditorGutterClick
+  end
+end
