@@ -32,6 +32,7 @@ constructor TBottomPanelFrame.Create(AOwner: TComponent);
 begin
   inherited;
   tcBottomPanelControls.TabPosition := TTabPosition.None;
+  tcBottomPanelControls.ActiveTab := tiBottomPanelDesignSession;
   FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin

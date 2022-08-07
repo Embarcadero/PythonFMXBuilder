@@ -89,6 +89,12 @@ object BottomPanelFrame: TBottomPanelFrame
                   Size.Width = 864.000000000000000000
                 end
               end
+              inherited grdEvents: TGrid
+                Size.Width = 869.000000000000000000
+                Size.Height = 350.000000000000000000
+                Viewport.Width = 869.000000000000000000
+                Viewport.Height = 350.000000000000000000
+              end
             end
           end
           inherited tiBottomPanelDebugBreakpoints: TTabItem
@@ -105,6 +111,12 @@ object BottomPanelFrame: TBottomPanelFrame
                   Size.Width = 864.000000000000000000
                 end
               end
+              inherited grdEvents: TGrid
+                Size.Width = 869.000000000000000000
+                Size.Height = 350.000000000000000000
+                Viewport.Width = 869.000000000000000000
+                Viewport.Height = 350.000000000000000000
+              end
             end
           end
           inherited tiBottomPanelDebugThreads: TTabItem
@@ -120,6 +132,12 @@ object BottomPanelFrame: TBottomPanelFrame
                 inherited lbDescription: TLabel
                   Size.Width = 864.000000000000000000
                 end
+              end
+              inherited grdThreads: TGrid
+                Size.Width = 869.000000000000000000
+                Size.Height = 350.000000000000000000
+                Viewport.Width = 869.000000000000000000
+                Viewport.Height = 350.000000000000000000
               end
             end
           end

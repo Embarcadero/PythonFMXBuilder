@@ -365,7 +365,6 @@ begin
   if not LRemove then
     Exit;
 
-
   LNode.Free();
 
   GetProjectServices().RemoveScriptFile(FProjectModel, String(LInfo.FilePath));

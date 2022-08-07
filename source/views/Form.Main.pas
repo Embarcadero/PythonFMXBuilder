@@ -11,7 +11,7 @@ uses
   Builder.Storage.Factory, Builder.Storage.Default,
   Builder.Model.Project, Builder.Model.Environment, Builder.Model, Frame.Loading, FMX.Menus,
   Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
-  Frame.ScriptEditor, FMX.TreeView, Frame.Device, Frame.LeftMenu,
+  Frame.Editor.Control, FMX.TreeView, Frame.Device, Frame.LeftMenu,
   Frame.EntityButtons, Frame.BuildButtons, Frame.DebugButtons, Frame.LeftPanel,
   Frame.BottomPanel;
 
@@ -27,7 +27,7 @@ type
     spProjectFIles: TSplitter;
     RoundRect1: TRoundRect;
     loProjectOptions: TLayout;
-    frmScriptEditor: TScriptEditorFrame;
+    frmEditorControl: TEditorControlFrame;
     loEditorHeader: TLayout;
     frmProjectButtons: TProjectButtonsFrame;
     frmDevice: TDeviceFrame;
@@ -75,6 +75,7 @@ type
     FAsyncOperationEndedEvent: IDisconnectable;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
+    FDebuggerConnectionFrozen: IDisconnectable;
     FBackgroundOperationCount: integer;
   public
     constructor Create(AOwner: TComponent); override;
@@ -151,7 +152,7 @@ begin
         end);
     end);
 
-  TGlobalBuilderChain.SubscribeToReverseRequest<TDebuggerConnectionFrozenActionRequest>(
+  FDebuggerConnectionFrozen := TGlobalBuilderChain.SubscribeToReverseRequest<TDebuggerConnectionFrozenActionRequest>(
     function(const AReverseRequest: TDebuggerConnectionFrozenActionRequest; var AHandled: boolean): TChainResponse
     begin
       var LResult := TDebuggerConnectionFrozenAction.ForceDisconnection;
@@ -180,6 +181,7 @@ end;
 
 destructor TMainForm.Destroy;
 begin
+  FDebuggerConnectionFrozen.Disconnect();
   FDebugSessionStopped.Disconnect();
   FDebugSessionStarted.Disconnect();
   FAsyncOperationEndedEvent.Disconnect();
