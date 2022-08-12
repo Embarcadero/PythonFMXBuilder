@@ -56,6 +56,9 @@ type
     frmLeftPanel: TLeftPanelFrame;
     frmBottomFrame: TBottomPanelFrame;
     loLeftPanel: TLayout;
+    lnEntitySeparator: TLine;
+    lbProjectSeparator: TLine;
+    lnBuildSeparator: TLine;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);

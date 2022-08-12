@@ -30,8 +30,8 @@ inherited DataForm: TDataForm
       DefaultItemStyles.ItemStyle = ''
       DefaultItemStyles.GroupHeaderStyle = ''
       DefaultItemStyles.GroupFooterStyle = ''
-      Viewport.Width = 640.000000000000000000
-      Viewport.Height = 380.000000000000000000
+      Viewport.Width = 636.000000000000000000
+      Viewport.Height = 376.000000000000000000
     end
   end
   object loFooter: TLayout
@@ -55,7 +55,7 @@ inherited DataForm: TDataForm
         Align = Left
         Enabled = True
         Images = ImageContainer.images
-        ImageIndex = 3
+        ImageIndex = 2
         Margins.Left = 10.000000000000000000
         Position.X = 10.000000000000000000
         Size.Width = 76.000000000000000000
@@ -68,7 +68,7 @@ inherited DataForm: TDataForm
         Align = Left
         Enabled = True
         Images = ImageContainer.images
-        ImageIndex = 4
+        ImageIndex = 3
         Margins.Left = 10.000000000000000000
         Position.X = 96.000000000000000000
         Size.Width = 76.000000000000000000

@@ -7,16 +7,17 @@ uses
   System.Generics.Collections, FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms,
   FMX.Dialogs, FMX.StdCtrls, FMX.TMSBaseControl, FMX.TMSMemo, FMX.Controls.Presentation,
   Frame.Editor.TabItem, Builder.Chain, BaseProtocol, BaseProtocol.Types,
-  BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client;
+  BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client,
+  Builder.Storage, Builder.Model.Environment, Builder.Services;
 
 type
   TTMSMemoEditorFrame = class(TFrame, ITextEditor)
     mmEditor: TTMSFMXMemo;
     procedure mmEditorGutterClick(Sender: TObject; LineNo: Integer);
-    procedure mmEditorMouseWheel(Sender: TObject; Shift: TShiftState;
-      WheelDelta: Integer; var Handled: Boolean);
   private
     FFileName: string;
+    FProjectServices: IProjectServices;
+    FEnvironmentStorage: IStorage<TEnvironmentModel>;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
     FSetupDebugger: IDisconnectable;
@@ -28,6 +29,7 @@ type
     procedure SetActiveLine(AActiveLine: integer);
     function GetShowActiveLine(): boolean;
     procedure SetShowActiveLine(AShowActiveLine: boolean);
+    function GetRemoteRootPath(const AFileName: string): string;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -46,7 +48,9 @@ implementation
 
 uses
   System.IOUtils, System.Math,
-  Container.DataSet.Debugger;
+  Container.DataSet.Debugger,
+  Builder.Services.Factory,
+  Builder.Storage.Default;
 
 {$R *.fmx}
 
@@ -55,6 +59,9 @@ uses
 constructor TTMSMemoEditorFrame.Create(AOwner: TComponent);
 begin
   inherited;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
+  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
+
   mmEditor.ActiveLineSettings.ActiveLineAtCursor := false;
 
   FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
@@ -101,6 +108,23 @@ begin
   end;
 end;
 
+function TTMSMemoEditorFrame.GetRemoteRootPath(const AFileName: string): string;
+begin
+  var LProjectModel := FProjectServices.GetActiveProject();
+  var LEnvironmentModel: TEnvironmentModel;
+  if FEnvironmentStorage.LoadModel(LEnvironmentModel) then begin
+    Result := LEnvironmentModel.RemoteDebuggerRoot
+      .Replace('$(package_name)', LProjectModel.PackageName, [rfIgnoreCase])
+        .Trim();
+
+    if not Result.EndsWith('/') then
+      Result := Result + '/';
+
+    Result := Result + TPath.GetFileName(AFileName);
+  end else
+    Result := String.Empty;
+end;
+
 procedure TTMSMemoEditorFrame.SetBreakpoints(ABreakpoints: TArray<integer>);
 begin
   for var ABrekpoints in ABreakpoints do begin
@@ -143,10 +167,7 @@ begin
   DebuggerDataSetContainer.AddSource(
     TPath.GetFileName(AFileName),
     AFileName,
-    Format(
-      '/data/data/%s/files/%s', [
-      'com.embarcadero.PyApp',
-      TPath.GetFileName(AFileName)]));
+    GetRemoteRootPath(AFileName));
 end;
 
 procedure TTMSMemoEditorFrame.mmEditorGutterClick(Sender: TObject;
@@ -171,12 +192,6 @@ begin
       LCurLine + 1
     );
   end;
-end;
-
-procedure TTMSMemoEditorFrame.mmEditorMouseWheel(Sender: TObject;
-  Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
-begin
-
 end;
 
 { TTMSMemoScriptEditorTabItem }

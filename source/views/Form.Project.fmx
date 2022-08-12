@@ -26,10 +26,10 @@ inherited ProjectForm: TProjectForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 17
+        TabOrder = 16
         Text = 'Application Name:'
       end
-      object ListBoxItem6: TListBoxItem
+      object lbiApplicationName: TListBoxItem
         Position.Y = 24.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 38.000000000000000000
@@ -59,10 +59,10 @@ inherited ProjectForm: TProjectForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 19
+        TabOrder = 18
         Text = 'Package Settings'
       end
-      object ListBoxItem1: TListBoxItem
+      object lbiPackageName: TListBoxItem
         Position.Y = 86.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
@@ -104,10 +104,10 @@ inherited ProjectForm: TProjectForm
         Size.Width = 462.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 22
+        TabOrder = 21
         Text = 'Version Info:'
       end
-      object ListBoxItem2: TListBoxItem
+      object lbiVersionCode: TListBoxItem
         Position.Y = 170.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
@@ -141,7 +141,7 @@ inherited ProjectForm: TProjectForm
           TabOrder = 40
         end
       end
-      object ListBoxItem3: TListBoxItem
+      object lbiVersionName: TListBoxItem
         Position.Y = 230.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
@@ -183,7 +183,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 462.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 26
+        TabOrder = 24
         Text = 'Initialization Script Setting:'
       end
       object lbiSetMainFile: TListBoxItem
@@ -191,7 +191,7 @@ inherited ProjectForm: TProjectForm
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 25
+        TabOrder = 23
         object cbMainFile: TComboBox
           Align = Client
           Margins.Left = 5.000000000000000000
@@ -225,10 +225,10 @@ inherited ProjectForm: TProjectForm
         Size.Width = 462.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 21
+        TabOrder = 20
         Text = 'Python Settings:'
       end
-      object ListBoxItem4: TListBoxItem
+      object lbiPythonVersion: TListBoxItem
         Position.Y = 398.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
@@ -271,15 +271,15 @@ inherited ProjectForm: TProjectForm
         Size.Width = 462.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 24
+        TabOrder = 22
         Text = 'Architecture:'
       end
-      object ListBoxItem5: TListBoxItem
+      object lbiArchitecture: TListBoxItem
         Position.Y = 482.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 38.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 16
+        TabOrder = 15
         object cbArchitecture: TComboBox
           Align = Client
           Items.Strings = (
@@ -296,51 +296,19 @@ inherited ProjectForm: TProjectForm
           TabOrder = 5
         end
       end
-      object lbghEnvironment: TListBoxGroupHeader
-        TextSettings.Font.StyleExt = {00070000000000000004000000}
-        StyledSettings = [Family, Size, FontColor, Other]
-        Position.Y = 520.000000000000000000
-        Size.Width = 462.000000000000000000
-        Size.Height = 24.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 23
-        Text = 'Environment:'
-      end
-      object lbiEnvironment: TListBoxItem
-        Position.Y = 544.000000000000000000
-        Size.Width = 462.000000000000000000
-        Size.Height = 38.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 15
-        object cbEnvironment: TComboBox
-          Align = Client
-          Items.Strings = (
-            'Private'
-            'Public')
-          ItemIndex = 0
-          Margins.Left = 5.000000000000000000
-          Margins.Top = 5.000000000000000000
-          Margins.Right = 5.000000000000000000
-          Margins.Bottom = 5.000000000000000000
-          Size.Width = 452.000000000000000000
-          Size.Height = 28.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 5
-        end
-      end
       object lbghAppIcons: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         StyledSettings = [Family, FontColor, Other]
-        Position.Y = 582.000000000000000000
+        Position.Y = 520.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 18
+        TabOrder = 17
         Text = 'Application Icons:'
       end
       object lbiDrawableSmall: TListBoxItem
-        Position.Y = 606.000000000000000000
+        Position.Y = 544.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -383,7 +351,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableNormal: TListBoxItem
-        Position.Y = 666.000000000000000000
+        Position.Y = 604.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -426,7 +394,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableLarge: TListBoxItem
-        Position.Y = 726.000000000000000000
+        Position.Y = 664.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -469,7 +437,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableXLarge: TListBoxItem
-        Position.Y = 786.000000000000000000
+        Position.Y = 724.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -512,7 +480,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableLDpi: TListBoxItem
-        Position.Y = 846.000000000000000000
+        Position.Y = 784.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -555,7 +523,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableMDpi: TListBoxItem
-        Position.Y = 906.000000000000000000
+        Position.Y = 844.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -598,7 +566,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableHDpi: TListBoxItem
-        Position.Y = 966.000000000000000000
+        Position.Y = 904.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -641,7 +609,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableXHdpi: TListBoxItem
-        Position.Y = 1026.000000000000000000
+        Position.Y = 964.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -684,7 +652,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableXxHdpi: TListBoxItem
-        Position.Y = 1086.000000000000000000
+        Position.Y = 1024.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
@@ -727,7 +695,7 @@ inherited ProjectForm: TProjectForm
         end
       end
       object lbiDrawableXxxHdpi: TListBoxItem
-        Position.Y = 1146.000000000000000000
+        Position.Y = 1084.000000000000000000
         Size.Width = 462.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False

@@ -1,5 +1,5 @@
 object DebugButtonsFrame: TDebugButtonsFrame
-  Size.Width = 210.000000000000000000
+  Size.Width = 245.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object sbDebugCurrentProject: TSpeedButton
@@ -16,13 +16,13 @@ object DebugButtonsFrame: TDebugButtonsFrame
     StyleLookup = 'actiontoolbutton'
   end
   object spStepInto: TSpeedButton
-    Action = MenuActionsContainer.actStepInto
+    Action = MenuActionsContainer.actStepIn
     Align = Left
     Enabled = True
     Images = ImageContainer.images
     ImageIndex = 17
     Margins.Left = 5.000000000000000000
-    Position.X = 40.000000000000000000
+    Position.X = 75.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
@@ -35,7 +35,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 19
     Margins.Left = 5.000000000000000000
-    Position.X = 75.000000000000000000
+    Position.X = 110.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
@@ -48,7 +48,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 18
     Margins.Left = 5.000000000000000000
-    Position.X = 110.000000000000000000
+    Position.X = 145.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
@@ -61,7 +61,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 21
     Margins.Left = 5.000000000000000000
-    Position.X = 180.000000000000000000
+    Position.X = 215.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
@@ -74,7 +74,20 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 20
     Margins.Left = 5.000000000000000000
-    Position.X = 145.000000000000000000
+    Position.X = 180.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+  object sbContinue: TSpeedButton
+    Action = MenuActionsContainer.actContinue
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 22
+    Margins.Left = 5.000000000000000000
+    Position.X = 40.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False

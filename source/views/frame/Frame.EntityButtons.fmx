@@ -20,7 +20,7 @@ object EntityButtonsFrame: TEntityButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 9
+    ImageIndex = 1
     Margins.Left = 5.000000000000000000
     Position.X = 40.000000000000000000
     Size.Width = 30.000000000000000000

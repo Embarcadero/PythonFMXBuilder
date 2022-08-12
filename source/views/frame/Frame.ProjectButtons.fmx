@@ -7,7 +7,7 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 1
+    ImageIndex = 8
     Margins.Left = 5.000000000000000000
     Position.X = 5.000000000000000000
     Size.Width = 30.000000000000000000
@@ -20,7 +20,7 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 10
+    ImageIndex = 9
     Margins.Left = 5.000000000000000000
     Position.X = 40.000000000000000000
     Size.Width = 30.000000000000000000
@@ -33,7 +33,7 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 4
+    ImageIndex = 10
     Margins.Left = 5.000000000000000000
     Position.X = 75.000000000000000000
     Size.Width = 30.000000000000000000

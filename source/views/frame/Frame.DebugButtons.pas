@@ -15,6 +15,7 @@ type
     sbStepOut: TSpeedButton;
     btnStop: TSpeedButton;
     btnPause: TSpeedButton;
+    sbContinue: TSpeedButton;
   private
     { Private declarations }
   public

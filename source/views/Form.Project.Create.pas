@@ -31,8 +31,6 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure edtAppNameChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure edtProjectNameKeyUp(Sender: TObject; var Key: Word;
-      var KeyChar: Char; Shift: TShiftState);
   private
     FProjectServices: IProjectServices;
   public
@@ -77,13 +75,6 @@ end;
 procedure TProjectCreateForm.edtAppNameChange(Sender: TObject);
 begin
   TEdit(Sender).Text := TEdit(Sender).Text.Trim();
-end;
-
-procedure TProjectCreateForm.edtProjectNameKeyUp(Sender: TObject; var Key: Word;
-  var KeyChar: Char; Shift: TShiftState);
-begin
-  if KeyChar = ' ' then
-    KeyChar := #0;
 end;
 
 procedure TProjectCreateForm.FormConstrainedResize(Sender: TObject;

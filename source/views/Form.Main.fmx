@@ -349,8 +349,6 @@ inherited MainForm: TMainForm
                 1927s
                 157s)
               inherited tiBottomPanelDebugEvents: TTabItem
-                Size.Width = 55.000000000000000000
-                Size.Height = 26.000000000000000000
                 ExplicitSize.cx = 62.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
                 inherited frmDebugEvents: TEventsDebugFrame
@@ -365,8 +363,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 1927.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 1923.000000000000000000
-                    Viewport.Height = 92.000000000000000000
+                    Viewport.Width = 1907.000000000000000000
+                    Viewport.Height = 76.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -379,8 +377,6 @@ inherited MainForm: TMainForm
                 end
               end
               inherited tiBottomPanelDebugBreakpoints: TTabItem
-                Size.Width = 83.000000000000000000
-                Size.Height = 26.000000000000000000
                 ExplicitSize.cx = 83.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
                 inherited frmDebugBreakpoint: TBreakpointsDebugFrame
@@ -409,8 +405,6 @@ inherited MainForm: TMainForm
                 end
               end
               inherited tiBottomPanelDebugThreads: TTabItem
-                Size.Width = 62.000000000000000000
-                Size.Height = 26.000000000000000000
                 ExplicitSize.cx = 62.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
                 inherited frmDebugThreads: TThreadsDebugFrame
@@ -542,6 +536,10 @@ inherited MainForm: TMainForm
         inherited tbScripts: TTabControl
           Size.Width = 1373.000000000000000000
           Size.Height = 1022.000000000000000000
+        end
+        inherited dsActiveSource: TDataSource
+          Left = 296
+          Top = 1000
         end
       end
       object loEditorHeader: TLayout
@@ -676,7 +674,7 @@ inherited MainForm: TMainForm
     TabOrder = 8
     inline frmProjectButtons: TProjectButtonsFrame
       Align = Left
-      Position.X = 70.000000000000000000
+      Position.X = 77.000000000000000000
       Size.Width = 105.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
@@ -722,7 +720,7 @@ inherited MainForm: TMainForm
     end
     inline frmBuildButtons: TBuildButtonsFrame
       Align = Left
-      Position.X = 175.000000000000000000
+      Position.X = 189.000000000000000000
       Size.Width = 105.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
@@ -731,6 +729,7 @@ inherited MainForm: TMainForm
       end
       inherited spDeployCurrentProject: TSpeedButton
         Size.Height = 40.000000000000000000
+        OnClick = nil
       end
       inherited sbRunCurrentProject: TSpeedButton
         Size.Height = 40.000000000000000000
@@ -738,8 +737,8 @@ inherited MainForm: TMainForm
     end
     inline frmDebugButtons: TDebugButtonsFrame
       Align = Left
-      Position.X = 280.000000000000000000
-      Size.Width = 210.000000000000000000
+      Position.X = 301.000000000000000000
+      Size.Width = 245.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
       inherited sbDebugCurrentProject: TSpeedButton
@@ -759,7 +758,56 @@ inherited MainForm: TMainForm
       end
       inherited btnPause: TSpeedButton
         Size.Height = 40.000000000000000000
+        OnClick = nil
       end
+      inherited sbContinue: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    object lnEntitySeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 75.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+    object lbProjectSeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 187.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+    object lnBuildSeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 299.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
     end
   end
   object mmMenu: TMainMenu
@@ -793,25 +841,25 @@ inherited MainForm: TMainForm
         Action = MenuActionsContainer.actNewProject
         Enabled = True
         Locked = True
-        ImageIndex = 1
+        ImageIndex = 8
       end
       object miOpenProject: TMenuItem
         Action = MenuActionsContainer.actOpenProject
         Enabled = True
         Locked = True
-        ImageIndex = 10
+        ImageIndex = 9
       end
       object miUpdateProject: TMenuItem
         Action = MenuActionsContainer.actUpdateCurrentProject
         Enabled = True
         Locked = True
-        ImageIndex = 9
+        ImageIndex = 1
       end
       object miRemoveProject: TMenuItem
         Action = MenuActionsContainer.actRemoveCurrentProject
         Enabled = True
         Locked = True
-        ImageIndex = 4
+        ImageIndex = 10
       end
     end
     object MenuItem1: TMenuItem
@@ -821,19 +869,19 @@ inherited MainForm: TMainForm
         Action = MenuActionsContainer.actBuildCurrentProjectAsync
         Enabled = True
         Locked = True
-        ImageIndex = 8
+        ImageIndex = 11
       end
       object miDeploy: TMenuItem
         Action = MenuActionsContainer.actDeployCurrentProjectAsync
         Enabled = True
         Locked = True
-        ImageIndex = 5
+        ImageIndex = 12
       end
       object miRun: TMenuItem
         Action = MenuActionsContainer.actRunCurrentProjectAsync
         Enabled = True
         Locked = True
-        ImageIndex = 2
+        ImageIndex = 13
       end
     end
     object miTools: TMenuItem

@@ -260,8 +260,14 @@ begin
     KeyToolLocation := edtKeyTool.Text;
     JarSignerLocation := edtJarSignerLocation.Text;
     RemoteDebuggerHost := edtRemoteDebuggerHost.Text;
-    RemoteDebuggerPort := edtRemoteDebuggerPort.Text.ToInteger();
+    if RemoteDebuggerHost.Trim().IsEmpty() then
+      RemoteDebuggerHost := '127.0.0.1';
+    RemoteDebuggerPort := StrToIntDef(edtRemoteDebuggerPort.Text, 0);
+    if (RemoteDebuggerPort = 0) then
+      RemoteDebuggerPort := 5678;
     RemoteDebuggerRoot := edtRemoteDebuggerRoot.Text;
+    if RemoteDebuggerRoot.Trim().IsEmpty() then
+      RemoteDebuggerRoot := '/data/data/$(package_name)/files/';
   end;
 end;
 

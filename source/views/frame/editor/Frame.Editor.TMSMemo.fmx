@@ -10,7 +10,6 @@ object TMSMemoEditorFrame: TTMSMemoEditorFrame
     Size.Width = 1174.000000000000000000
     Size.Height = 733.000000000000000000
     Size.PlatformDefault = False
-    OnMouseWheel = mmEditorMouseWheel
     ActiveLineSettings.ShowActiveLine = False
     ActiveLineSettings.ShowActiveLineIndicator = False
     ActiveLineSettings.ActiveLineAtCursor = True
