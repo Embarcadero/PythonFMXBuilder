@@ -22,6 +22,7 @@ type
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
+    procedure CheckActiveDevice();
 
     //App helpers
     function GetAppInstallationPath(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): string;
@@ -350,6 +351,12 @@ const
   CMD = '%s -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity';
 begin
   ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
+end;
+
+procedure TADBService.CheckActiveDevice;
+begin
+  if GetActiveDevice().IsEmpty() then
+    raise Exception.Create('No device selected.');
 end;
 
 procedure TADBService.DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;

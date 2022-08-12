@@ -13,6 +13,7 @@ type
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
+    procedure CheckActiveDevice();
 
     function BuildApk(const AAppBasePath, AProjectName: string;
       const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
@@ -43,6 +44,7 @@ type
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
     function GetActiveProject(): TProjectModel;
+    procedure CheckActiveProject();
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;
@@ -78,7 +80,7 @@ type
     //Generate the new APK
     function BuildApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel): boolean;
-    //Launch APK to user's device
+    //Launch APK on user's device
     function InstallApk(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
     //Remove APK from user's device
@@ -124,6 +126,22 @@ type
 
     property ConnectionStatus: TDebuggerConnectionStatus read GetConnectionStatus;
     property IsDebugging: boolean read GetIsDebugging;
+  end;
+
+  IBuildServices = interface
+    ['{8BA3AEDE-8E35-42AE-9014-DCBFD0AA197C}']
+    function GetIsBuilding(): boolean;
+    //Active project build operations
+    procedure BuildActiveProject();
+    procedure BuildActiveProjectAsync();
+    procedure DeployActiveProject();
+    procedure DeployActiveProjectAsync();
+    procedure RunActiveProject();
+    procedure RunActiveProjectAsync();
+    procedure DebugActiveProject(const ADebugger: IDebugServices);
+    procedure DebugActiveProjectAsync(const ADebugger: IDebugServices);
+
+    property IsBuilding: boolean read GetIsBuilding;
   end;
 
 implementation

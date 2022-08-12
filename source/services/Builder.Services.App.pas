@@ -63,7 +63,6 @@ implementation
 
 uses
   System.SysUtils, System.JSON,
-  Builder.Environment,
   Builder.Services.Factory;
 
 const
@@ -549,7 +548,6 @@ begin
   var LJSON := TJSONObject.Create();
   try
     LJSON.AddPair('main_file', AModel.Files.MainFile);
-    LJSON.AddPair('environment', AModel.Environment.AsString());
 
     var LDependencies := TJSONArray.Create();
     try

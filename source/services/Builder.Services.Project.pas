@@ -26,6 +26,7 @@ type
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
     function GetActiveProject(): TProjectModel;
+    procedure CheckActiveProject();
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;
@@ -93,6 +94,12 @@ end;
 procedure TProjectService.UnLoadProject;
 begin
   FreeAndNil(FActiveProject);
+end;
+
+procedure TProjectService.CheckActiveProject;
+begin
+  if not Assigned(GetActiveProject()) then
+    raise Exception.Create('Open/Create a project before continue.');
 end;
 
 function TProjectService.CreateProject(const AProjectName: string;
