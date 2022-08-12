@@ -3,11 +3,9 @@ unit Cli.Interpreter;
 interface
 
 uses
-  System.SysUtils, System.StrUtils, System.Classes,
-  VSoft.CommandLine.Options,
-  Builder.Model, Builder.Model.Environment, Builder.Model.Project,
-  Builder.PythonVersion, Builder.Architecture,
-  System.Rtti;
+  System.SysUtils, System.StrUtils, System.Classes, System.Rtti,
+  VSoft.CommandLine.Options, Builder.Model, Builder.Model.Environment,
+  Builder.Model.Project, Builder.PythonVersion, Builder.Architecture;
 
 type
   TCommandInterpreter = class
@@ -38,11 +36,14 @@ implementation
 
 uses
   PyTools.ExecCmd,
-  Builder.Protocol,
+  Builder.Chain,
   Builder.Exception,
-  Builder.Services, Builder.Services.Factory,
+  Builder.Services,
+  Builder.Services.Factory,
   Builder.Storage.Default,
-  Cli.Commands, Cli.Options, Cli.Exception;
+  Cli.Commands,
+  Cli.Options,
+  Cli.Exception;
 
 { TCommandInterpreter }
 
