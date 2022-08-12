@@ -35,7 +35,6 @@ type
     actContinue: TAction;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
-    procedure DataModuleCreate(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
     procedure actDeployCurrentProjectExecute(Sender: TObject);
     procedure actRunCurrentProjectExecute(Sender: TObject);
@@ -58,11 +57,8 @@ type
     FLoadingProject: integer;
     FAsyncOperationStartedEvent: IDisconnectable;
     FAsyncOperationEndedEvent: IDisconnectable;
-    FDebugSessionStartedEvent: IDisconnectable;
-    FDebugSessionEndedEvent: IDisconnectable;
     //Models
     FProjectModel: TProjectModel;
-    FEnvironmentModel: TEnvironmentModel;
     //Services
     FProjectServices: IProjectServices;
     FAppServices: IAppServices;
@@ -70,22 +66,13 @@ type
     //Storages
     FEnvironmentStorage: IStorage<TEnvironmentModel>;
     FProjectStorage: IStorage<TProjectModel>;
+    //Builder
+    FBuilder: IBuildServices;
     //Debugger
     FDebugger: IDebugServices;
-    //Predicates
-    FBuilding: boolean;
     function IsLoadingProject(): boolean; inline;
     function HasActiveProject(): boolean; inline;
-    function IsBuilding(): boolean; inline;
     function GetActionEnabledByTag(AAction: TBasicAction): boolean;
-    //Validators
-    procedure CheckCurrentProject();
-    procedure CheckActiveDevice();
-    procedure UpdateModels();
-    procedure DoBuildProject();
-    procedure DoDeployProject(const ABuildProject: boolean = true);
-    procedure DoRunProject();
-    procedure DoDebugProject();
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -110,13 +97,15 @@ uses
   Builder.Services.Factory,
   Builder.Storage.Default;
 
-const
-  DEFAULT_HOST = '127.0.0.1';
-  DEFAULT_PORT = 5678;
-
 constructor TMenuActionsContainer.Create(AOwner: TComponent);
 begin
   inherited;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
+  FAppServices := TServiceSimpleFactory.CreateApp();
+  FAdbServices := TServiceSimpleFactory.CreateAdb();
+  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
+  FProjectStorage := TDefaultStorage<TProjectModel>.Make();
+  FBuilder := TServiceSimpleFactory.CreateBuild();
   FDebugger := TServiceSimpleFactory.CreateDebug();
 
   FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
@@ -134,35 +123,10 @@ begin
         TAsyncOperation.OpenProject: TInterlocked.Add(FLoadingProject, -1);
       end;
     end);
-
-  FDebugSessionStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
-    procedure(const AEventNotification: TDebugSessionStartedEvent)
-    begin
-      //
-    end);
-
-  FDebugSessionEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
-    procedure(const AEventNotification: TDebugSessionStoppedEvent)
-    begin
-      var LResult := TStringList.Create();
-      try
-        FAdbServices.StopDebugSession(
-          FEnvironmentModel.AdbLocation, DEFAULT_PORT, LResult);
-
-        FAdbServices.ForceStopApp(
-          FEnvironmentModel.AdbLocation,
-          FProjectModel.PackageName,
-          FAdbServices.ActiveDevice,
-          LResult);
-      finally
-        LResult.Free();
-      end;
-    end);
 end;
 
 destructor TMenuActionsContainer.Destroy;
 begin
-  FDebugSessionEndedEvent.Disconnect();
   FAsyncOperationEndedEvent.Disconnect();
   FAsyncOperationStartedEvent.Disconnect();
   inherited;
@@ -171,117 +135,28 @@ end;
 procedure TMenuActionsContainer.actBuildCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  CheckCurrentProject();
-  UpdateModels();
-  
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.BuildProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoBuildProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
-    except
-      on E: exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
-        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+  FBuilder.BuildActiveProjectAsync();
 end;
 
 procedure TMenuActionsContainer.actBuildCurrentProjectExecute(Sender: TObject);
 begin
-  CheckCurrentProject();
-  UpdateModels();
-  FBuilding := true;
-  try
-    DoBuildProject();
-  finally
-    FBuilding := false;
-  end;
+  FBuilder.BuildActiveProject();
 end;
 
 procedure TMenuActionsContainer.actDebugCurrentProjectAsyncExecute(Sender: TObject);
 begin
-  CheckCurrentProject();
-  CheckActiveDevice();
-  UpdateModels();
-
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.DebugProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoDebugProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
-    except
-      on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
-        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+  FBuilder.DebugActiveProjectAsync(FDebugger);
 end;
 
 procedure TMenuActionsContainer.actDeployCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  CheckCurrentProject();
-  CheckActiveDevice();
-  UpdateModels();
-
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.DeployProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoDeployProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
-    except
-      on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
-        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+  FBuilder.DeployActiveProjectAsync();
 end;
 
 procedure TMenuActionsContainer.actDeployCurrentProjectExecute(Sender: TObject);
 begin
-  CheckCurrentProject();
-  CheckActiveDevice();
-  UpdateModels();
-  FBuilding := true;
-  try
-    DoDeployProject();
-  finally
-    FBuilding := false;
-  end;
+  FBuilder.DeployActiveProject();
 end;
 
 procedure TMenuActionsContainer.actlMenuUpdate(Action: TBasicAction;
@@ -317,7 +192,7 @@ end;
 
 procedure TMenuActionsContainer.actRemoveCurrentProjectExecute(Sender: TObject);
 begin
-  CheckCurrentProject();
+  FProjectServices.CheckActiveProject();
 
   var LRemove := true;
   if not IsConsole then
@@ -338,45 +213,12 @@ end;
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  if FDebugger.CanContinue() then begin
-    FDebugger.Continue();
-    Exit;
-  end;
-
-  CheckCurrentProject();
-  CheckActiveDevice();
-  UpdateModels();
-
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.RunProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoRunProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
-    except
-      on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
-        TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+  FBuilder.RunActiveProjectAsync();
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectExecute(Sender: TObject);
 begin
-  CheckCurrentProject();
-  CheckActiveDevice();
-  UpdateModels();
-  DoRunProject();
+  FBuilder.RunActiveProject();
 end;
 
 procedure TMenuActionsContainer.actContinueExecute(Sender: TObject);
@@ -411,7 +253,7 @@ end;
 
 procedure TMenuActionsContainer.actUpdateCurrentProjectExecute(Sender: TObject);
 begin
-  CheckCurrentProject();
+  FProjectServices.CheckActiveProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
     LForm.Id := FProjectServices.GetActiveProject().Id;
@@ -431,98 +273,13 @@ begin
   end;
 end;
 
-procedure TMenuActionsContainer.CheckActiveDevice;
-begin
-  if FAdbServices.ActiveDevice.IsEmpty() then
-    raise Exception.Create('No device selected.');
-end;
-
-procedure TMenuActionsContainer.CheckCurrentProject;
-begin
-  if not Assigned(FProjectServices.GetActiveProject()) then
-    raise Exception.Create('Open/Create a project before continue.');
-end;
-
-procedure TMenuActionsContainer.DataModuleCreate(Sender: TObject);
-begin
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-  FAppServices := TServiceSimpleFactory.CreateApp();
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
-  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  FProjectStorage := TDefaultStorage<TProjectModel>.Make();
-end;
-
-procedure TMenuActionsContainer.DoBuildProject();
-begin
-  //Generates the project necessary files and settings
-  FAppServices.BuildProject(FProjectServices.GetActiveProject());
-  //Creates and signs the APK file
-  if not FAppServices.BuildApk(FProjectModel, FEnvironmentModel) then
-    raise Exception.Create('Build process failed. Check log for details.');
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create('Build process done.'));
-end;
-
-procedure TMenuActionsContainer.DoDebugProject();
-begin
-  //DoDeployProject(true);
-  //Launch app on device and debug the Python script
-  var LResult := TStringList.Create();
-  try
-    FAdbServices.DebugApp(
-      FEnvironmentModel.AdbLocation,
-      FProjectModel.PackageName,
-      FAdbServices.ActiveDevice,
-      DEFAULT_HOST,
-      DEFAULT_PORT,
-      LResult);
-    FAdbServices.StartDebugSession(FEnvironmentModel.AdbLocation, DEFAULT_PORT, LResult);
-    try
-      FDebugger.Start(DEFAULT_HOST, DEFAULT_PORT);
-    except
-      on E: Exception do begin
-        FAdbServices.StopDebugSession(FEnvironmentModel.AdbLocation, DEFAULT_PORT, LResult);
-        raise;
-      end;
-    end;
-  finally
-    LResult.Free();
-  end;
-end;
-
-procedure TMenuActionsContainer.DoDeployProject(const ABuildProject: boolean);
-begin
-  if ABuildProject then
-    DoBuildProject();
-  //Installs the APK on the device
-  if FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
-    FAppServices.UnInstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice);
-  if not FAppServices.InstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
-    raise Exception.Create('Install process failed. Check log for details.');
-end;
-
-procedure TMenuActionsContainer.DoRunProject;
-begin
-  DoDeployProject();
-  var LResult := TStringList.Create();
-  try
-    //Launch app on device
-    FAdbServices.RunApp(
-      FEnvironmentModel.AdbLocation,
-      FProjectModel.PackageName,
-      FAdbServices.ActiveDevice,
-      LResult);
-  finally
-    LResult.Free();
-  end;
-end;
-
 function TMenuActionsContainer.GetActionEnabledByTag(
   AAction: TBasicAction): boolean;
 begin
   var LPredicate1 := function(): boolean
   begin
     Result := not IsLoadingProject()
-      and not IsBuilding
+      and not FBuilder.IsBuilding
         and not FDebugger.IsDebugging
   end;
 
@@ -530,10 +287,8 @@ begin
   begin
     Result := HasActiveProject()
       and not IsLoadingProject()
-        and not IsBuilding
-          and (not FDebugger.IsDebugging
-              or
-              FDebugger.CanContinue());
+        and not FBuilder.IsBuilding
+          and not FDebugger.IsDebugging;
   end;
 
   var LPredicate3 := function(): boolean
@@ -570,8 +325,16 @@ begin
   begin
     Result := HasActiveProject()
       and not IsLoadingProject()
-        and not IsBuilding
+        and not FBuilder.IsBuilding
           and not FDebugger.IsDebugging;
+  end;
+
+  var LPredicate10 := function(): boolean
+  begin
+    Result := HasActiveProject()
+      and not IsLoadingProject()
+        and not FBuilder.IsBuilding
+          and FDebugger.CanContinue();
   end;
 
   case AAction.Tag of
@@ -585,6 +348,7 @@ begin
     7: Result := LPredicate7();
     8: Result := LPredicate8();
     9: Result := LPredicate9();
+   10: Result := LPredicate10();
     else Result := false;
   end;
 end;
@@ -594,42 +358,9 @@ begin
   Result := Assigned(FProjectServices.GetActiveProject());
 end;
 
-function TMenuActionsContainer.IsBuilding: boolean;
-begin
-  Result := FBuilding;
-end;
-
 function TMenuActionsContainer.IsLoadingProject: boolean;
 begin
-  Result := FLoadingProject <> 0;
-end;
-
-procedure TMenuActionsContainer.UpdateModels;
-begin
-  if not FEnvironmentStorage.LoadModel(FEnvironmentModel) then
-    raise Exception.Create('The Environment Settings are empty.');
-
-  FProjectModel := FProjectServices.GetActiveProject();
-  if not Assigned(FProjectModel)
-    or not FProjectStorage.LoadModel(FProjectModel, String.Empty, FProjectModel.Id) then
-      raise Exception.Create('The Project Settings are empty.');
-
-  var LModelErrors := TStringList.Create();
-  try
-    if not FEnvironmentModel.Validate(LModelErrors) then
-      raise EModelValidationError.Create('The Environment Settings has invalid arguments:'
-        + sLineBreak
-        + sLineBreak
-        + LModelErrors.Text);
-
-    if not FProjectModel.Validate(LModelErrors) then
-      raise EModelValidationError.Create('The Project Settings has invalid arguments:'
-        + sLineBreak
-        + sLineBreak
-        + LModelErrors.Text);
-  finally
-    LModelErrors.Free();
-  end;
+  Result := (FLoadingProject <> 0);
 end;
 
 end.

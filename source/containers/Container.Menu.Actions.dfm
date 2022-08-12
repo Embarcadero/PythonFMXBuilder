@@ -1,5 +1,4 @@
 object MenuActionsContainer: TMenuActionsContainer
-  OnCreate = DataModuleCreate
   Height = 480
   Width = 640
   object actlMenu: TActionList
@@ -21,152 +20,153 @@ object MenuActionsContainer: TMenuActionsContainer
       Category = 'Entities'
       Text = 'Update Project'
       Hint = 'Update Project'
-      ImageIndex = 9
+      ImageIndex = 1
       OnExecute = actUpdateCurrentProjectExecute
-      ImageIndex = 9
+      ImageIndex = 1
     end
     object actBuildCurrentProject: TAction
       Tag = 2
       Category = 'Build'
       Text = 'Build Project'
       Hint = 'Build Project'
-      ImageIndex = 8
+      ImageIndex = 11
       OnExecute = actBuildCurrentProjectExecute
-      ImageIndex = 8
+      ImageIndex = 11
     end
     object actDeployCurrentProject: TAction
       Tag = 2
       Category = 'Build'
       Text = 'Deploy Project'
       Hint = 'Deploy Project'
-      ImageIndex = 5
+      ImageIndex = 12
       OnExecute = actDeployCurrentProjectExecute
-      ImageIndex = 5
+      ImageIndex = 12
     end
     object actNewProject: TAction
       Tag = 1
       Category = 'Project'
       Text = 'New Project'
       Hint = 'New Project'
-      ImageIndex = 1
+      ImageIndex = 8
       OnExecute = actNewProjectExecute
-      ImageIndex = 1
+      ImageIndex = 8
     end
     object actOpenProject: TAction
       Tag = 1
       Category = 'Project'
       Text = 'Open Project'
       Hint = 'Open Project'
-      ImageIndex = 10
+      ImageIndex = 9
       OnExecute = actOpenProjectExecute
-      ImageIndex = 10
+      ImageIndex = 9
     end
     object actRemoveCurrentProject: TAction
-      Tag = 1
+      Tag = 9
       Category = 'Project'
       Text = 'Remove Project'
       Hint = 'Remove Project'
-      ImageIndex = 4
+      ImageIndex = 10
       OnExecute = actRemoveCurrentProjectExecute
-      ImageIndex = 4
+      ImageIndex = 10
     end
     object actRunCurrentProject: TAction
       Tag = 2
       Category = 'Build'
       Text = 'Run Project'
-      Hint = 'Run/Continue'
-      ImageIndex = 2
+      Hint = 'Run Project'
+      ImageIndex = 13
       OnExecute = actRunCurrentProjectExecute
-      ImageIndex = 2
+      ImageIndex = 13
     end
     object actBuildCurrentProjectAsync: TAction
       Tag = 2
       Category = 'BuildAsync'
       Text = 'Build Project'
       Hint = 'Build Project'
-      ImageIndex = 8
+      ImageIndex = 11
       OnExecute = actBuildCurrentProjectAsyncExecute
-      ImageIndex = 8
+      ImageIndex = 11
     end
     object actDeployCurrentProjectAsync: TAction
       Tag = 2
       Category = 'BuildAsync'
       Text = 'Deploy Project'
       Hint = 'Deploy Project'
-      ImageIndex = 5
+      ImageIndex = 12
       OnExecute = actDeployCurrentProjectAsyncExecute
-      ImageIndex = 5
+      ImageIndex = 12
     end
     object actRunCurrentProjectAsync: TAction
       Tag = 2
       Category = 'BuildAsync'
       Text = 'Run Project'
-      Hint = 'Run/Continue'
-      ImageIndex = 2
+      Hint = 'Run Project'
+      ImageIndex = 13
       OnExecute = actRunCurrentProjectAsyncExecute
-      ImageIndex = 2
+      ImageIndex = 13
     end
     object actDebugCurrentProjectAsync: TAction
       Tag = 9
       Category = 'Debug'
       Text = 'Debug Project'
       Hint = 'Debug Project'
-      ImageIndex = 16
+      ImageIndex = 14
       OnExecute = actDebugCurrentProjectAsyncExecute
-      ImageIndex = 16
+      ImageIndex = 14
     end
     object actStepIn: TAction
       Tag = 3
       Category = 'Debug'
       Text = 'Step In'
       Hint = 'Step In'
-      ImageIndex = 17
+      ImageIndex = 15
       OnExecute = actStepInExecute
-      ImageIndex = 17
+      ImageIndex = 15
     end
     object actStepOver: TAction
       Tag = 4
       Category = 'Debug'
       Text = 'Step Over'
       Hint = 'Step Over'
-      ImageIndex = 19
+      ImageIndex = 17
       OnExecute = actStepOverExecute
-      ImageIndex = 19
+      ImageIndex = 17
     end
     object actStepOut: TAction
       Tag = 5
       Category = 'Debug'
       Text = 'Step Out'
       Hint = 'Step Out'
-      ImageIndex = 18
+      ImageIndex = 16
       OnExecute = actStepOutExecute
-      ImageIndex = 18
+      ImageIndex = 16
     end
     object actPause: TAction
       Tag = 6
       Category = 'Debug'
       Text = 'Pause'
       Hint = 'Pause'
-      ImageIndex = 20
+      ImageIndex = 18
       OnExecute = actPauseExecute
-      ImageIndex = 20
+      ImageIndex = 18
     end
     object actStop: TAction
       Tag = 7
       Category = 'Debug'
       Text = 'Stop'
       Hint = 'Stop'
-      ImageIndex = 21
+      ImageIndex = 19
       OnExecute = actStopExecute
-      ImageIndex = 21
+      ImageIndex = 19
     end
     object actContinue: TAction
-      Tag = 8
+      Tag = 10
       Category = 'Debug'
       Text = 'Continue'
-      ImageIndex = 2
+      Hint = 'Continue'
+      ImageIndex = 20
       OnExecute = actContinueExecute
-      ImageIndex = 2
+      ImageIndex = 20
     end
   end
 end
