@@ -120,6 +120,14 @@ begin
     AErrors.Add('* JARSigner tool not found.');
 
   {|||||| CHECK FOR DEBUGGER SETTINGS |||||||}
+  if FRemoteDebuggerHost.Trim().IsEmpty() then
+    AErrors.Add('* The remote debugger host can not be empty.');
+
+  if FRemoteDebuggerPort = 0 then
+    AErrors.Add('* The remote debugger port is not valid.');
+
+  if FRemoteDebuggerRoot.Trim().IsEmpty() then
+    AErrors.Add('* The remote debugger root path can not be empty.');
 
   Result := (AErrors.Count = 0);
 end;
