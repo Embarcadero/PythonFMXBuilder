@@ -315,6 +315,7 @@ begin
       LDebugger.configure(subProcessEnv := LSubProcessEnv);
       LDebugger.listen(VarPythonCreate([FDebugHost, FDebugPort], stTuple));
       LDebugger.wait_for_client();
+      NotificationCenter1.CancelNotification('PyDebug');
     except
       on E: Exception do
         FailureState('Failed initializing debugger.');
