@@ -55,7 +55,7 @@ contains
   Builder.Exception in '..\source\Builder.Exception.pas',
   Builder.Chain in '..\source\Builder.Chain.pas',
   Builder.Services.Debug in '..\source\services\Builder.Services.Debug.pas',
-  Builder.Environment in '..\source\Builder.Environment.pas';
+  Builder.Services.Build in '..\source\services\Builder.Services.Build.pas';
 
 end.
 
