@@ -45,16 +45,12 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Base_OSXARM64)'!=''">
-        <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
-        <DCC_UsePackage>DataSnapServer;fmx;DbxCommonDriver;bindengine;IndyIPCommon;FireDACCommonODBC;emsclient;FireDACCommonDriver;IndyProtocols;IndyIPClient;dbxcds;bindcompfmx;DBXFirebirdDriver;inetdb;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;soapmidas;fmxFireDAC;dbexpress;DBXMySQLDriver;inet;DataSnapCommon;fmxase;dbrtl;FireDACDBXDriver;FireDACOracleDriver;fmxdae;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;DBXInterBaseDriver;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;RESTComponents;DBXSqliteDriver;IndyIPServer;dsnapxml;DataSnapClient;DataSnapProviderClient;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;dsnap;CloudService;DBXSybaseASADriver;DBXOracleDriver;DBXInformixDriver;fmxobj;DataSnapNativeClient;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
-    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <SanitizedProjectName>PythonFMXBuilderEntityEditor</SanitizedProjectName>
         <DCC_DcuOutput>.\lib\$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_ExeOutput>.\out\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_UnitSearchPath>.\lib\$(Platform)\$(Config);.\source\views;.\source\views\frame;.\source\containers;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>modules\.dcp;modules\.dcu;modules;modules\dap4delphi\source;modules\dap4delphi\source\client;modules\dunitx\Examples;modules\dunitx\Expert;modules\dunitx\Source;modules\dunitx\Tests;modules\python4delphi\Demos\Demo01;modules\python4delphi\Demos\Demo02;modules\python4delphi\Demos\Demo03;modules\python4delphi\Demos\Demo04;modules\python4delphi\Demos\Demo05;modules\python4delphi\Demos\Demo06;modules\python4delphi\Demos\Demo07;modules\python4delphi\Demos\Demo08;modules\python4delphi\Demos\Demo09;modules\python4delphi\Demos\Demo10_FireDAC;modules\python4delphi\Demos\Demo11;modules\python4delphi\Demos\Demo16\Example1;modules\python4delphi\Demos\Demo16\Example2;modules\python4delphi\Demos\Demo17;modules\python4delphi\Demos\Demo19;modules\python4delphi\Demos\Demo20;modules\python4delphi\Demos\Demo21;modules\python4delphi\Demos\Demo22;modules\python4delphi\Demos\Demo23;modules\python4delphi\Demos\Demo25;modules\python4delphi\Demos\Demo26;modules\python4delphi\Demos\Demo27;modules\python4delphi\Demos\Demo28;modules\python4delphi\Demos\Demo29;modules\python4delphi\Demos\Demo30;modules\python4delphi\Demos\Demo31;modules\python4delphi\Demos\Demo32;modules\python4delphi\Demos\Demo33;modules\python4delphi\Demos\Demo34;modules\python4delphi\Demos\FMX\SimpleDemo;modules\python4delphi\Demos\FPC\Demo01;modules\python4delphi\Demos\FPC\Demo06;modules\python4delphi\Demos\FPC\Demo25;modules\python4delphi\Demos\FPC\Demo31;modules\python4delphi\Modules\DelphiVCL;modules\python4delphi\Modules\DemoModule;modules\python4delphi\Modules\RttiModule;modules\python4delphi\Packages\FPC;modules\python4delphi\Source;modules\python4delphi\Source\fmx;modules\python4delphi\Source\lcl;modules\python4delphi\Source\vcl;modules\python4delphi\Tests;modules\python4delphi\Tutorials\Webinar I\ModuleDemo;modules\python4delphi\Tutorials\Webinar I\SimpleDemo;modules\python4delphi\Tutorials\Webinar I\WrapDelphiDemo;modules\python4delphi\Tutorials\Webinar II\AnalyticsDemo;modules\python4delphi\Tutorials\Webinar II\VarPythDemo;modules\python4delphi\Tutorials\Webinar II\VizDemo;modules\python4delphi\Unsupported\VCL\Demo10;modules\python4delphi\Unsupported\VCL\Demo13;modules\python4delphi\Unsupported\VCL\Demo14;modules\python4delphi\Unsupported\VCL\Demo15;modules\python4delphi\Unsupported\VCL;modules\pythonenviroments\src\AddOn;modules\pythonenviroments\src\Embeddable;modules\pythonenviroments\src\Embeddable\Res;modules\pythonenviroments\src\Project\IDE;modules\pythonenviroments\src\Project;modules\pythonenviroments\src;modules\pythonenviroments\src\Tools;modules\vsoft.commandlineparser\Samples\Command;modules\vsoft.commandlineparser\Samples\Simple;modules\vsoft.commandlineparser\Src;modules\vsoft.commandlineparser\Tests;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
@@ -103,7 +99,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="source\views\Form.Environment.pas"/>
-        <DCCReference Include="source\views\From.Project.pas"/>
+        <DCCReference Include="source\views\Form.Project.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

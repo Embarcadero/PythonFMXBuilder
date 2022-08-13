@@ -7,7 +7,7 @@
             <Dependencies/>
         </Projects>
         <Projects Include="PythonFMXBuilderGUI.dproj">
-            <Dependencies>packages\PythonFMXBuilder.dproj</Dependencies>
+            <Dependencies/>
         </Projects>
         <Projects Include="PythonFMXBuilderCLI.dproj">
             <Dependencies>packages\PythonFMXBuilder.dproj</Dependencies>
@@ -38,13 +38,13 @@
     <Target Name="PythonFMXBuilder:Make">
         <MSBuild Projects="packages\PythonFMXBuilder.dproj" Targets="Make"/>
     </Target>
-    <Target Name="PythonFMXBuilderGUI" DependsOnTargets="PythonFMXBuilder">
+    <Target Name="PythonFMXBuilderGUI">
         <MSBuild Projects="PythonFMXBuilderGUI.dproj"/>
     </Target>
-    <Target Name="PythonFMXBuilderGUI:Clean" DependsOnTargets="PythonFMXBuilder:Clean">
+    <Target Name="PythonFMXBuilderGUI:Clean">
         <MSBuild Projects="PythonFMXBuilderGUI.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="PythonFMXBuilderGUI:Make" DependsOnTargets="PythonFMXBuilder:Make">
+    <Target Name="PythonFMXBuilderGUI:Make">
         <MSBuild Projects="PythonFMXBuilderGUI.dproj" Targets="Make"/>
     </Target>
     <Target Name="PythonFMXBuilderCLI" DependsOnTargets="PythonFMXBuilder">

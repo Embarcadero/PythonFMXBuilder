@@ -34,6 +34,12 @@
         <Cfg_1>true</Cfg_1>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+        <Cfg_1_Win64>true</Cfg_1_Win64>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
@@ -81,6 +87,9 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DebugInformation>0</DCC_DebugInformation>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
@@ -93,23 +102,28 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="RESTComponents.dcp"/>
-        <DCCReference Include="..\source\Architecture.pas"/>
-        <DCCReference Include="..\source\PythonVersion.pas"/>
-        <DCCReference Include="..\source\models\Model.Environment.pas"/>
-        <DCCReference Include="..\source\models\Model.pas"/>
-        <DCCReference Include="..\source\models\project\Model.Project.Files.pas"/>
-        <DCCReference Include="..\source\models\project\Model.Project.Icon.pas"/>
-        <DCCReference Include="..\source\models\project\Model.Project.pas"/>
-        <DCCReference Include="..\source\services\Services.ADB.pas"/>
-        <DCCReference Include="..\source\services\Services.App.pas"/>
-        <DCCReference Include="..\source\services\Services.Factory.pas"/>
-        <DCCReference Include="..\source\services\Services.pas"/>
-        <DCCReference Include="..\source\services\Services.Project.pas"/>
-        <DCCReference Include="..\source\storage\Storage.Default.pas"/>
-        <DCCReference Include="..\source\storage\Storage.Environment.pas"/>
-        <DCCReference Include="..\source\storage\Storage.Factory.pas"/>
-        <DCCReference Include="..\source\storage\Storage.Json.pas"/>
-        <DCCReference Include="..\source\storage\Storage.pas"/>
+        <DCCReference Include="dap4delphi.dcp"/>
+        <DCCReference Include="..\source\Builder.Architecture.pas"/>
+        <DCCReference Include="..\source\Builder.PythonVersion.pas"/>
+        <DCCReference Include="..\source\models\Builder.Model.Environment.pas"/>
+        <DCCReference Include="..\source\models\Builder.Model.pas"/>
+        <DCCReference Include="..\source\models\project\Builder.Model.Project.Files.pas"/>
+        <DCCReference Include="..\source\models\project\Builder.Model.Project.Icon.pas"/>
+        <DCCReference Include="..\source\models\project\Builder.Model.Project.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.ADB.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.App.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.Factory.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.Project.pas"/>
+        <DCCReference Include="..\source\storage\Builder.Storage.Default.pas"/>
+        <DCCReference Include="..\source\storage\Builder.Storage.Environment.pas"/>
+        <DCCReference Include="..\source\storage\Builder.Storage.Factory.pas"/>
+        <DCCReference Include="..\source\storage\Builder.Storage.Json.pas"/>
+        <DCCReference Include="..\source\storage\Builder.Storage.pas"/>
+        <DCCReference Include="..\source\Builder.Exception.pas"/>
+        <DCCReference Include="..\source\Builder.Chain.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.Debug.pas"/>
+        <DCCReference Include="..\source\services\Builder.Services.Build.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
