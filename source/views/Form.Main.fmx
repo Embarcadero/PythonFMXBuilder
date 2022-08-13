@@ -363,8 +363,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 1927.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 1907.000000000000000000
-                    Viewport.Height = 76.000000000000000000
+                    Viewport.Width = 1923.000000000000000000
+                    Viewport.Height = 92.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -509,7 +509,6 @@ inherited MainForm: TMainForm
             Viewport.Height = 1018.000000000000000000
           end
           inherited pmtvProjectFiles: TPopupMenu
-            Left = 48
             Top = 840
           end
           inherited odtvProjectFiles: TOpenDialog
@@ -521,8 +520,10 @@ inherited MainForm: TMainForm
             Top = 840
             inherited actAddFile: TAction
               ImageIndex = 13
+              ImageIndex = 13
             end
             inherited actRemoveFile: TAction
+              ImageIndex = 14
               ImageIndex = 14
             end
           end
@@ -820,13 +821,13 @@ inherited MainForm: TMainForm
         Action = frmProjectFiles.actAddFile
         Enabled = True
         Locked = True
-        ImageIndex = 13
+        ImageIndex = 6
       end
       object miAddFile: TMenuItem
         Action = frmProjectFiles.actRemoveFile
         Enabled = True
         Locked = True
-        ImageIndex = 14
+        ImageIndex = 7
       end
       object miSetToMain: TMenuItem
         Action = frmProjectFiles.actSetToMain
