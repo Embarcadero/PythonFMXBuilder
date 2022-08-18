@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        frames_implenentation
+# Name:        frames
 # Purpose:
 #
 # Author:      Priyatham
