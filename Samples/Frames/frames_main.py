@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        frames_init
+# Name:        frames_main
 # Purpose:
 #
 # Author:      Priyatham
