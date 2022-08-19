@@ -13,6 +13,13 @@ object LeftPanelDebugFrame: TLeftPanelDebugFrame
         Size.Width = 430.000000000000000000
       end
     end
+    inherited grdLocalVariables: TGrid
+      Size.Width = 435.000000000000000000
+      Size.Height = 604.000000000000000000
+      Options = [ColumnResize, ColumnMove, ColLines, RowLines, Tabs, Header, HeaderClick, AutoDisplacement]
+      Viewport.Width = 431.000000000000000000
+      Viewport.Height = 579.000000000000000000
+    end
   end
   inline frmStackTrace: TStackTraceDebugFrame
     Align = Top
@@ -25,6 +32,12 @@ object LeftPanelDebugFrame: TLeftPanelDebugFrame
         Size.Width = 430.000000000000000000
       end
     end
+    inherited grdStackTrace: TGrid
+      Size.Width = 435.000000000000000000
+      Size.Height = 299.000000000000000000
+      Viewport.Width = 431.000000000000000000
+      Viewport.Height = 295.000000000000000000
+    end
   end
   object spHorizontal: TSplitter
     Align = Top
@@ -36,12 +49,16 @@ object LeftPanelDebugFrame: TLeftPanelDebugFrame
     Size.Height = 6.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'splitterstyle'
-    object rrSpliterGrip: TRoundRect
+    object rrDebugLeftPanelSpliterGrip: TLine
       Align = Center
       HitTest = False
+      LineType = Top
+      Margins.Top = 5.000000000000000000
       Size.Width = 30.000000000000000000
       Size.Height = 6.000000000000000000
       Size.PlatformDefault = False
+      Stroke.Thickness = 3.000000000000000000
+      Stroke.Dash = Dot
     end
   end
 end

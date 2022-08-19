@@ -62,7 +62,7 @@ begin
     procedure(const AEventNotification: TSaveStateEvent)
     begin
       if (AEventNotification.Body.SaveState = TSaveState.Save) then begin
-        if Self.TabControl.ActiveTab = Self then
+        if (Self.TabControl.ActiveTab = Self) then
           TextEditor.Save();
       end else if (AEventNotification.Body.SaveState = TSaveState.SaveAll) then
         TextEditor.Save();

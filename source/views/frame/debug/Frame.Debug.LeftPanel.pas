@@ -13,7 +13,7 @@ type
     frmStackTrace: TStackTraceDebugFrame;
     frmLocalVariables: TLocalVariablesDebugFrame;
     spHorizontal: TSplitter;
-    rrSpliterGrip: TRoundRect;
+    rrDebugLeftPanelSpliterGrip: TLine;
   private
     { Private declarations }
   public
