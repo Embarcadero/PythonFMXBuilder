@@ -22,7 +22,6 @@ type
     fdmtSourcesource_local_path: TStringField;
     fdmtSourcesource_remote_path: TStringField;
     fdmtBreakpoint: TFDMemTable;
-    dsSource: TDataSource;
     fdmtBreakpointbreakpoint_id: TIntegerField;
     fdmtBreakpointbreakpoint_line: TIntegerField;
     fdmtBreakpointbreakpoint_source_name: TStringField;
@@ -52,8 +51,11 @@ type
     fdmtActiveSourceactive_source_local_file_path: TStringField;
     fdmtActiveSourceactive_source_line: TIntegerField;
     fdmtActiveSourceactive_source_line_indicator: TBooleanField;
+    fdmtBreakpointbreakpoint_confirmed: TBooleanField;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
+    procedure fdmtBreakpointAfterPost(DataSet: TDataSet);
+    procedure fdmtBreakpointAfterDelete(DataSet: TDataSet);
   private
     //Builder events
     FDebugSessionStarted: IDisconnectable;
@@ -71,16 +73,19 @@ type
     FLoadedSourceEvent: IUnsubscribable;
     FProcessEvent: IUnsubscribable;
     FMemoryEvent: IUnsubscribable;
+    //Debugger
+    FDebugger: TBaseProtocolClient;
     procedure DebugSessionStarted(const ABaseProtocolClient: TBaseProtocolClient);
     procedure DebugSessionEnded();
     procedure SetupDebugger(const ABaseProtocolClient: TBaseProtocolClient);
     procedure SetupDebuggerDone(const ABaseProtocolClient: TBaseProtocolClient);
 
     procedure SetupBreakpoints(const ABaseProtocolClient: TBaseProtocolClient);
+    procedure SetupBreakpointsForCurrentSource(const ABaseProtocolClient: TBaseProtocolClient);
     procedure BreakPointsConfirmation(const ASetBreakpointsResponse: TSetBreakpointsResponse);
 
     //Stack Frames
-    procedure RequestStackFrames(const ABaseProtocolClient: TBaseProtocolClient;
+    procedure RequestStackTraces(const ABaseProtocolClient: TBaseProtocolClient;
       const AThreadId: integer; const AOpenFileOfLastFrame: boolean);
     function GetCodeAtLine(const AFileName: string; const ALine: integer): string;
     procedure RequestScopes(const ABaseProtocolClient: TBaseProtocolClient;
@@ -126,12 +131,14 @@ begin
   FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
+      FDebugger := AEventNotification.Body.Debugger;
       DebugSessionStarted(AEventNotification.Body.Debugger);
     end);
 
   FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
+      FDebugger := nil;
       DebugSessionEnded();
     end);
 
@@ -212,7 +219,7 @@ begin
         TStoppedEventReason.FunctionBreakpoint,
         TStoppedEventReason.DataBreakpoint,
         TStoppedEventReason.InstructionBreakpoint: begin
-          RequestStackFrames(
+          RequestStackTraces(
             ABaseProtocolClient,
             AEventNotification.Body.ThreadId,
             true);
@@ -230,7 +237,7 @@ begin
           'Thread %d continued.', [
           AEventNotification.Body.ThreadId]));
 
-      System.Classes.TThread.Queue(System.Classes.TThread.Current,
+      System.Classes.TThread.Synchronize(System.Classes.TThread.Current,
         procedure()
         begin
           fdmtActiveSource.Edit();
@@ -373,10 +380,28 @@ procedure TDebuggerDataSetContainer.SetupBreakpoints(
   const ABaseProtocolClient: TBaseProtocolClient);
 begin
   fdmtSource.DisableControls();
-  fdmtBreakpoint.DisableControls();
   try
     fdmtSource.First();
     while not fdmtSource.Eof do begin
+      SetupBreakpointsForCurrentSource(ABaseProtocolClient);
+      fdmtSource.Next();
+    end;
+  finally
+    fdmtSource.EnableControls();
+  end;
+end;
+
+procedure TDebuggerDataSetContainer.SetupBreakpointsForCurrentSource(
+  const ABaseProtocolClient: TBaseProtocolClient);
+begin
+  fdmtBreakpoint.DisableControls();
+  try
+    fdmtBreakpoint.Filter := 'breakpoint_source_name=' + fdmtSourcesource_name.AsString.QuotedString();
+    fdmtBreakpoint.Filtered := true;
+    try
+      if fdmtBreakpoint.IsEmpty() then
+        Exit;
+
       var LSetBreakpoints := TDynamicSetBreakpointsRequest.Create();
       try
         var LSource := LSetBreakpoints.Arguments.Source;
@@ -415,12 +440,11 @@ begin
       finally
         LSetBreakpoints.Free();
       end;
-
-      fdmtSource.Next();
+    finally
+      fdmtBreakpoint.Filtered := false;
     end;
   finally
     fdmtBreakpoint.EnableControls();
-    fdmtSource.EnableControls();
   end;
 end;
 
@@ -446,6 +470,7 @@ begin
 
           fdmtBreakpoint.Edit();
           fdmtBreakpointbreakpoint_id.AsInteger := LItem.Id;
+          fdmtBreakpointbreakpoint_confirmed.AsBoolean := true;
           fdmtBreakpoint.Post();
         finally
           if fdmtBreakpoint.BookmarkValid(LBreakpointBookmark) then
@@ -485,9 +510,8 @@ begin
         System.Classes.TThread.Synchronize(System.Classes.TThread.Current,
           procedure
           begin
-            for var LThread in AArg.Body.Threads do begin
+            for var LThread in AArg.Body.Threads do
               fdmtThread.AppendRecord([LThread.Id, LThread.Name]);
-            end;
           end);
       end,
       procedure(const AArg: TResponseMessage)
@@ -508,6 +532,19 @@ begin
     end);
 end;
 
+procedure TDebuggerDataSetContainer.fdmtBreakpointAfterDelete(
+  DataSet: TDataSet);
+begin
+  if Assigned(FDebugger) and fdmtBreakpointbreakpoint_confirmed.AsBoolean then
+    SetupBreakpointsForCurrentSource(FDebugger);
+end;
+
+procedure TDebuggerDataSetContainer.fdmtBreakpointAfterPost(DataSet: TDataSet);
+begin
+  if Assigned(FDebugger) and not fdmtBreakpointbreakpoint_confirmed.AsBoolean then
+    SetupBreakpointsForCurrentSource(FDebugger);
+end;
+
 function TDebuggerDataSetContainer.GetCodeAtLine(const AFileName: string;
   const ALine: integer): string;
 begin
@@ -518,7 +555,7 @@ begin
     try
       if fdmtSource.Locate('source_name', AFileName, [loCaseInsensitive]) then begin
         var LLines := TFile.ReadAllLines(fdmtSourcesource_local_path.AsString);
-        if Length(LLines) >= Pred(ALine) then
+        if (Length(LLines) >= Pred(ALine)) then
           Result := LLines[Pred(ALine)].Trim();
       end;
     finally
@@ -557,7 +594,7 @@ begin
   Result := LResult;
 end;
 
-procedure TDebuggerDataSetContainer.RequestStackFrames(
+procedure TDebuggerDataSetContainer.RequestStackTraces(
   const ABaseProtocolClient: TBaseProtocolClient; const AThreadId: integer;
   const AOpenFileOfLastFrame: boolean);
 begin

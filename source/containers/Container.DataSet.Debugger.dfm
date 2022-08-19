@@ -48,8 +48,8 @@ object DebuggerDataSetContainer: TDebuggerDataSetContainer
     UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
     UpdateOptions.CheckRequired = False
     UpdateOptions.AutoCommitUpdates = True
-    Left = 152
-    Top = 8
+    Left = 32
+    Top = 120
     object fdmtSourcesource_name: TStringField
       FieldName = 'source_name'
       Size = 255
@@ -64,9 +64,8 @@ object DebuggerDataSetContainer: TDebuggerDataSetContainer
     end
   end
   object fdmtBreakpoint: TFDMemTable
-    MasterSource = dsSource
-    MasterFields = 'source_name'
-    DetailFields = 'breakpoint_source_name'
+    AfterPost = fdmtBreakpointAfterPost
+    AfterDelete = fdmtBreakpointAfterDelete
     FetchOptions.AssignedValues = [evMode]
     FetchOptions.Mode = fmAll
     ResourceOptions.AssignedValues = [rvSilentMode]
@@ -74,8 +73,8 @@ object DebuggerDataSetContainer: TDebuggerDataSetContainer
     UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
     UpdateOptions.CheckRequired = False
     UpdateOptions.AutoCommitUpdates = True
-    Left = 232
-    Top = 8
+    Left = 32
+    Top = 176
     object fdmtBreakpointbreakpoint_id: TIntegerField
       DisplayLabel = 'Id'
       FieldName = 'breakpoint_id'
@@ -92,11 +91,10 @@ object DebuggerDataSetContainer: TDebuggerDataSetContainer
       DisplayLabel = 'Line'
       FieldName = 'breakpoint_line'
     end
-  end
-  object dsSource: TDataSource
-    DataSet = fdmtSource
-    Left = 152
-    Top = 64
+    object fdmtBreakpointbreakpoint_confirmed: TBooleanField
+      FieldName = 'breakpoint_confirmed'
+      Visible = False
+    end
   end
   object fdmtStackTrace: TFDMemTable
     FetchOptions.AssignedValues = [evMode]
@@ -231,7 +229,7 @@ object DebuggerDataSetContainer: TDebuggerDataSetContainer
     UpdateOptions.CheckRequired = False
     UpdateOptions.AutoCommitUpdates = True
     Left = 32
-    Top = 120
+    Top = 232
     object fdmtActiveSourceactive_source_thread_id: TIntegerField
       FieldName = 'active_source_thread_id'
     end
