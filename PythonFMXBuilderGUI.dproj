@@ -358,11 +358,6 @@ $(PreBuildEvent)]]>
             <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
-        <DCCReference Include="source\views\frame\editor\Frame.Editor.TMSMemo.pas">
-            <Form>TMSMemoEditorFrame</Form>
-            <FormType>fmx</FormType>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
         <DCCReference Include="source\views\frame\editor\Frame.Editor.TabItem.pas"/>
         <DCCReference Include="source\views\frame\editor\Frame.Editor.Control.pas">
             <Form>EditorControlFrame</Form>

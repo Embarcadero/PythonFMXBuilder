@@ -2,10 +2,10 @@
     <PropertyGroup>
         <Base>True</Base>
         <AppType>Console</AppType>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>None</FrameworkType>
         <MainSource>PythonFMXBuilderCLITest.dpr</MainSource>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <ProjectGuid>{AD7E6794-67BB-4C4D-AC22-F469040CF6AC}</ProjectGuid>
         <ProjectVersion>19.4</ProjectVersion>
         <TargetedPlatforms>3</TargetedPlatforms>

@@ -1,4 +1,4 @@
-program PythonFMXBuilderGUI;
+program PythonFMXBuilderGUIWithTMS;
 
 uses
   System.StartUpCopy,
@@ -34,7 +34,6 @@ uses
   Frame.BottomPanel in 'source\views\frame\Frame.BottomPanel.pas' {BottomPanelFrame: TFrame},
   Frame.Log in 'source\views\frame\Frame.Log.pas' {LogFrame: TFrame},
   Frame.Editor.Memo in 'source\views\frame\editor\Frame.Editor.Memo.pas' {MemoEditorFrame: TFrame},
-  Frame.Editor.TMSMemo in 'source\views\frame\editor\Frame.Editor.TMSMemo.pas' {TMSMemoEditorFrame: TFrame},
   Frame.Editor.TabItem in 'source\views\frame\editor\Frame.Editor.TabItem.pas',
   Frame.Editor.Control in 'source\views\frame\editor\Frame.Editor.Control.pas' {EditorControlFrame: TFrame},
   Container.DataSet.Debugger in 'source\containers\Container.DataSet.Debugger.pas' {DebuggerDataSetContainer: TDataModule},
