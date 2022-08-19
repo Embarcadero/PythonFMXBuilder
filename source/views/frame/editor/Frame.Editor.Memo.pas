@@ -102,10 +102,10 @@ begin
   Result := FEditor;
 end;
 
-//initialization
-//  TScriptEditorTabItem.DefaultTabItemClass := TMemoScriptEditorTabItem;
-//
-//finalization
-//  TScriptEditorTabItem.DefaultTabItemClass := nil;
+initialization
+  TCustomEditorTabItem.DefaultTabItemClass := TMemoScriptEditorTabItem;
+
+finalization
+  TCustomEditorTabItem.DefaultTabItemClass := nil;
 
 end.
