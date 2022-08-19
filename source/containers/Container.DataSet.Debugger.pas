@@ -810,8 +810,15 @@ begin
   System.Classes.TThread.Synchronize(System.Classes.TThread.Current,
     procedure
     begin
-      if fdmtSource.Locate('source_name', ASourceName, [loCaseInsensitive]) then
-        fdmtBreakpoint.EmptyDataSet();
+      fdmtBreakpoint.Filter := 'breakpoint_source_name=' + ASourceName.QuotedString();
+      fdmtBreakpoint.Filtered := true;
+      try
+        fdmtBreakpoint.First();
+        while not fdmtBreakpoint.Eof do
+          fdmtBreakpoint.Delete();
+      finally
+        fdmtBreakpoint.Filtered := false;
+      end;
     end);
 end;
 
