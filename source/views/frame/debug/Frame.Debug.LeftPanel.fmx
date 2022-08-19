@@ -1,0 +1,47 @@
+object LeftPanelDebugFrame: TLeftPanelDebugFrame
+  Size.Width = 435.000000000000000000
+  Size.Height = 989.000000000000000000
+  Size.PlatformDefault = False
+  inline frmLocalVariables: TLocalVariablesDebugFrame
+    Align = Client
+    Size.Width = 435.000000000000000000
+    Size.Height = 644.000000000000000000
+    Size.PlatformDefault = False
+    inherited tbFrame: TToolBar
+      Size.Width = 435.000000000000000000
+      inherited lbDescription: TLabel
+        Size.Width = 430.000000000000000000
+      end
+    end
+  end
+  inline frmStackTrace: TStackTraceDebugFrame
+    Align = Top
+    Size.Width = 435.000000000000000000
+    Size.Height = 339.000000000000000000
+    Size.PlatformDefault = False
+    inherited tbFrame: TToolBar
+      Size.Width = 435.000000000000000000
+      inherited lbDescription: TLabel
+        Size.Width = 430.000000000000000000
+      end
+    end
+  end
+  object spHorizontal: TSplitter
+    Align = Top
+    Cursor = crVSplit
+    MinSize = 20.000000000000000000
+    Position.Y = 339.000000000000000000
+    ShowGrip = False
+    Size.Width = 435.000000000000000000
+    Size.Height = 6.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'splitterstyle'
+    object rrSpliterGrip: TRoundRect
+      Align = Center
+      HitTest = False
+      Size.Width = 30.000000000000000000
+      Size.Height = 6.000000000000000000
+      Size.PlatformDefault = False
+    end
+  end
+end

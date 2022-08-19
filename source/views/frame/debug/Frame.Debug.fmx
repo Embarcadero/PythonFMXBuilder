@@ -1,0 +1,20 @@
+object DebugFrame: TDebugFrame
+  Size.Width = 320.000000000000000000
+  Size.Height = 240.000000000000000000
+  Size.PlatformDefault = False
+  object tbFrame: TToolBar
+    Size.Width = 320.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object lbDescription: TLabel
+      Align = Client
+      Margins.Left = 5.000000000000000000
+      Size.Width = 315.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'lbDescription'
+      TabOrder = 1
+    end
+  end
+end

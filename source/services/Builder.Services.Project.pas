@@ -45,6 +45,7 @@ implementation
 
 uses
   Builder.Exception,
+  Builder.Chain,
   Builder.Storage.Default;
 
 { TProjectService }
@@ -93,7 +94,10 @@ end;
 
 procedure TProjectService.UnLoadProject;
 begin
-  FreeAndNil(FActiveProject);
+  if Assigned(FActiveProject) then begin
+    TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FActiveProject));
+    FreeAndNil(FActiveProject);
+  end;
 end;
 
 procedure TProjectService.CheckActiveProject;
@@ -105,7 +109,7 @@ end;
 function TProjectService.CreateProject(const AProjectName: string;
   const AAddMainScript: boolean): TProjectModel;
 begin
-  FreeAndNil(FActiveProject);
+  UnloadProject();
   FActiveProject := TProjectModel.Create(AProjectName);
 
   if AAddMainScript then begin
@@ -142,11 +146,12 @@ end;
 
 function TProjectService.LoadProject(const AProjectName: string): TProjectModel;
 begin
-  FreeAndNil(FActiveProject);
+  UnloadProject();
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   if not LStorage.LoadModel(FActiveProject, String.Empty, AProjectName) then
     raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectName]);
   Result := FActiveProject;
+  TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(Result));
 end;
 
 function TProjectService.AddMainScriptFile(const AModel: TProjectModel): string;

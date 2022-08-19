@@ -37,7 +37,8 @@ uses
   Frame.Editor.TMSMemo in 'source\views\frame\editor\Frame.Editor.TMSMemo.pas' {TMSMemoEditorFrame: TFrame},
   Frame.Editor.TabItem in 'source\views\frame\editor\Frame.Editor.TabItem.pas',
   Frame.Editor.Control in 'source\views\frame\editor\Frame.Editor.Control.pas' {EditorControlFrame: TFrame},
-  Container.DataSet.Debugger in 'source\containers\Container.DataSet.Debugger.pas' {DebuggerDataSetContainer: TDataModule};
+  Container.DataSet.Debugger in 'source\containers\Container.DataSet.Debugger.pas' {DebuggerDataSetContainer: TDataModule},
+  Frame.SaveButtons in 'source\views\frame\Frame.SaveButtons.pas' {SaveButtonsFrame: TFrame};
 
 {$R *.res}
 

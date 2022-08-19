@@ -3,8 +3,8 @@ unit Frame.Editor.TabItem;
 interface
 
 uses
-  System.Rtti,
-  FMX.TabControl, FMX.Controls, System.Classes, System.Types;
+  System.Rtti, FMX.TabControl, FMX.Controls, System.Classes, System.Types,
+  Builder.Chain;
 
 type
   ITextEditor = interface
@@ -17,6 +17,8 @@ type
     procedure SetShowActiveLine(AShowActiveLine: boolean);
 
     procedure LoadFromFile(const AFileName: string);
+    procedure Save();
+
     property Breakpoints: TArray<integer> read GetBreakpoints write SetBreakpoints;
     property ActiveLine: integer read GetActiveLine write SetActiveLine;
     property ShowActiveLine: boolean read GetShowActiveLine write SetShowActiveLine;
@@ -28,6 +30,7 @@ type
   private
     FFilePath: string;
     FCanClose: boolean;
+    FSaveState: IDisconnectable;
     function GetCloseControl(): TControl;
     procedure OnCloseTab(Sender: TObject);
     procedure SetCanClose(const Value: boolean);
@@ -41,6 +44,7 @@ type
     procedure DoClose(); virtual;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
 
     property TextEditor: ITextEditor read GetTextEditor;
     property CanClose: boolean read FCanClose write SetCanClose;
@@ -53,6 +57,21 @@ implementation
 
 constructor TCustomEditorTabItem.Create(AOwner: TComponent);
 begin
+  inherited;
+  FSaveState := TGlobalBuilderChain.SubscribeToEvent<TSaveStateEvent>(
+    procedure(const AEventNotification: TSaveStateEvent)
+    begin
+      if (AEventNotification.Body.SaveState = TSaveState.Save) then begin
+        if Self.TabControl.ActiveTab = Self then
+          TextEditor.Save();
+      end else if (AEventNotification.Body.SaveState = TSaveState.SaveAll) then
+        TextEditor.Save();
+    end);
+end;
+
+destructor TCustomEditorTabItem.Destroy;
+begin
+  FSaveState.Disconnect();
   inherited;
 end;
 
@@ -68,9 +87,8 @@ end;
 
 procedure TCustomEditorTabItem.DoClose;
 begin
-  TabControl.GetTabList().Remove(Self);
-  TabControl.ActiveTab := TabControl.Tabs[TabControl.TabCount - 1];  
-  Destroy();  
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TCloseFileEvent.Create(FFilePath));
 end;
 
 function TCustomEditorTabItem.GetCloseControl: TControl;

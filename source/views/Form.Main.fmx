@@ -1,7 +1,7 @@
 inherited MainForm: TMainForm
   Caption = 'PythonFMX Builder for Android'
   ClientHeight = 1282
-  ClientWidth = 1937
+  ClientWidth = 1938
   Position = ScreenCenter
   OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
@@ -291,22 +291,22 @@ inherited MainForm: TMainForm
     Padding.Right = 5.000000000000000000
     Padding.Bottom = 5.000000000000000000
     Position.Y = 1068.000000000000000000
-    Size.Width = 1937.000000000000000000
+    Size.Width = 1938.000000000000000000
     Size.Height = 214.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     inline frmBottomFrame: TBottomPanelFrame
       Align = Client
-      Size.Width = 1927.000000000000000000
+      Size.Width = 1928.000000000000000000
       Size.Height = 209.000000000000000000
       Size.PlatformDefault = False
       inherited tcBottomPanelControls: TTabControl
-        Size.Width = 1927.000000000000000000
+        Size.Width = 1928.000000000000000000
         Size.Height = 209.000000000000000000
         Sizes = (
-          1927s
+          1928s
           183s
-          1927s
+          1928s
           183s)
         inherited tiBottomPanelDesignSession: TTabItem
           Size.Width = 100.000000000000000000
@@ -314,18 +314,18 @@ inherited MainForm: TMainForm
           ExplicitSize.cx = 104.000000000000000000
           ExplicitSize.cy = 26.000000000000000000
           inherited frmLog: TLogFrame
-            Size.Width = 1927.000000000000000000
+            Size.Width = 1928.000000000000000000
             Size.Height = 183.000000000000000000
             inherited mmLog: TMemo
-              Size.Width = 1927.000000000000000000
+              Size.Width = 1928.000000000000000000
               Size.Height = 143.000000000000000000
-              Viewport.Width = 1927.000000000000000000
+              Viewport.Width = 1928.000000000000000000
               Viewport.Height = 143.000000000000000000
             end
             inherited tbFrame: TToolBar
-              Size.Width = 1927.000000000000000000
+              Size.Width = 1928.000000000000000000
               inherited lbDescription: TLabel
-                Size.Width = 1922.000000000000000000
+                Size.Width = 1923.000000000000000000
               end
             end
           end
@@ -336,35 +336,35 @@ inherited MainForm: TMainForm
           ExplicitSize.cx = 103.000000000000000000
           ExplicitSize.cy = 26.000000000000000000
           inherited frmBottomPanelDebug: TBottomPanelDebugFrame
-            Size.Width = 1927.000000000000000000
+            Size.Width = 1928.000000000000000000
             Size.Height = 183.000000000000000000
             inherited tbBottomPanelDebugControls: TTabControl
-              Size.Width = 1927.000000000000000000
+              Size.Width = 1928.000000000000000000
               Size.Height = 183.000000000000000000
               Sizes = (
-                1927s
+                1928s
                 157s
-                1927s
+                1928s
                 157s
-                1927s
+                1928s
                 157s)
               inherited tiBottomPanelDebugEvents: TTabItem
                 ExplicitSize.cx = 62.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
                 inherited frmDebugEvents: TEventsDebugFrame
-                  Size.Width = 1927.000000000000000000
+                  Size.Width = 1928.000000000000000000
                   Size.Height = 157.000000000000000000
                   inherited tbFrame: TToolBar
-                    Size.Width = 1927.000000000000000000
+                    Size.Width = 1928.000000000000000000
                     inherited lbDescription: TLabel
-                      Size.Width = 1922.000000000000000000
+                      Size.Width = 1923.000000000000000000
                     end
                   end
                   inherited grdEvents: TGrid
-                    Size.Width = 1927.000000000000000000
+                    Size.Width = 1928.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 1923.000000000000000000
-                    Viewport.Height = 92.000000000000000000
+                    Viewport.Width = 1908.000000000000000000
+                    Viewport.Height = 76.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -380,18 +380,18 @@ inherited MainForm: TMainForm
                 ExplicitSize.cx = 83.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
                 inherited frmDebugBreakpoint: TBreakpointsDebugFrame
-                  Size.Width = 1927.000000000000000000
+                  Size.Width = 1928.000000000000000000
                   Size.Height = 157.000000000000000000
                   inherited tbFrame: TToolBar
-                    Size.Width = 1927.000000000000000000
+                    Size.Width = 1928.000000000000000000
                     inherited lbDescription: TLabel
-                      Size.Width = 1922.000000000000000000
+                      Size.Width = 1923.000000000000000000
                     end
                   end
                   inherited grdEvents: TGrid
-                    Size.Width = 1927.000000000000000000
+                    Size.Width = 1928.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 1927.000000000000000000
+                    Viewport.Width = 1928.000000000000000000
                     Viewport.Height = 117.000000000000000000
                   end
                   inherited bsdbBreakpoints: TBindSourceDB
@@ -408,18 +408,18 @@ inherited MainForm: TMainForm
                 ExplicitSize.cx = 62.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
                 inherited frmDebugThreads: TThreadsDebugFrame
-                  Size.Width = 1927.000000000000000000
+                  Size.Width = 1928.000000000000000000
                   Size.Height = 157.000000000000000000
                   inherited tbFrame: TToolBar
-                    Size.Width = 1927.000000000000000000
+                    Size.Width = 1928.000000000000000000
                     inherited lbDescription: TLabel
-                      Size.Width = 1922.000000000000000000
+                      Size.Width = 1923.000000000000000000
                     end
                   end
                   inherited grdThreads: TGrid
-                    Size.Width = 1927.000000000000000000
+                    Size.Width = 1928.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 1927.000000000000000000
+                    Viewport.Width = 1928.000000000000000000
                     Viewport.Height = 117.000000000000000000
                   end
                   inherited bsdbThreads: TBindSourceDB
@@ -444,29 +444,33 @@ inherited MainForm: TMainForm
     MinSize = 20.000000000000000000
     Position.Y = 1062.000000000000000000
     ShowGrip = False
-    Size.Width = 1937.000000000000000000
+    Size.Width = 1938.000000000000000000
     Size.Height = 6.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'splitterstyle'
-    object rrSpliterGrip: TRoundRect
+    object rrLogSpliterGrip: TLine
       Align = Center
       HitTest = False
+      LineType = Top
+      Margins.Top = 5.000000000000000000
       Size.Width = 30.000000000000000000
       Size.Height = 6.000000000000000000
       Size.PlatformDefault = False
+      Stroke.Thickness = 3.000000000000000000
+      Stroke.Dash = Dot
     end
   end
   object loMain: TLayout
     Align = Client
     Padding.Left = 5.000000000000000000
     Padding.Right = 5.000000000000000000
-    Size.Width = 1937.000000000000000000
+    Size.Width = 1938.000000000000000000
     Size.Height = 1022.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 2
     object loEditor: TLayout
       Align = Client
-      Size.Width = 1655.000000000000000000
+      Size.Width = 1656.000000000000000000
       Size.Height = 1022.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
@@ -474,24 +478,28 @@ inherited MainForm: TMainForm
         Align = Right
         Cursor = crHSplit
         MinSize = 20.000000000000000000
-        Position.X = 1373.000000000000000000
+        Position.X = 1374.000000000000000000
         ShowGrip = False
         Size.Width = 6.000000000000000000
         Size.Height = 1022.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'splitterstyle'
-        object RoundRect1: TRoundRect
+        object rrProjectFilesSpliterGrip: TLine
           Align = Center
           HitTest = False
+          LineType = Top
+          Margins.Right = 5.000000000000000000
           RotationAngle = 90.000000000000000000
           Size.Width = 30.000000000000000000
           Size.Height = 6.000000000000000000
           Size.PlatformDefault = False
+          Stroke.Thickness = 3.000000000000000000
+          Stroke.Dash = Dot
         end
       end
       object loProjectOptions: TLayout
         Align = Right
-        Position.X = 1379.000000000000000000
+        Position.X = 1380.000000000000000000
         Size.Width = 276.000000000000000000
         Size.Height = 1022.000000000000000000
         Size.PlatformDefault = False
@@ -519,23 +527,21 @@ inherited MainForm: TMainForm
             Left = 144
             Top = 840
             inherited actAddFile: TAction
-              ImageIndex = 13
-              ImageIndex = 13
+              ImageIndex = 6
             end
             inherited actRemoveFile: TAction
-              ImageIndex = 14
-              ImageIndex = 14
+              ImageIndex = 7
             end
           end
         end
       end
       inline frmEditorControl: TEditorControlFrame
         Align = Client
-        Size.Width = 1373.000000000000000000
+        Size.Width = 1374.000000000000000000
         Size.Height = 1022.000000000000000000
         Size.PlatformDefault = False
         inherited tbScripts: TTabControl
-          Size.Width = 1373.000000000000000000
+          Size.Width = 1374.000000000000000000
           Size.Height = 1022.000000000000000000
         end
         inherited dsActiveSource: TDataSource
@@ -569,13 +575,17 @@ inherited MainForm: TMainForm
       Size.Height = 1022.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = 'splitterstyle'
-      object RoundRect2: TRoundRect
+      object rrLeftPanelSpliterGrip: TLine
         Align = Center
         HitTest = False
+        LineType = Top
+        Margins.Right = 5.000000000000000000
         RotationAngle = 90.000000000000000000
         Size.Width = 30.000000000000000000
         Size.Height = 6.000000000000000000
         Size.PlatformDefault = False
+        Stroke.Thickness = 3.000000000000000000
+        Stroke.Dash = Dot
       end
     end
     object loLeftPanel: TLayout
@@ -669,7 +679,7 @@ inherited MainForm: TMainForm
     end
   end
   object tbMenu: TToolBar
-    Size.Width = 1937.000000000000000000
+    Size.Width = 1938.000000000000000000
     Size.Height = 40.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 8
@@ -691,7 +701,7 @@ inherited MainForm: TMainForm
     end
     inline frmDevice: TDeviceFrame
       Align = Right
-      Position.X = 1651.000000000000000000
+      Position.X = 1652.000000000000000000
       Size.Width = 286.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
@@ -721,7 +731,7 @@ inherited MainForm: TMainForm
     end
     inline frmBuildButtons: TBuildButtonsFrame
       Align = Left
-      Position.X = 189.000000000000000000
+      Position.X = 266.000000000000000000
       Size.Width = 105.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
@@ -738,7 +748,7 @@ inherited MainForm: TMainForm
     end
     inline frmDebugButtons: TDebugButtonsFrame
       Align = Left
-      Position.X = 301.000000000000000000
+      Position.X = 378.000000000000000000
       Size.Width = 245.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
@@ -802,7 +812,35 @@ inherited MainForm: TMainForm
       Margins.Left = 5.000000000000000000
       Margins.Top = 10.000000000000000000
       Margins.Bottom = 10.000000000000000000
-      Position.X = 299.000000000000000000
+      Position.X = 376.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+    inline frmSaveButtons: TSaveButtonsFrame
+      Align = Left
+      Position.X = 189.000000000000000000
+      Size.Width = 70.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbSaveAll: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbSave: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    object lnSaveStateSeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 264.000000000000000000
       Position.Y = 10.000000000000000000
       Size.Width = 2.000000000000000000
       Size.Height = 20.000000000000000000

@@ -168,5 +168,21 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actContinueExecute
       ImageIndex = 20
     end
+    object actSaveState: TAction
+      Category = 'Save'
+      Text = 'Save'
+      Hint = 'Save'
+      ImageIndex = 2
+      OnExecute = actSaveStateExecute
+      ImageIndex = 2
+    end
+    object actSaveAllState: TAction
+      Category = 'Save'
+      Text = 'Save All'
+      Hint = 'Save All'
+      ImageIndex = 22
+      OnExecute = actSaveAllStateExecute
+      ImageIndex = 22
+    end
   end
 end

@@ -51,6 +51,7 @@ type
     function GetNodeTypeByFileName(const AFileName: string): TNodeType;
     procedure TreeViewIteDblClick(Sender: TObject);
     procedure BroadcastOpenFile(const AFilePath: string);
+    procedure BroadcastCloseFile(const AFilePath: string);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -89,10 +90,8 @@ type
 
     class operator Implicit(ANodeInfo: TNodeInfo): TValue;
   public
-    case NodeType: TNodeType of
-      ntModule: (
-        FilePath: string[255];
-      );
+    NodeType: TNodeType;
+    FilePath: string;
   end;
 
 {$R *.fmx}
@@ -115,9 +114,7 @@ constructor TNodeInfo.Create(const ANodeType: TNodeType;
   const AFilePath: string);
 begin
   NodeType := ANodeType;
-  case NodeType of
-    ntModule: FilePath := ShortString(AFilePath);
-  end;
+  FilePath := AFilePath;
 end;
 
 constructor TNodeInfo.Create(const ANodeType: TNodeType);
@@ -285,6 +282,12 @@ begin
     TOpenFileEvent.Create(AFilePath));
 end;
 
+procedure TProjectFilesFrame.BroadcastCloseFile(const AFilePath: string);
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TCloseFileEvent.Create(AFilePath));
+end;
+
 function TProjectFilesFrame.BuildNode(const AParent: TFmxObject;
   const ANodeType: TNodeType; const AFilePath: string): TTreeViewItem;
 begin
@@ -336,6 +339,7 @@ begin
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
         SaveChanges();
         tvProjectFiles.Selected := LItem;
+        BroadcastOpenFile(odtvProjectFiles.FileName);
       end;
     finally
       LStream.Free();
@@ -367,8 +371,9 @@ begin
 
   LNode.Free();
 
-  GetProjectServices().RemoveScriptFile(FProjectModel, String(LInfo.FilePath));
+  GetProjectServices().RemoveScriptFile(FProjectModel, LInfo.FilePath);
   SaveChanges();
+  BroadcastCloseFile(LInfo.FilePath);
 end;
 
 procedure TProjectFilesFrame.actSetToMainExecute(Sender: TObject);

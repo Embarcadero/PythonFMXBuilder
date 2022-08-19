@@ -14,7 +14,7 @@ object MemoEditorFrame: TMemoEditorFrame
     Size.Height = 354.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 686.000000000000000000
-    Viewport.Height = 354.000000000000000000
+    Viewport.Width = 682.000000000000000000
+    Viewport.Height = 350.000000000000000000
   end
 end

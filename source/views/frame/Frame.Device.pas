@@ -115,10 +115,12 @@ begin
   FAdbPath := LStorage.GetAdbPath();
   FDevices.Clear();
   cbDevice.Clear();
-  aiDevice.Enabled := true;
-  aiDevice.Visible := true;
-  btnRefreshDevice.Enabled := false;
-  FUpdate := true;
+  if not FAdbPath.IsEmpty() then begin
+    aiDevice.Enabled := true;
+    aiDevice.Visible := true;
+    btnRefreshDevice.Enabled := false;
+    FUpdate := true;
+  end;
 end;
 
 procedure TDeviceFrame.StartDevicesMonitor;

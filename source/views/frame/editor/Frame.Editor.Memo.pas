@@ -12,7 +12,9 @@ type
   TMemoEditorFrame = class(TFrame, ITextEditor)
     mmEditor: TMemo;
   private
+    FFileName: string;
     procedure LoadFromFile(const AFileName: string);
+    procedure Save();
     function GetBreakpoints(): TArray<integer>;
     procedure SetBreakpoints(ABreakpoints: TArray<integer>);
     function GetActiveLine(): integer;
@@ -60,7 +62,14 @@ end;
 
 procedure TMemoEditorFrame.LoadFromFile(const AFileName: string);
 begin
+  FFileName := AFileName;
   mmEditor.Lines.LoadFromFile(AFileName);
+end;
+
+procedure TMemoEditorFrame.Save;
+begin
+  if not FFileName.IsEmpty() then
+    mmEditor.Lines.SaveToFile(FFileName);
 end;
 
 procedure TMemoEditorFrame.SetActiveLine(AActiveLine: integer);

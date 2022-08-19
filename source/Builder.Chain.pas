@@ -31,7 +31,8 @@ type
     //App can keep track of async ops for thread safety
     AsyncOperationStarted,
     AsyncOperationEnded,
-    AsyncException);
+    AsyncException,
+    SaveState);
 
   TAsyncOperation = (
     OpenProject,
@@ -243,6 +244,19 @@ type
     constructor Create(const AFilePath: string); reintroduce; overload;
   end;
 
+  TCloseFileBody = class
+  private
+    FFilePath: string;
+  public
+    property FilePath: string read FFilePath write FFilePath;
+  end;
+
+  [EventType(TBuilderEvent.CloseFile)]
+  TCloseFileEvent = class(TChainEvent<TCloseFileBody>)
+  public
+    constructor Create(const AFilePath: string); reintroduce;
+  end;
+
   TAsyncOperationStartedBody = class
   private
     FOperation: TAsyncOperation;
@@ -334,6 +348,22 @@ type
   TSetupDebuggerDoneEvent = class(TChainEvent<TSetupDebuggerDoneEventBoby>)
   public
     constructor Create(const ADebugger: TBaseProtocolClient); reintroduce;
+  end;
+
+  {$SCOPEDENUMS ON}
+  TSaveState = (Save, SaveAll);
+  {$SCOPEDENUMS OFF}
+  TSaveStateEventBoby = class
+  private
+    FSaveState: TSaveState;
+  public
+    property SaveState: TSaveState read FSaveState write FSaveState;
+  end;
+
+  [EventType(TBuilderEvent.SaveState)]
+  TSaveStateEvent = class(TChainEvent<TSaveStateEventBoby>)
+  public
+    constructor Create(const ASaveState: TSaveState); reintroduce;
   end;
 
   {|| REQUESTS ||}
@@ -956,6 +986,14 @@ begin
   Create(AFilePath, 0, false);
 end;
 
+{ TCloseFileEvent }
+
+constructor TCloseFileEvent.Create(const AFilePath: string);
+begin
+  inherited Create();
+  FBody.FilePath := AFilePath;
+end;
+
 { TAsyncOperationStartedEvent }
 
 constructor TAsyncOperationStartedEvent.Create(
@@ -1032,6 +1070,14 @@ constructor TSetupDebuggerDoneEvent.Create(
 begin
   inherited Create();
   Body.Debugger := ADebugger;
+end;
+
+{ TSaveStateEvent }
+
+constructor TSaveStateEvent.Create(const ASaveState: TSaveState);
+begin
+  inherited Create();
+  Body.SaveState := ASaveState;
 end;
 
 end.

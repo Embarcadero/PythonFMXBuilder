@@ -194,14 +194,15 @@ begin
   if ADeviceList.Count > 1 then begin
     for var I := 1 to ADeviceList.Count -1 do begin
       if ADeviceList[I].Trim().IsEmpty() then
-        Exit;
+        Continue;
 
       var LPos := Pos(#9, ADeviceList[I]);
       if LPos = -1 then
-        Exit;
+        Continue;
 
       var LDevice := Copy(ADeviceList[I], 1, LPos - 1);
-      AProc(LDevice);
+      if not LDevice.Trim.IsEmpty() then
+        AProc(LDevice);
     end;
   end;
 end;

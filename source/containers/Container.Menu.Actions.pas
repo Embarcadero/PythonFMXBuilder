@@ -33,6 +33,8 @@ type
     actPause: TAction;
     actStop: TAction;
     actContinue: TAction;
+    actSaveState: TAction;
+    actSaveAllState: TAction;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
@@ -52,6 +54,8 @@ type
     procedure actStepOverExecute(Sender: TObject);
     procedure actStepInExecute(Sender: TObject);
     procedure actContinueExecute(Sender: TObject);
+    procedure actSaveStateExecute(Sender: TObject);
+    procedure actSaveAllStateExecute(Sender: TObject);
   private
     //Async control
     FLoadingProject: integer;
@@ -167,13 +171,14 @@ begin
 end;
 
 procedure TMenuActionsContainer.actNewProjectExecute(Sender: TObject);
+var
+  LProjectName: string;
+  LCreateMainFile: boolean;
 begin
-  var LProjectName: string;
-  var LCreateMainFile: boolean;
   if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
-    FProjectModel := FProjectServices.CreateProject(LProjectName, LCreateMainFile);
-    FProjectServices.SaveProject(FProjectModel);
-    TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel));
+    FProjectServices.SaveProject(
+      FProjectServices.CreateProject(LProjectName, LCreateMainFile));
+    FProjectModel := FProjectServices.LoadProject(LProjectName);
   end;
 end;
 
@@ -183,8 +188,9 @@ begin
   if Length(LProjects) > 0 then begin
     var LSelected := TSelectProjectForm.Select(LProjects);
     if not LSelected.IsEmpty() then begin
+      if Assigned(FProjectModel) and (FProjectModel.ProjectName = LSelected) then
+        Exit;
       FProjectModel := FProjectServices.LoadProject(LSelected);
-      TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(FProjectModel));
     end;
   end else
     raise Exception.Create('Your workspace is empty. Try to create a new project.');
@@ -207,7 +213,6 @@ begin
     Exit;
 
   FProjectServices.RemoveProject(FProjectModel.ProjectName);
-  TGlobalBuilderChain.BroadcastEventAsync(TCloseProjectEvent.Create(FProjectModel));
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
@@ -229,6 +234,18 @@ end;
 procedure TMenuActionsContainer.actPauseExecute(Sender: TObject);
 begin
   FDebugger.Pause();
+end;
+
+procedure TMenuActionsContainer.actSaveAllStateExecute(Sender: TObject);
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TSaveStateEvent.Create(TSaveState.SaveAll));
+end;
+
+procedure TMenuActionsContainer.actSaveStateExecute(Sender: TObject);
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TSaveStateEvent.Create(TSaveState.Save));
 end;
 
 procedure TMenuActionsContainer.actStepInExecute(Sender: TObject);

@@ -18,6 +18,7 @@ type
     FOpenProjectEvent: IDisconnectable;
     FCloseProjectEvent: IDisconnectable;
     FOpenFileEvent: IDisconnectable;
+    FCloseFileEvent: IDisconnectable;
     function DoCreateTab(const AText: string;
       const ACanClose: boolean = true): TTabItem;
     function GetEditorTab(const AFilePath: string): TTabItem;
@@ -27,6 +28,7 @@ type
     destructor Destroy(); override;
 
     function OpenEditor(const AFilePath: string): ITextEditor;
+    procedure CloseEditor(const AFilePath: string);
     procedure CloseAll();
   end;
 
@@ -62,7 +64,6 @@ begin
   FOpenFileEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenFileEvent>(
     procedure(const AEventNotification: TOpenFileEvent)
     begin
-      var LFileName := AEventNotification.Body.FileName;
       var LFilePath := AEventNotification.Body.FilePath;
       var LActiveLine := AEventNotification.Body.ActiveLine;
       var LShowActiveLine := AEventNotification.Body.ShowActiveLineIndicator;
@@ -80,6 +81,18 @@ begin
 
           if Assigned(LBreakpoints) then
             LTextEditor.Breakpoints := LBreakpoints;
+        end);
+    end);
+
+  FCloseFileEvent := TGlobalBuilderChain.SubscribeToEvent<TCloseFileEvent>(
+    procedure(const AEventNotification: TCloseFileEvent)
+    begin
+      var LFilePath := AEventNotification.Body.FilePath;
+
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          CloseEditor(LFilePath);
         end);
     end);
 end;
@@ -125,8 +138,12 @@ begin
   if LDatS.IsEmpty() then
     Exit();
 
-  var LTextEditor := OpenEditor(
-    LDatS.FieldByName('active_source_local_file_path').AsString);
+  var LFilePath := LDatS.FieldByName('active_source_local_file_path').AsString;
+  if not TFile.Exists(LFilePath) then
+    { TODO : Let's create an open file dialog here and ask users for file path }
+    Exit;
+
+  var LTextEditor := OpenEditor(LFilePath);
 
   if LDatS.FieldByName('active_source_line').AsInteger > 0 then begin
     LTextEditor.ActiveLine := LDatS.FieldByName('active_source_line').AsInteger - 1;
@@ -145,7 +162,7 @@ end;
 function TEditorControlFrame.OpenEditor(const AFilePath: string): ITextEditor;
 begin
   if not TFile.Exists(AFilePath) then
-    raise Exception.Create('File not found.');
+    raise Exception.CreateFmt('File %s not found.', [AFilePath]);
 
   var LItem := GetEditorTab(AFilePath);
   if Assigned(LItem) then begin
@@ -161,6 +178,13 @@ begin
   tbScripts.ActiveTab := LItem;
 
   Result := TCustomEditorTabItem(LItem).TextEditor;
+end;
+
+procedure TEditorControlFrame.CloseEditor(const AFilePath: string);
+begin
+  var LItem := GetEditorTab(AFilePath);
+  if Assigned(LItem) then
+    tbScripts.Delete(LItem.Index);
 end;
 
 procedure TEditorControlFrame.CloseAll;

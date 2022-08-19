@@ -23,6 +23,7 @@ type
     FSetupDebugger: IDisconnectable;
     FStoppedEvent: IUnsubscribable;
     procedure LoadFromFile(const AFileName: string);
+    procedure Save();
     function GetBreakpoints(): TArray<integer>;
     procedure SetBreakpoints(ABreakpoints: TArray<integer>);
     function GetActiveLine(): integer;
@@ -42,6 +43,7 @@ type
     function GetTextEditor(): ITextEditor; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
   end;
 
 implementation
@@ -86,7 +88,7 @@ begin
   FSetupDebugger := TGlobalBuilderChain.SubscribeToEvent<TSetupDebuggerEvent>(
     procedure(const AEventNotification: TSetupDebuggerEvent)
     begin
-      
+
     end);
 end;
 
@@ -135,6 +137,12 @@ end;
 function TTMSMemoEditorFrame.GetActiveLine: integer;
 begin
   Result := mmEditor.ActiveLine;
+end;
+
+procedure TTMSMemoEditorFrame.Save;
+begin
+  if not FFileName.IsEmpty() then
+    mmEditor.Lines.SaveToFile(FFileName);
 end;
 
 procedure TTMSMemoEditorFrame.SetActiveLine(AActiveLine: integer);
@@ -202,6 +210,11 @@ begin
   FEditor := TTMSMemoEditorFrame.Create(Self);
   FEditor.Parent := Self;
   FEditor.Align := TAlignLayout.Client;
+end;
+
+destructor TTMSMemoScriptEditorTabItem.Destroy;
+begin
+  inherited;
 end;
 
 function TTMSMemoScriptEditorTabItem.GetTextEditor: ITextEditor;

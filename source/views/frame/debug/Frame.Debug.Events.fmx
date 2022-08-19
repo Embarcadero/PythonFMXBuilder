@@ -1,0 +1,41 @@
+inherited EventsDebugFrame: TEventsDebugFrame
+  Size.Width = 654.000000000000000000
+  Size.Height = 284.000000000000000000
+  inherited tbFrame: TToolBar
+    Size.Width = 654.000000000000000000
+    inherited lbDescription: TLabel
+      Size.Width = 649.000000000000000000
+      Text = 'Events'
+    end
+  end
+  object grdEvents: TGrid
+    Align = Client
+    CanFocus = True
+    ClipChildren = True
+    Size.Width = 654.000000000000000000
+    Size.Height = 244.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Options = [ColumnResize, ColumnMove, Tabs, Header, AutoDisplacement]
+    Viewport.Width = 650.000000000000000000
+    Viewport.Height = 219.000000000000000000
+  end
+  object bsdbEvents: TBindSourceDB
+    DataSet = DebuggerDataSetContainer.fdmtEvent
+    ScopeMappings = <>
+    Left = 40
+    Top = 88
+  end
+  object bsEvents: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 124
+    Top = 85
+    object lgdsbsdbEvents: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsdbEvents
+      GridControl = grdEvents
+      Columns = <>
+    end
+  end
+end

@@ -13,19 +13,19 @@ uses
   Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
   Frame.Editor.Control, FMX.TreeView, Frame.Device, Frame.LeftMenu,
   Frame.EntityButtons, Frame.BuildButtons, Frame.DebugButtons, Frame.LeftPanel,
-  Frame.BottomPanel;
+  Frame.BottomPanel, Frame.SaveButtons;
 
 type
   TMainForm = class(TBaseForm)
     loEditor: TLayout;
     loFooter: TLayout;
     spLog: TSplitter;
-    rrSpliterGrip: TRoundRect;
+    rrLogSpliterGrip: TLine;
     frmLoading: TLoadingFrame;
     loMain: TLayout;
     frmProjectFiles: TProjectFilesFrame;
     spProjectFIles: TSplitter;
-    RoundRect1: TRoundRect;
+    rrProjectFilesSpliterGrip: TLine;
     loProjectOptions: TLayout;
     frmEditorControl: TEditorControlFrame;
     loEditorHeader: TLayout;
@@ -52,13 +52,15 @@ type
     miSetToMain: TMenuItem;
     frmDebugButtons: TDebugButtonsFrame;
     spLeftPanel: TSplitter;
-    RoundRect2: TRoundRect;
+    rrLeftPanelSpliterGrip: TLine;
     frmLeftPanel: TLeftPanelFrame;
     frmBottomFrame: TBottomPanelFrame;
     loLeftPanel: TLayout;
     lnEntitySeparator: TLine;
     lbProjectSeparator: TLine;
     lnBuildSeparator: TLine;
+    frmSaveButtons: TSaveButtonsFrame;
+    lnSaveStateSeparator: TLine;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);
