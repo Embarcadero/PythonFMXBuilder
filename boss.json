@@ -7,6 +7,7 @@
 	"projects": [],
 	"dependencies": {
 		"https://github.com/embarcadero/pythonenviroments": "^v0.0.1-alpha",
+		"https://github.com/lmbelo/dap4delphi": "^v0.1.0-alpha",
 		"https://github.com/lmbelo/vsoft.commandlineparser": "^v0.1.4",
 		"https://github.com/vsofttechnologies/dunitx": "^v0.3.1"
 	}

@@ -1,0 +1,64 @@
+object LeftPanelDebugFrame: TLeftPanelDebugFrame
+  Size.Width = 435.000000000000000000
+  Size.Height = 989.000000000000000000
+  Size.PlatformDefault = False
+  inline frmLocalVariables: TLocalVariablesDebugFrame
+    Align = Client
+    Size.Width = 435.000000000000000000
+    Size.Height = 644.000000000000000000
+    Size.PlatformDefault = False
+    inherited tbFrame: TToolBar
+      Size.Width = 435.000000000000000000
+      inherited lbDescription: TLabel
+        Size.Width = 430.000000000000000000
+      end
+    end
+    inherited grdLocalVariables: TGrid
+      Size.Width = 435.000000000000000000
+      Size.Height = 604.000000000000000000
+      Options = [ColumnResize, ColumnMove, ColLines, RowLines, Tabs, Header, HeaderClick, AutoDisplacement]
+      Viewport.Width = 431.000000000000000000
+      Viewport.Height = 579.000000000000000000
+    end
+  end
+  inline frmStackTrace: TStackTraceDebugFrame
+    Align = Top
+    Size.Width = 435.000000000000000000
+    Size.Height = 339.000000000000000000
+    Size.PlatformDefault = False
+    inherited tbFrame: TToolBar
+      Size.Width = 435.000000000000000000
+      inherited lbDescription: TLabel
+        Size.Width = 430.000000000000000000
+      end
+    end
+    inherited grdStackTrace: TGrid
+      Size.Width = 435.000000000000000000
+      Size.Height = 299.000000000000000000
+      Viewport.Width = 431.000000000000000000
+      Viewport.Height = 295.000000000000000000
+    end
+  end
+  object spHorizontal: TSplitter
+    Align = Top
+    Cursor = crVSplit
+    MinSize = 20.000000000000000000
+    Position.Y = 339.000000000000000000
+    ShowGrip = False
+    Size.Width = 435.000000000000000000
+    Size.Height = 6.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'splitterstyle'
+    object rrDebugLeftPanelSpliterGrip: TLine
+      Align = Center
+      HitTest = False
+      LineType = Top
+      Margins.Top = 5.000000000000000000
+      Size.Width = 30.000000000000000000
+      Size.Height = 6.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 3.000000000000000000
+      Stroke.Dash = Dot
+    end
+  end
+end

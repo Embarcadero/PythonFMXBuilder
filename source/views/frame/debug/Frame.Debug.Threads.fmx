@@ -1,0 +1,41 @@
+inherited ThreadsDebugFrame: TThreadsDebugFrame
+  Size.Width = 536.000000000000000000
+  Size.Height = 404.000000000000000000
+  inherited tbFrame: TToolBar
+    Size.Width = 536.000000000000000000
+    inherited lbDescription: TLabel
+      Size.Width = 531.000000000000000000
+      Text = 'Threads'
+    end
+  end
+  object grdThreads: TGrid
+    Align = Client
+    CanFocus = True
+    ClipChildren = True
+    Size.Width = 536.000000000000000000
+    Size.Height = 364.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Options = [ColumnResize, ColumnMove, Tabs, Header, AutoDisplacement]
+    Viewport.Width = 532.000000000000000000
+    Viewport.Height = 339.000000000000000000
+  end
+  object bsdbThreads: TBindSourceDB
+    DataSet = DebuggerDataSetContainer.fdmtThread
+    ScopeMappings = <>
+    Left = 128
+    Top = 88
+  end
+  object blThreads: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 204
+    Top = 85
+    object lgdsbsdbThreads: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsdbThreads
+      GridControl = grdThreads
+      Columns = <>
+    end
+  end
+end

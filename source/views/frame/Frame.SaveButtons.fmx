@@ -1,0 +1,31 @@
+object SaveButtonsFrame: TSaveButtonsFrame
+  Size.Width = 70.000000000000000000
+  Size.Height = 30.000000000000000000
+  Size.PlatformDefault = False
+  object sbSaveAll: TSpeedButton
+    Action = MenuActionsContainer.actSaveAllState
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 22
+    Margins.Left = 5.000000000000000000
+    Position.X = 40.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+  object sbSave: TSpeedButton
+    Action = MenuActionsContainer.actSaveState
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 2
+    Margins.Left = 5.000000000000000000
+    Position.X = 5.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+end

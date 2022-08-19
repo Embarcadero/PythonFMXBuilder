@@ -10,6 +10,8 @@ uses
 type
   TADBService = class(TInterfacedObject, IADBServices)
   private
+    class var FActiveDevice: string;
+  private
     procedure ExecCmd(const ACmdLine, ABaseDir: string; ACmdResult: TStrings);
     procedure EnumAssets(const AAssetsBasePath: string; const AProc: TProc<string>);
     procedure EnumLibraries(const ALibBasePath: string; const AProc: TProc<string>);
@@ -18,17 +20,32 @@ type
     function FindDeviceVendorModel(const AAdbPath, ADevice: string): string;
   public
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
+    procedure SetActiveDevice(const ADeviceName: string);
+    function GetActiveDevice(): string;
+    procedure CheckActiveDevice();
+
+    //App helpers
+    function GetAppInstallationPath(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): string;
+    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+    function IsAppRunning(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
+
+    function BuildApk(const AAppBasePath, AProjectName: string;
+      const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
+
     function InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
     function UnInstallApk(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
-    procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
 
-    function BuildApk(const AAppBasePath, AAppName: string;
-      const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
+    procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
+    procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+    procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+    procedure DebugApp(const AAdbPath, APkgName, ADevice, AHost: string; const APort: integer; const AResult: TStrings);
+    procedure ForceStopApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
   end;
 
 implementation
 
 uses
+  Builder.Chain,
   Builder.Storage.Default,
   {$IFDEF MSWINDOWS}
   Builder.Services.ADB.Win;
@@ -38,45 +55,46 @@ uses
 
 { TADBService }
 
-function TADBService.BuildApk(const AAppBasePath, AAppName: string;
+function TADBService.BuildApk(const AAppBasePath, AProjectName: string;
   const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
 const
   CMD_1 = '"$AAPT" package -f -m -J . -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
 
-  CMD_2 = '"$AAPT" package -f -m -F bin\$APPNAME.unaligned.apk -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
+  CMD_2 = '"$AAPT" package -f -m -F bin\$PROJNAME.unaligned.apk -M AndroidManifest.xml -S res -I "$ANDROIDJAR"';
 
   CMD_3 = 'xcopy "$APPBASEPATH\classes\classes.dex" "$APPBASEPATH\bin\" /y';
 
-  CMD_4 = '"$AAPT" add $APPNAME.unaligned.apk classes.dex';
+  CMD_4 = '"$AAPT" add $PROJNAME.unaligned.apk classes.dex';
 
   CMD_5 = 'xcopy "$APPBASEPATH\assets" "$APPBASEPATH\bin\assets" /y /E /H /C /I';
 
-  CMD_6 = '"$AAPT" add $APPNAME.unaligned.apk $FILE';
+  CMD_6 = '"$AAPT" add $PROJNAME.unaligned.apk $FILE';
 
   CMD_7 = 'xcopy "$APPBASEPATH\library\lib" "$APPBASEPATH\bin\lib" /y /E /H /C /I';
 
-  CMD_8 = '"$AAPT" add $APPNAME.unaligned.apk $FILE';
+  CMD_8 = '"$AAPT" add $PROJNAME.unaligned.apk $FILE';
 
-  CMD_9 = '"$JARSIGNER" -keystore cert\PyApp.keystore -storepass delphirocks bin\$APPNAME.unaligned.apk PyApp';
+  CMD_9 = '"$JARSIGNER" -keystore cert\PyApp.keystore -storepass delphirocks bin\$PROJNAME.unaligned.apk PyApp';
 
-  CMD_10 = '"$ZIPALIGN" -f 4 bin\$APPNAME.unaligned.apk bin\$APPNAME.apk';
+  CMD_10 = '"$ZIPALIGN" -f 4 bin\$PROJNAME.unaligned.apk bin\$PROJNAME.apk';
 
-  CMD_11 = '"$APKSIGNER" sign --ks-key-alias PyApp --ks cert\PyApp.keystore --ks-pass pass:delphirocks --key-pass pass:delphirocks bin\$APPNAME.apk';
+  CMD_11 = '"$APKSIGNER" sign --ks-key-alias PyApp --ks cert\PyApp.keystore --ks-pass pass:delphirocks --key-pass pass:delphirocks bin\$PROJNAME.apk';
 begin
   var LAppBinPath := TPath.Combine(AAppBasePath, 'bin');
-  if not TDirectory.Exists(LAppBinPath) then
-    TDirectory.CreateDirectory(LAppBinPath);
+  if TDirectory.Exists(LAppBinPath) then
+    TDirectory.Delete(LAppBinPath, true);
+  TDirectory.CreateDirectory(LAppBinPath);
 
   var LCmd := CMD_1
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-    .Replace('$APPNAME', AAppName)
+    .Replace('$PROJNAME', AProjectName)
     .Replace('$ANDROIDJAR', TPath.Combine(AEnvironmentModel.SdkApiLocation, 'android.jar'));
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
   LCmd := CMD_2
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-    .Replace('$APPNAME', AAppName)
+    .Replace('$PROJNAME', AProjectName)
     .Replace('$ANDROIDJAR', TPath.Combine(AEnvironmentModel.SdkApiLocation, 'android.jar'));
 
   ExecCmd(LCmd, AAppBasePath, AResult);
@@ -88,7 +106,7 @@ begin
 
   LCmd := CMD_4
     .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, LAppBinPath, AResult);
 
@@ -101,7 +119,7 @@ begin
     procedure(AFile: string) begin
       LCmd := CMD_6
         .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-        .Replace('$APPNAME', AAppName)
+        .Replace('$PROJNAME', AProjectName)
         .Replace('$FILE', AFile);
 
       ExecCmd(LCmd, LAppBinPath, AResult);
@@ -116,7 +134,7 @@ begin
     procedure(AFile: string) begin
       LCmd := CMD_8
         .Replace('$AAPT', AEnvironmentModel.AAptLocation)
-        .Replace('$APPNAME', AAppName)
+        .Replace('$PROJNAME', AProjectName)
         .Replace('$FILE', AFile);
 
       ExecCmd(LCmd, LAppBinPath, AResult);
@@ -124,13 +142,13 @@ begin
 
   LCmd := CMD_9
     .Replace('$JARSIGNER', AEnvironmentModel.JarSignerLocation)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
   LCmd := CMD_10
     .Replace('$ZIPALIGN', AEnvironmentModel.ZipAlignLocation)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
@@ -140,11 +158,11 @@ begin
 
   LCmd := CMD_11
     .Replace('$APKSIGNER', LApkSignerBatPath)
-    .Replace('$APPNAME', AAppName);
+    .Replace('$PROJNAME', AProjectName);
 
   ExecCmd(LCmd, AAppBasePath, AResult);
 
-  var LApkPath := TPath.Combine(LAppBinPath, ChangeFileExt(AAppName, '.apk'));
+  var LApkPath := TPath.Combine(LAppBinPath, ChangeFileExt(AProjectName, '.apk'));
   Result := TFile.Exists(LApkPath)
     and not AResult.Text.Contains('Failure');
 end;
@@ -176,14 +194,15 @@ begin
   if ADeviceList.Count > 1 then begin
     for var I := 1 to ADeviceList.Count -1 do begin
       if ADeviceList[I].Trim().IsEmpty() then
-        Exit;
+        Continue;
 
       var LPos := Pos(#9, ADeviceList[I]);
       if LPos = -1 then
-        Exit;
+        Continue;
 
       var LDevice := Copy(ADeviceList[I], 1, LPos - 1);
-      AProc(LDevice);
+      if not LDevice.Trim.IsEmpty() then
+        AProc(LDevice);
     end;
   end;
 end;
@@ -194,7 +213,7 @@ begin
   if not Assigned(AProc) then
     Exit;
 
-  for var LFile in TDirectory.GetFiles(ALibBasePath, '*.so', TSearchOption.soAllDirectories) do begin
+  for var LFile in TDirectory.GetFiles(ALibBasePath, '*', TSearchOption.soAllDirectories) do begin
     var LRelativeFilePath := LFile
       .Replace(ALibBasePath, String.Empty)
       .Replace('\', '/');
@@ -208,17 +227,14 @@ end;
 
 procedure TADBService.ExecCmd(const ACmdLine, ABaseDir: string; ACmdResult: TStrings);
 begin
-  var LLog: ILogServices := nil;
-  if Supports(GlobalServices, ILogServices, LLog) then
-    LLog.Log('ExecCmd: ' + ACmdLine);
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create('ExecCmd: ' + ACmdLine));
 
   var LCmdResults := TStringList.Create();
   try
     ExecCmdine(ACmdLine, ABaseDir, LCmdResults);
     ACmdResult.AddStrings(LCmdResults);
 
-    if Assigned(LLog) then
-      LLog.Log(LCmdResults.Text);
+    TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(LCmdResults.Text));
   finally
     LCmdResults.Free();
   end;
@@ -236,6 +252,34 @@ begin
   end;
 end;
 
+procedure TADBService.ForceStopApp(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings);
+const
+  CMD = '%s -s %s shell am force-stop %s';
+begin
+  ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
+end;
+
+function TADBService.GetActiveDevice: string;
+begin
+  Result := FActiveDevice;
+end;
+
+function TADBService.GetAppInstallationPath(const AAdbPath, APkgName,
+  ADevice: string; const AResult: TStrings): string;
+const
+  CMD = '%s -s %s shell pm path %s';
+begin
+  var LStrings := TStringList.Create();
+  try
+    AResult.AddStrings(LStrings);
+    ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
+    Result := LStrings.Text.Replace(sLineBreak, '', [rfReplaceAll]);
+  finally
+    LStrings.Free();
+  end;
+end;
+
 function TADBService.InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
 begin
   var LStrings := TStringList.Create();
@@ -243,6 +287,34 @@ begin
     ExecCmd(AAdbPath + Format(' -s %s install ', [ADevice]) + AApkPath, String.Empty, LStrings);
     AResult.AddStrings(LStrings);
     Result := (not LStrings.Text.Contains('failure')) and (not LStrings.Text.Contains('failed'));
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TADBService.IsAppInstalled(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings): boolean;
+begin
+  var LStrings := TStringList.Create();
+  try
+    ExecCmd(Format('%s -s %s shell pm list packages | grep %s', [AAdbPath, ADevice, APkgName]), String.Empty, LStrings);
+    AResult.AddStrings(LStrings);
+    Result := LStrings.Text.Contains(APkgName);
+  finally
+    LStrings.Free();
+  end;
+end;
+
+function TADBService.IsAppRunning(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings): boolean;
+var
+  LPid: integer;
+begin
+  var LStrings := TStringList.Create();
+  try
+    ExecCmd(Format('%s -s %s shell pidof %s', [AAdbPath, ADevice, APkgName]), String.Empty, LStrings);
+    AResult.AddStrings(LStrings);
+    Result := TryStrToInt(LStrings.Text.Replace(sLineBreak, '', [rfReplaceAll]), LPid);
   finally
     LStrings.Free();
   end;
@@ -276,10 +348,43 @@ end;
 
 procedure TADBService.RunApp(const AAdbPath, APkgName, ADevice: string;
   const AResult: TStrings);
+const
+  CMD = '%s -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity';
 begin
-  ExecCmd(AAdbPath
-    + Format(' -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity', [
-        ADevice, APkgName]), String.Empty, AResult);
+  ExecCmd(Format(CMD, [AAdbPath, ADevice, APkgName]), String.Empty, AResult);
+end;
+
+procedure TADBService.CheckActiveDevice;
+begin
+  if GetActiveDevice().IsEmpty() then
+    raise Exception.Create('No device selected.');
+end;
+
+procedure TADBService.DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;
+  const APort: integer; const AResult: TStrings);
+const
+  CMD_START = '%s -s %s shell am start -n %s/com.embarcadero.firemonkey.FMXNativeActivity --es args ''"--debugpy -port %d"''';
+begin
+  ExecCmd(Format(CMD_START, [AAdbPath, ADevice, APkgName, APort]), String.Empty, AResult);
+end;
+
+procedure TADBService.SetActiveDevice(const ADeviceName: string);
+begin
+  FActiveDevice := ADeviceName;
+end;
+
+procedure TADBService.StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+const
+  CMD_REDIRECT = '%0:s forward tcp:%1:d tcp:%1:d';
+begin
+  ExecCmd(Format(CMD_REDIRECT, [AAdbPath, APort]), String.Empty, AResult);
+end;
+
+procedure TADBService.StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
+const
+  CMD_REDIRECT = '%0:s forward --remove tcp:%1:d';
+begin
+  ExecCmd(Format(CMD_REDIRECT, [AAdbPath, APort]), String.Empty, AResult);
 end;
 
 end.

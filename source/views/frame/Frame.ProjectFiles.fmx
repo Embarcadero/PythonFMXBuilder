@@ -23,12 +23,12 @@ object ProjectFilesFrame: TProjectFilesFrame
     object miAddFile: TMenuItem
       Action = actAddFile
       Enabled = True
-      ImageIndex = 13
+      ImageIndex = 6
     end
     object miRemoveFile: TMenuItem
       Action = actRemoveFile
       Enabled = True
-      ImageIndex = 14
+      ImageIndex = 7
     end
     object miSetToMain: TMenuItem
       Action = actSetToMain
@@ -48,15 +48,15 @@ object ProjectFilesFrame: TProjectFilesFrame
     Top = 72
     object actAddFile: TAction
       Text = 'Add file'
-      ImageIndex = 13
+      ImageIndex = 6
       OnExecute = actAddFileExecute
-      ImageIndex = 13
+      ImageIndex = 6
     end
     object actRemoveFile: TAction
       Text = 'Remove file'
-      ImageIndex = 14
+      ImageIndex = 7
       OnExecute = actRemoveFileExecute
-      ImageIndex = 14
+      ImageIndex = 7
     end
     object actSetToMain: TAction
       Text = 'Set to main'

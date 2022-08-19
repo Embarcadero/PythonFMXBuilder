@@ -400,6 +400,15 @@ begin
 
   //Fields
   LOption := LCmd.RegisterOption<string>(
+    'application_name',
+    String.Empty,
+    'Application name.',
+    procedure(const AValue: string) begin
+      TProjectOptions.ApplicationNameCommand := AValue;
+    end);
+  LOption.Required := false;
+
+  LOption := LCmd.RegisterOption<string>(
     'package_name',
     String.Empty,
     'Package name (com.embarcadero.my_app).',

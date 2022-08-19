@@ -1,12 +1,9 @@
 inherited MainForm: TMainForm
   Caption = 'PythonFMX Builder for Android'
-  ClientHeight = 612
-  ClientWidth = 719
+  ClientHeight = 1282
+  ClientWidth = 1938
   Position = ScreenCenter
-  WindowState = wsMaximized
-  OnCreate = FormCreate
-  OnDestroy = FormDestroy
-  OnShow = FormShow
+  OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook
     Styles = <
@@ -81,7 +78,7 @@ inherited MainForm: TMainForm
           0C4D617267696E732E4C6566740500000000000000A001400B4D617267696E73
           2E546F7005000000000000008000400D4D617267696E732E5269676874050000
           0000000000A001400E4D617267696E732E426F74746F6D050000000000000080
-          00400A506F736974696F6E2E5805000000000000008803400A506F736974696F
+          00400A506F736974696F6E2E580500000000000000E803400A506F736974696F
           6E2E5905000000000000008000400A53697A652E576964746805000000000000
           008003400B53697A652E48656967687405000000000000009803401453697A65
           2E506C6174666F726D44656661756C7408000000000F545461625374796C654F
@@ -285,282 +282,280 @@ inherited MainForm: TMainForm
           697A652E48656967687405000000000000009803401453697A652E506C617466
           6F726D44656661756C74080000000000}
       end>
-    Left = 288
-    Top = 504
+    Left = 312
+    Top = 840
   end
   object loFooter: TLayout
     Align = Bottom
-    Position.Y = 500.000000000000000000
-    Size.Width = 719.000000000000000000
-    Size.Height = 112.000000000000000000
+    Padding.Left = 5.000000000000000000
+    Padding.Right = 5.000000000000000000
+    Padding.Bottom = 5.000000000000000000
+    Position.Y = 1068.000000000000000000
+    Size.Width = 1938.000000000000000000
+    Size.Height = 214.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    object mmLog: TMemo
-      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
-      DataDetectorTypes = []
+    inline frmBottomFrame: TBottomPanelFrame
       Align = Client
-      Size.Width = 719.000000000000000000
-      Size.Height = 112.000000000000000000
+      Size.Width = 1928.000000000000000000
+      Size.Height = 209.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 0
-      Viewport.Width = 715.000000000000000000
-      Viewport.Height = 108.000000000000000000
+      inherited tcBottomPanelControls: TTabControl
+        Size.Width = 1928.000000000000000000
+        Size.Height = 209.000000000000000000
+        Sizes = (
+          1928s
+          183s
+          1928s
+          183s)
+        inherited tiBottomPanelDesignSession: TTabItem
+          Size.Width = 100.000000000000000000
+          Size.Height = 26.000000000000000000
+          ExplicitSize.cx = 104.000000000000000000
+          ExplicitSize.cy = 26.000000000000000000
+          inherited frmLog: TLogFrame
+            Size.Width = 1928.000000000000000000
+            Size.Height = 183.000000000000000000
+            inherited mmLog: TMemo
+              Size.Width = 1928.000000000000000000
+              Size.Height = 143.000000000000000000
+              Viewport.Width = 1928.000000000000000000
+              Viewport.Height = 143.000000000000000000
+            end
+            inherited tbFrame: TToolBar
+              Size.Width = 1928.000000000000000000
+              inherited lbDescription: TLabel
+                Size.Width = 1923.000000000000000000
+              end
+            end
+          end
+        end
+        inherited tiBottomPanelDebugSession: TTabItem
+          Size.Width = 99.000000000000000000
+          Size.Height = 26.000000000000000000
+          ExplicitSize.cx = 103.000000000000000000
+          ExplicitSize.cy = 26.000000000000000000
+          inherited frmBottomPanelDebug: TBottomPanelDebugFrame
+            Size.Width = 1928.000000000000000000
+            Size.Height = 183.000000000000000000
+            inherited tbBottomPanelDebugControls: TTabControl
+              Size.Width = 1928.000000000000000000
+              Size.Height = 183.000000000000000000
+              Sizes = (
+                1928s
+                157s
+                1928s
+                157s
+                1928s
+                157s)
+              inherited tiBottomPanelDebugEvents: TTabItem
+                ExplicitSize.cx = 62.000000000000000000
+                ExplicitSize.cy = 26.000000000000000000
+                inherited frmDebugEvents: TEventsDebugFrame
+                  Size.Width = 1928.000000000000000000
+                  Size.Height = 157.000000000000000000
+                  inherited tbFrame: TToolBar
+                    Size.Width = 1928.000000000000000000
+                    inherited lbDescription: TLabel
+                      Size.Width = 1923.000000000000000000
+                    end
+                  end
+                  inherited grdEvents: TGrid
+                    Size.Width = 1928.000000000000000000
+                    Size.Height = 117.000000000000000000
+                    Viewport.Width = 1908.000000000000000000
+                    Viewport.Height = 76.000000000000000000
+                  end
+                  inherited bsdbEvents: TBindSourceDB
+                    Left = 24
+                    Top = 1144
+                  end
+                  inherited bsEvents: TBindingsList
+                    Left = 20
+                    Top = 1205
+                  end
+                end
+              end
+              inherited tiBottomPanelDebugBreakpoints: TTabItem
+                ExplicitSize.cx = 83.000000000000000000
+                ExplicitSize.cy = 26.000000000000000000
+                inherited frmDebugBreakpoint: TBreakpointsDebugFrame
+                  Size.Width = 1928.000000000000000000
+                  Size.Height = 157.000000000000000000
+                  inherited tbFrame: TToolBar
+                    Size.Width = 1928.000000000000000000
+                    inherited lbDescription: TLabel
+                      Size.Width = 1923.000000000000000000
+                    end
+                  end
+                  inherited grdEvents: TGrid
+                    Size.Width = 1928.000000000000000000
+                    Size.Height = 117.000000000000000000
+                    Viewport.Width = 1928.000000000000000000
+                    Viewport.Height = 117.000000000000000000
+                  end
+                  inherited bsdbBreakpoints: TBindSourceDB
+                    Left = 176
+                    Top = 1144
+                  end
+                  inherited blBreakpoints: TBindingsList
+                    Left = 172
+                    Top = 1205
+                  end
+                end
+              end
+              inherited tiBottomPanelDebugThreads: TTabItem
+                ExplicitSize.cx = 62.000000000000000000
+                ExplicitSize.cy = 26.000000000000000000
+                inherited frmDebugThreads: TThreadsDebugFrame
+                  Size.Width = 1928.000000000000000000
+                  Size.Height = 157.000000000000000000
+                  inherited tbFrame: TToolBar
+                    Size.Width = 1928.000000000000000000
+                    inherited lbDescription: TLabel
+                      Size.Width = 1923.000000000000000000
+                    end
+                  end
+                  inherited grdThreads: TGrid
+                    Size.Width = 1928.000000000000000000
+                    Size.Height = 117.000000000000000000
+                    Viewport.Width = 1928.000000000000000000
+                    Viewport.Height = 117.000000000000000000
+                  end
+                  inherited bsdbThreads: TBindSourceDB
+                    Left = 88
+                    Top = 1144
+                  end
+                  inherited blThreads: TBindingsList
+                    Left = 92
+                    Top = 1205
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
     end
   end
   object spLog: TSplitter
     Align = Bottom
     Cursor = crVSplit
     MinSize = 20.000000000000000000
-    Position.Y = 494.000000000000000000
+    Position.Y = 1062.000000000000000000
     ShowGrip = False
-    Size.Width = 719.000000000000000000
+    Size.Width = 1938.000000000000000000
     Size.Height = 6.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'splitterstyle'
-    object rrSpliterGrip: TRoundRect
+    object rrLogSpliterGrip: TLine
       Align = Center
       HitTest = False
+      LineType = Top
+      Margins.Top = 5.000000000000000000
       Size.Width = 30.000000000000000000
       Size.Height = 6.000000000000000000
       Size.PlatformDefault = False
+      Stroke.Thickness = 3.000000000000000000
+      Stroke.Dash = Dot
     end
   end
   object loMain: TLayout
     Align = Client
-    Size.Width = 719.000000000000000000
-    Size.Height = 494.000000000000000000
+    Padding.Left = 5.000000000000000000
+    Padding.Right = 5.000000000000000000
+    Size.Width = 1938.000000000000000000
+    Size.Height = 1022.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 2
-    object pnlLeftMenu: TPanel
-      Align = Left
-      Size.Width = 54.000000000000000000
-      Size.Height = 494.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 1
-      object lbLeftMenu: TListBox
-        Align = Client
-        Size.Width = 54.000000000000000000
-        Size.Height = 494.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        DisableFocusEffect = True
-        Images = ImageContainer.images
-        DefaultItemStyles.ItemStyle = 'listboxitemnodetail'
-        DefaultItemStyles.GroupHeaderStyle = 'listboxgroupheader'
-        DefaultItemStyles.GroupFooterStyle = ''
-        Viewport.Width = 50.000000000000000000
-        Viewport.Height = 490.000000000000000000
-        object ListBoxGroupHeader1: TListBoxGroupHeader
-          TextSettings.HorzAlign = Center
-          StyledSettings = [Family, Size, Style, FontColor]
-          Size.Width = 50.000000000000000000
-          Size.Height = 34.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-          Text = 'Environ.'
-        end
-        object lbiEnvironment: TListBoxItem
-          ImageIndex = 0
-          Position.Y = 34.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 1
-          OnClick = lbiEnvironmentClick
-        end
-        object ListBoxGroupHeader2: TListBoxGroupHeader
-          TextSettings.HorzAlign = Center
-          StyledSettings = [Family, Size, Style, FontColor]
-          Position.Y = 84.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 34.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 5
-          Text = 'Project'
-        end
-        object lbiProject: TListBoxItem
-          ImageIndex = 9
-          Position.Y = 118.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 6
-          OnClick = lbiProjectClick
-        end
-        object ListBoxGroupHeader3: TListBoxGroupHeader
-          TextSettings.HorzAlign = Center
-          StyledSettings = [Family, Size, Style, FontColor]
-          Position.Y = 168.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 34.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 2
-          Text = 'App'
-        end
-        object lbiBuild: TListBoxItem
-          ImageIndex = 8
-          Position.Y = 202.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 3
-          OnClick = lbiBuildClick
-        end
-        object lbiDeploy: TListBoxItem
-          ImageIndex = 2
-          Position.Y = 252.000000000000000000
-          Size.Width = 50.000000000000000000
-          Size.Height = 50.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 4
-          OnClick = lbiDeployClick
-        end
-      end
-    end
     object loEditor: TLayout
       Align = Client
-      Size.Width = 665.000000000000000000
-      Size.Height = 494.000000000000000000
+      Size.Width = 1656.000000000000000000
+      Size.Height = 1022.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      object loEditorHeader: TLayout
-        Align = Top
-        Size.Width = 665.000000000000000000
-        Size.Height = 35.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        object loDevice: TLayout
-          Align = Right
-          Position.X = 425.000000000000000000
-          Size.Width = 240.000000000000000000
-          Size.Height = 35.000000000000000000
-          Size.PlatformDefault = False
-          TabOrder = 0
-          object aiDevice: TAniIndicator
-            Align = Left
-            Margins.Left = 10.000000000000000000
-            Margins.Top = 10.000000000000000000
-            Margins.Right = 10.000000000000000000
-            Margins.Bottom = 10.000000000000000000
-            Position.X = 10.000000000000000000
-            Position.Y = 10.000000000000000000
-            Size.Width = 18.000000000000000000
-            Size.Height = 15.000000000000000000
-            Size.PlatformDefault = False
-          end
-          object cbDevice: TComboBox
-            Align = Client
-            Margins.Left = 5.000000000000000000
-            Margins.Top = 5.000000000000000000
-            Margins.Right = 5.000000000000000000
-            Margins.Bottom = 5.000000000000000000
-            Size.Width = 141.000000000000000000
-            Size.Height = 25.000000000000000000
-            Size.PlatformDefault = False
-            TabOrder = 59
-          end
-          object btnRefreshDevice: TSpeedButton
-            Align = Right
-            Margins.Left = 10.000000000000000000
-            Margins.Right = 10.000000000000000000
-            Position.X = 199.000000000000000000
-            Size.Width = 31.000000000000000000
-            Size.Height = 35.000000000000000000
-            Size.PlatformDefault = False
-            StyleLookup = 'refreshtoolbutton'
-            Text = 'refreshtoolbutton'
-            OnClick = btnRefreshDeviceClick
-          end
-        end
-      end
       object spProjectFIles: TSplitter
         Align = Right
         Cursor = crHSplit
         MinSize = 20.000000000000000000
-        Position.X = 424.000000000000000000
-        Position.Y = 35.000000000000000000
+        Position.X = 1374.000000000000000000
         ShowGrip = False
         Size.Width = 6.000000000000000000
-        Size.Height = 459.000000000000000000
+        Size.Height = 1022.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'splitterstyle'
-        object RoundRect1: TRoundRect
+        object rrProjectFilesSpliterGrip: TLine
           Align = Center
           HitTest = False
+          LineType = Top
+          Margins.Right = 5.000000000000000000
           RotationAngle = 90.000000000000000000
           Size.Width = 30.000000000000000000
           Size.Height = 6.000000000000000000
           Size.PlatformDefault = False
+          Stroke.Thickness = 3.000000000000000000
+          Stroke.Dash = Dot
         end
       end
       object loProjectOptions: TLayout
         Align = Right
-        Position.X = 430.000000000000000000
-        Position.Y = 35.000000000000000000
-        Size.Width = 235.000000000000000000
-        Size.Height = 459.000000000000000000
+        Position.X = 1380.000000000000000000
+        Size.Width = 276.000000000000000000
+        Size.Height = 1022.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 2
+        TabOrder = 1
+        OnResized = loProjectOptionsResized
         inline frmProjectFiles: TProjectFilesFrame
           Align = Client
-          Size.Width = 235.000000000000000000
-          Size.Height = 434.000000000000000000
+          Size.Width = 276.000000000000000000
+          Size.Height = 1022.000000000000000000
           Size.PlatformDefault = False
           inherited tvProjectFiles: TTreeView
-            Size.Width = 235.000000000000000000
-            Size.Height = 434.000000000000000000
-            Viewport.Width = 231.000000000000000000
-            Viewport.Height = 430.000000000000000000
+            Size.Width = 276.000000000000000000
+            Size.Height = 1022.000000000000000000
+            Viewport.Width = 272.000000000000000000
+            Viewport.Height = 1018.000000000000000000
           end
           inherited pmtvProjectFiles: TPopupMenu
-            Left = 24
-            Top = 504
+            Top = 840
           end
           inherited odtvProjectFiles: TOpenDialog
-            Left = 208
-            Top = 504
+            Left = 232
+            Top = 840
           end
           inherited altvProjectFiles: TActionList
-            Left = 120
-            Top = 504
+            Left = 144
+            Top = 840
             inherited actAddFile: TAction
-              ImageIndex = 13
+              ImageIndex = 6
             end
             inherited actRemoveFile: TAction
-              ImageIndex = 14
+              ImageIndex = 7
             end
-          end
-        end
-        inline frmProjectButtons: TProjectButtonsFrame
-          Align = Top
-          Size.Width = 235.000000000000000000
-          Size.Height = 25.000000000000000000
-          Size.PlatformDefault = False
-          inherited btnCreate: TButton
-            Margins.Bottom = 2.000000000000000000
-            Size.Width = 116.000000000000000000
-            Size.Height = 23.000000000000000000
-            OnClick = frmProjectButtonsbtnCreateClick
-          end
-          inherited btnOpen: TButton
-            Margins.Right = 1.000000000000000000
-            Margins.Bottom = 2.000000000000000000
-            Position.X = 118.000000000000000000
-            Size.Width = 116.000000000000000000
-            Size.Height = 23.000000000000000000
-            OnClick = frmProjectButtonsbtnOpenClick
           end
         end
       end
-      inline frmScriptEditor: TScriptEditorFrame
+      inline frmEditorControl: TEditorControlFrame
         Align = Client
-        Size.Width = 424.000000000000000000
-        Size.Height = 459.000000000000000000
+        Size.Width = 1374.000000000000000000
+        Size.Height = 1022.000000000000000000
         Size.PlatformDefault = False
         inherited tbScripts: TTabControl
-          Size.Width = 424.000000000000000000
-          Size.Height = 459.000000000000000000
+          Size.Width = 1374.000000000000000000
+          Size.Height = 1022.000000000000000000
         end
+        inherited dsActiveSource: TDataSource
+          Left = 296
+          Top = 1000
+        end
+      end
+      object loEditorHeader: TLayout
+        Align = Top
+        Size.Width = 1087.000000000000000000
+        Size.Height = 38.000000000000000000
+        Size.PlatformDefault = False
+        Visible = False
+        TabOrder = 0
       end
     end
     inline frmLoading: TLoadingFrame
@@ -569,6 +564,373 @@ inherited MainForm: TMainForm
       Size.Height = 522.000000000000000000
       Size.PlatformDefault = False
       Visible = False
+    end
+    object spLeftPanel: TSplitter
+      Align = Left
+      Cursor = crHSplit
+      MinSize = 20.000000000000000000
+      Position.X = 271.000000000000000000
+      ShowGrip = False
+      Size.Width = 6.000000000000000000
+      Size.Height = 1022.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'splitterstyle'
+      object rrLeftPanelSpliterGrip: TLine
+        Align = Center
+        HitTest = False
+        LineType = Top
+        Margins.Right = 5.000000000000000000
+        RotationAngle = 90.000000000000000000
+        Size.Width = 30.000000000000000000
+        Size.Height = 6.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 3.000000000000000000
+        Stroke.Dash = Dot
+      end
+    end
+    object loLeftPanel: TLayout
+      Align = MostLeft
+      Position.X = 5.000000000000000000
+      Size.Width = 266.000000000000000000
+      Size.Height = 1022.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      OnResize = loLeftPanelResize
+      inline frmLeftPanel: TLeftPanelFrame
+        Align = Client
+        Size.Width = 266.000000000000000000
+        Size.Height = 1022.000000000000000000
+        Size.PlatformDefault = False
+        inherited tcLeftPanelControls: TTabControl
+          Size.Width = 266.000000000000000000
+          Size.Height = 1022.000000000000000000
+          Sizes = (
+            266s
+            996s
+            266s
+            996s)
+          inherited tiLeftPanelDesignSession: TTabItem
+            Size.Width = 100.000000000000000000
+            Size.Height = 26.000000000000000000
+            ExplicitSize.cx = 8.000000000000000000
+            ExplicitSize.cy = 8.000000000000000000
+          end
+          inherited tiLeftPanelDebugSession: TTabItem
+            Size.Width = 99.000000000000000000
+            Size.Height = 26.000000000000000000
+            ExplicitSize.cx = 8.000000000000000000
+            ExplicitSize.cy = 8.000000000000000000
+            inherited frmLeftPanelDebug: TLeftPanelDebugFrame
+              Size.Width = 266.000000000000000000
+              Size.Height = 996.000000000000000000
+              inherited frmLocalVariables: TLocalVariablesDebugFrame
+                Size.Width = 266.000000000000000000
+                Size.Height = 565.000000000000000000
+                inherited tbFrame: TToolBar
+                  Size.Width = 266.000000000000000000
+                  inherited lbDescription: TLabel
+                    Size.Width = 261.000000000000000000
+                  end
+                end
+                inherited grdLocalVariables: TGrid
+                  Size.Width = 266.000000000000000000
+                  Size.Height = 525.000000000000000000
+                  Viewport.Width = 266.000000000000000000
+                  Viewport.Height = 525.000000000000000000
+                end
+                inherited bsdbLocalVariables: TBindSourceDB
+                  Left = 360
+                  Top = 1144
+                end
+                inherited blLocalVariables: TBindingsList
+                  Left = 356
+                  Top = 1205
+                end
+              end
+              inherited frmStackTrace: TStackTraceDebugFrame
+                Size.Width = 266.000000000000000000
+                inherited tbFrame: TToolBar
+                  Size.Width = 266.000000000000000000
+                  inherited lbDescription: TLabel
+                    Size.Width = 261.000000000000000000
+                  end
+                end
+                inherited grdStackTrace: TGrid
+                  Size.Width = 266.000000000000000000
+                  Viewport.Width = 266.000000000000000000
+                  Viewport.Height = 385.000000000000000000
+                end
+                inherited bsdbStackTrace: TBindSourceDB
+                  Left = 248
+                  Top = 1144
+                end
+                inherited blStackTrace: TBindingsList
+                  Left = 252
+                  Top = 1205
+                end
+              end
+              inherited spHorizontal: TSplitter
+                Size.Width = 266.000000000000000000
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  object tbMenu: TToolBar
+    Size.Width = 1938.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 8
+    inline frmProjectButtons: TProjectButtonsFrame
+      Align = Left
+      Position.X = 77.000000000000000000
+      Size.Width = 105.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited btnCreate: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited btnOpen: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited btnRemove: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    inline frmDevice: TDeviceFrame
+      Align = Right
+      Position.X = 1652.000000000000000000
+      Size.Width = 286.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited aiDevice: TAniIndicator
+        Size.Height = 20.000000000000000000
+      end
+      inherited btnRefreshDevice: TSpeedButton
+        Position.X = 245.000000000000000000
+        Size.Height = 40.000000000000000000
+      end
+      inherited cbDevice: TComboBox
+        Size.Width = 187.000000000000000000
+        Size.Height = 30.000000000000000000
+      end
+    end
+    inline frmEntityButtons: TEntityButtonsFrame
+      Align = Left
+      Size.Width = 70.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbUpdateEnvironment: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbUpdateProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    inline frmBuildButtons: TBuildButtonsFrame
+      Align = Left
+      Position.X = 266.000000000000000000
+      Size.Width = 105.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbBuildCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited spDeployCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+        OnClick = nil
+      end
+      inherited sbRunCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    inline frmDebugButtons: TDebugButtonsFrame
+      Align = Left
+      Position.X = 378.000000000000000000
+      Size.Width = 245.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbDebugCurrentProject: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited spStepInto: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbStepOver: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbStepOut: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited btnStop: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited btnPause: TSpeedButton
+        Size.Height = 40.000000000000000000
+        OnClick = nil
+      end
+      inherited sbContinue: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    object lnEntitySeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 75.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+    object lbProjectSeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 187.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+    object lnBuildSeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 376.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+    inline frmSaveButtons: TSaveButtonsFrame
+      Align = Left
+      Position.X = 189.000000000000000000
+      Size.Width = 70.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      inherited sbSaveAll: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+      inherited sbSave: TSpeedButton
+        Size.Height = 40.000000000000000000
+      end
+    end
+    object lnSaveStateSeparator: TLine
+      Align = Left
+      HitTest = False
+      LineType = Left
+      Margins.Left = 5.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 264.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 2.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Thickness = 2.000000000000000000
+      Stroke.Dash = Dot
+    end
+  end
+  object mmMenu: TMainMenu
+    Images = ImageContainer.images
+    Left = 376
+    Top = 840
+    object miFile: TMenuItem
+      Text = '&File'
+      object miRemoveFile: TMenuItem
+        Action = frmProjectFiles.actAddFile
+        Enabled = True
+        Locked = True
+        ImageIndex = 6
+      end
+      object miAddFile: TMenuItem
+        Action = frmProjectFiles.actRemoveFile
+        Enabled = True
+        Locked = True
+        ImageIndex = 7
+      end
+      object miSetToMain: TMenuItem
+        Action = frmProjectFiles.actSetToMain
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+    end
+    object miProject: TMenuItem
+      Text = '&Project'
+      object miNewProject: TMenuItem
+        Action = MenuActionsContainer.actNewProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 8
+      end
+      object miOpenProject: TMenuItem
+        Action = MenuActionsContainer.actOpenProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 9
+      end
+      object miUpdateProject: TMenuItem
+        Action = MenuActionsContainer.actUpdateCurrentProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 1
+      end
+      object miRemoveProject: TMenuItem
+        Action = MenuActionsContainer.actRemoveCurrentProject
+        Enabled = True
+        Locked = True
+        ImageIndex = 10
+      end
+    end
+    object MenuItem1: TMenuItem
+      Locked = True
+      Text = '&Run'
+      object miBuild: TMenuItem
+        Action = MenuActionsContainer.actBuildCurrentProjectAsync
+        Enabled = True
+        Locked = True
+        ImageIndex = 11
+      end
+      object miDeploy: TMenuItem
+        Action = MenuActionsContainer.actDeployCurrentProjectAsync
+        Enabled = True
+        Locked = True
+        ImageIndex = 12
+      end
+      object miRun: TMenuItem
+        Action = MenuActionsContainer.actRunCurrentProjectAsync
+        Enabled = True
+        Locked = True
+        ImageIndex = 13
+      end
+    end
+    object miTools: TMenuItem
+      Text = '&Tools'
+      object miUpdateEnvironment: TMenuItem
+        Action = MenuActionsContainer.actUpdateEnvironment
+        Enabled = True
+        Locked = True
+        ImageIndex = 0
+      end
     end
   end
 end

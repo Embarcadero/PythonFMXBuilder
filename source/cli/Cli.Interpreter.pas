@@ -3,11 +3,9 @@ unit Cli.Interpreter;
 interface
 
 uses
-  System.SysUtils, System.StrUtils, System.Classes,
-  VSoft.CommandLine.Options,
-  Builder.Model, Builder.Model.Environment, Builder.Model.Project,
-  Builder.PythonVersion, Builder.Architecture,
-  System.Rtti;
+  System.SysUtils, System.StrUtils, System.Classes, System.Rtti,
+  VSoft.CommandLine.Options, Builder.Model, Builder.Model.Environment,
+  Builder.Model.Project, Builder.PythonVersion, Builder.Architecture;
 
 type
   TCommandInterpreter = class
@@ -38,38 +36,22 @@ implementation
 
 uses
   PyTools.ExecCmd,
+  Builder.Chain,
   Builder.Exception,
-  Builder.Services, Builder.Services.Factory,
+  Builder.Services,
+  Builder.Services.Factory,
   Builder.Storage.Default,
-  Cli.Commands, Cli.Options, Cli.Exception;
-
-type
-  TCliServices = class(TInterfacedObject, IServices, ILogServices)
-  public
-    procedure Log(const AString: string);
-  end;
-
-{ TCliServices }
-
-procedure TCliServices.Log(const AString: string);
-begin
-  WriteLn(AString);
-end;
+  Cli.Commands,
+  Cli.Options,
+  Cli.Exception;
 
 { TCommandInterpreter }
 
 class function TCommandInterpreter.ExecuteAction(
   const AVerbose: boolean; const AAction: TFunc<boolean>): boolean;
 begin
-  if AVerbose then begin
-    GlobalServices := TCliServices.Create();
-    try
-      Result := AAction();
-    finally
-      GlobalServices := nil;
-    end;
-  end else
-    Result := AAction();
+  { TODO : Manage verbosity }
+  Result := AAction();
 end;
 
 class procedure TCommandInterpreter.DoHelpCommand(const ACommand: string);
@@ -320,6 +302,9 @@ begin
 
   var LProjectModel := LProjectService.LoadProject(TProjectOptions.SelectCommand);
   try
+    if TEntityOptionsHelper.HasChanged(TProjectOptions.ApplicationNameCommand) then
+      LProjectModel.ApplicationName := TProjectOptions.ApplicationNameCommand.AsString();
+
     if TEntityOptionsHelper.HasChanged(TProjectOptions.PackageNameCommand) then
       LProjectModel.PackageName := TProjectOptions.PackageNameCommand.AsString();
 

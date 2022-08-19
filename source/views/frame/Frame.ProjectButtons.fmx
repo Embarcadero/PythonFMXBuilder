@@ -1,29 +1,44 @@
 object ProjectButtonsFrame: TProjectButtonsFrame
-  Size.Width = 234.000000000000000000
-  Size.Height = 33.000000000000000000
+  Size.Width = 105.000000000000000000
+  Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
-  object btnCreate: TButton
+  object btnCreate: TSpeedButton
+    Action = MenuActionsContainer.actNewProject
     Align = Left
+    Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 1
-    Size.Width = 100.000000000000000000
-    Size.Height = 33.000000000000000000
+    ImageIndex = 8
+    Margins.Left = 5.000000000000000000
+    Position.X = 5.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 1
-    Text = 'New project'
-    OnClick = btnCreateClick
+    StyleLookup = 'actiontoolbutton'
   end
-  object btnOpen: TButton
-    Align = Right
+  object btnOpen: TSpeedButton
+    Action = MenuActionsContainer.actOpenProject
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 9
+    Margins.Left = 5.000000000000000000
+    Position.X = 40.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+  object btnRemove: TSpeedButton
+    Action = MenuActionsContainer.actRemoveCurrentProject
+    Align = Left
+    Enabled = True
     Images = ImageContainer.images
     ImageIndex = 10
-    Margins.Left = 1.000000000000000000
-    Position.X = 134.000000000000000000
-    Size.Width = 100.000000000000000000
-    Size.Height = 33.000000000000000000
+    Margins.Left = 5.000000000000000000
+    Position.X = 75.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 0
-    Text = 'Open project'
-    OnClick = btnOpenClick
+    StyleLookup = 'actiontoolbutton'
   end
 end

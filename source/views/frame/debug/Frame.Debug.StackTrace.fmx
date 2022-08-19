@@ -1,0 +1,41 @@
+inherited StackTraceDebugFrame: TStackTraceDebugFrame
+  Size.Width = 386.000000000000000000
+  Size.Height = 312.000000000000000000
+  inherited tbFrame: TToolBar
+    Size.Width = 386.000000000000000000
+    inherited lbDescription: TLabel
+      Size.Width = 381.000000000000000000
+      Text = 'StackTrace'
+    end
+  end
+  object grdStackTrace: TGrid
+    Align = Client
+    CanFocus = True
+    ClipChildren = True
+    Size.Width = 386.000000000000000000
+    Size.Height = 272.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Options = [Tabs, AutoDisplacement]
+    Viewport.Width = 382.000000000000000000
+    Viewport.Height = 268.000000000000000000
+  end
+  object bsdbStackTrace: TBindSourceDB
+    DataSet = DebuggerDataSetContainer.fdmtStackTrace
+    ScopeMappings = <>
+    Left = 48
+    Top = 136
+  end
+  object blStackTrace: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 140
+    Top = 133
+    object lgdsbsdbStackTrace: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsdbStackTrace
+      GridControl = grdStackTrace
+      Columns = <>
+    end
+  end
+end

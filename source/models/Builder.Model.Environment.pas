@@ -27,6 +27,12 @@ type
     FKeyToolLocation: string;
     [JSONName('jar_signer_location')]
     FJarSignerLocation: string;
+    [JSONName('remote_debugger_host')]
+    FRemoteDebuggerHost: string;
+    [JSONName('remote_debugger_port')]
+    FRemoteDebuggerPort: integer;
+    [JSONName('remote_debugger_root')]
+    FRemoteDebuggerRoot: string;
   public
     function Validate(const AErrors: TStrings): boolean; override;
   public
@@ -41,6 +47,10 @@ type
     property JdkBasePath: string read FJdkBasePath write FJdkBasePath;
     property KeyToolLocation: string read FKeyToolLocation write FKeyToolLocation;
     property JarSignerLocation: string read FJarSignerLocation write FJarSignerLocation;
+    //Debugger
+    property RemoteDebuggerHost: string read FRemoteDebuggerHost write FRemoteDebuggerHost;
+    property RemoteDebuggerPort: integer read FRemoteDebuggerPort write FRemoteDebuggerPort;
+    property RemoteDebuggerRoot: string read FRemoteDebuggerRoot write FRemoteDebuggerRoot;
   end;
 
   TPathLocator = class
@@ -108,6 +118,16 @@ begin
 
   if not TFile.Exists(FJarSignerLocation) then
     AErrors.Add('* JARSigner tool not found.');
+
+  {|||||| CHECK FOR DEBUGGER SETTINGS |||||||}
+  if FRemoteDebuggerHost.Trim().IsEmpty() then
+    AErrors.Add('* The remote debugger host can not be empty.');
+
+  if FRemoteDebuggerPort = 0 then
+    AErrors.Add('* The remote debugger port is not valid.');
+
+  if FRemoteDebuggerRoot.Trim().IsEmpty() then
+    AErrors.Add('* The remote debugger root path can not be empty.');
 
   Result := (AErrors.Count = 0);
 end;

@@ -41,6 +41,16 @@ type
     edtJdkBasePath: TEdit;
     lblJdkBasePath: TLabel;
     edtSdkApiLocation: TEdit;
+    lbghDebuggerSettings: TListBoxGroupHeader;
+    lbiRemoteDebuggerHost: TListBoxItem;
+    edtRemoteDebuggerHost: TEdit;
+    lblRemoteDebuggerHost: TLabel;
+    lbiRemoteDebuggerPort: TListBoxItem;
+    edtRemoteDebuggerPort: TEdit;
+    lblRemoteDebuggerPort: TLabel;
+    lbiRemoteDebuggerRoot: TListBoxItem;
+    edtRemoteDebuggerRoot: TEdit;
+    lblRemoteDebuggerRoot: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -158,17 +168,21 @@ begin
             try
               LText := ATask();
             finally
-              TThread.Queue(nil, procedure() begin
-                AEdit.Text := LText;
-                LAni.Visible := false;
-                LAni.Enabled := false;
-                AEdit.Enabled := true;
-              end);
+              TThread.Queue(TThread.Current,
+                procedure()
+                begin
+                  AEdit.Text := LText;
+                  LAni.Visible := false;
+                  LAni.Enabled := false;
+                  AEdit.Enabled := true;
+                end);
             end;
           finally
-            TThread.Queue(nil, procedure() begin
-              LAni.Free();
-            end);
+            TThread.Queue(TThread.Current,
+              procedure()
+              begin
+                LAni.Free();
+              end);
           end;
         end));
   except
@@ -227,6 +241,9 @@ begin
     edtJdkBasePath.Text := JdkBasePath;
     edtKeyTool.Text := KeyToolLocation;
     edtJarSignerLocation.Text := JarSignerLocation;
+    edtRemoteDebuggerHost.Text := RemoteDebuggerHost;
+    edtRemoteDebuggerPort.Text := RemoteDebuggerPort.ToString();
+    edtRemoteDebuggerRoot.Text := RemoteDebuggerRoot;
   end;
 end;
 
@@ -242,6 +259,15 @@ begin
     JdkBasePath := edtJdkBasePath.Text;
     KeyToolLocation := edtKeyTool.Text;
     JarSignerLocation := edtJarSignerLocation.Text;
+    RemoteDebuggerHost := edtRemoteDebuggerHost.Text;
+    if RemoteDebuggerHost.Trim().IsEmpty() then
+      RemoteDebuggerHost := '127.0.0.1';
+    RemoteDebuggerPort := StrToIntDef(edtRemoteDebuggerPort.Text, 0);
+    if (RemoteDebuggerPort = 0) then
+      RemoteDebuggerPort := 5678;
+    RemoteDebuggerRoot := edtRemoteDebuggerRoot.Text;
+    if RemoteDebuggerRoot.Trim().IsEmpty() then
+      RemoteDebuggerRoot := '/data/data/$(package_name)/files/';
   end;
 end;
 

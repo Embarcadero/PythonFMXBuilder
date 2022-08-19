@@ -1,0 +1,31 @@
+object EntityButtonsFrame: TEntityButtonsFrame
+  Size.Width = 70.000000000000000000
+  Size.Height = 30.000000000000000000
+  Size.PlatformDefault = False
+  object sbUpdateEnvironment: TSpeedButton
+    Action = MenuActionsContainer.actUpdateEnvironment
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 0
+    Margins.Left = 5.000000000000000000
+    Position.X = 5.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+  object sbUpdateProject: TSpeedButton
+    Action = MenuActionsContainer.actUpdateCurrentProject
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 1
+    Margins.Left = 5.000000000000000000
+    Position.X = 40.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+end

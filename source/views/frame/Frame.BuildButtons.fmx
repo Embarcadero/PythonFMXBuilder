@@ -1,0 +1,44 @@
+object BuildButtonsFrame: TBuildButtonsFrame
+  Size.Width = 105.000000000000000000
+  Size.Height = 30.000000000000000000
+  Size.PlatformDefault = False
+  object sbBuildCurrentProject: TSpeedButton
+    Action = MenuActionsContainer.actBuildCurrentProjectAsync
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 8
+    Margins.Left = 5.000000000000000000
+    Position.X = 5.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+  object spDeployCurrentProject: TSpeedButton
+    Action = MenuActionsContainer.actDeployCurrentProjectAsync
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 5
+    Margins.Left = 5.000000000000000000
+    Position.X = 40.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+  object sbRunCurrentProject: TSpeedButton
+    Action = MenuActionsContainer.actRunCurrentProjectAsync
+    Align = Left
+    Enabled = True
+    Images = ImageContainer.images
+    ImageIndex = 2
+    Margins.Left = 5.000000000000000000
+    Position.X = 75.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'actiontoolbutton'
+  end
+end

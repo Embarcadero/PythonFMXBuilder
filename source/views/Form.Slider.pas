@@ -8,14 +8,14 @@ uses
 type
   TFormSlider = class
   public
-    class procedure ShowModal(const AParent, AForm: TForm);
+    class procedure ShowModal(const AParent, AForm: TCommonCustomForm);
   end;
 
 implementation
 
 { TFormSlider }
 
-class procedure TFormSlider.ShowModal(const AParent, AForm: TForm);
+class procedure TFormSlider.ShowModal(const AParent, AForm: TCommonCustomForm);
 const
   PARENT_PERCENT = 0.4;
   SLIDE_INTERVAL = 0.03;

@@ -9,17 +9,24 @@ uses
 type
   TProjectService = class(TInterfacedObject, IProjectServices)
   private
+    class var FActiveProject: TProjectModel;
+  private
+    class destructor Destroy();
+  private
     function GetBasePath(): string;
     function GetProjectFilesPath(const AProjectName: string): string;
     function TestProject(const AModel: TProjectModel): boolean;
   public
-    function CreateProject(const AApplicationName: string;
+    function CreateProject(const AProjectName: string;
       const AAddMainScript: boolean = true): TProjectModel;
     procedure SaveProject(const AProject: TProjectModel);
-    function LoadProject(const AApplicationName: string): TProjectModel;
+    function LoadProject(const AProjectName: string): TProjectModel;
+    procedure UnLoadProject();
     function ListProjects(): TArray<string>;
-    function HasProject(const AApplicationName: string): boolean;
-    function RemoveProject(const AAplicationName: string): boolean;
+    function HasProject(const AProjectName: string): boolean;
+    function RemoveProject(const AProjectName: string): boolean;
+    function GetActiveProject(): TProjectModel;
+    procedure CheckActiveProject();
 
     function AddMainScriptFile(const AModel: TProjectModel): string;
     procedure SetMainScriptFile(const AModel: TProjectModel;
@@ -38,9 +45,20 @@ implementation
 
 uses
   Builder.Exception,
+  Builder.Chain,
   Builder.Storage.Default;
 
 { TProjectService }
+
+class destructor TProjectService.Destroy;
+begin
+  FActiveProject.Free();
+end;
+
+function TProjectService.GetActiveProject: TProjectModel;
+begin
+  Result := FActiveProject;
+end;
 
 function TProjectService.GetBasePath: string;
 begin
@@ -52,12 +70,12 @@ begin
   Result := TPath.Combine(GetBasePath(), AProjectName);
 end;
 
-function TProjectService.HasProject(const AApplicationName: string): boolean;
+function TProjectService.HasProject(const AProjectName: string): boolean;
 begin
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   var LModel: TProjectModel := nil;
   try
-    Result := LStorage.LoadModel(LModel, String.Empty, AApplicationName);
+    Result := LStorage.LoadModel(LModel, String.Empty, AProjectName);
   finally
     LModel.Free();
   end;
@@ -71,17 +89,34 @@ end;
 
 function TProjectService.TestProject(const AModel: TProjectModel): boolean;
 begin
-  Result := HasProject(AModel.ApplicationName);
+  Result := HasProject(AModel.ProjectName);
 end;
 
-function TProjectService.CreateProject(const AApplicationName: string;
+procedure TProjectService.UnLoadProject;
+begin
+  if Assigned(FActiveProject) then begin
+    TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FActiveProject));
+    FreeAndNil(FActiveProject);
+  end;
+end;
+
+procedure TProjectService.CheckActiveProject;
+begin
+  if not Assigned(GetActiveProject()) then
+    raise Exception.Create('Open/Create a project before continue.');
+end;
+
+function TProjectService.CreateProject(const AProjectName: string;
   const AAddMainScript: boolean): TProjectModel;
 begin
-  Result := TProjectModel.Create(AApplicationName);
+  UnloadProject();
+  FActiveProject := TProjectModel.Create(AProjectName);
 
   if AAddMainScript then begin
-    AddMainScriptFile(Result);
+    AddMainScriptFile(FActiveProject);
   end;
+
+  Result := FActiveProject;
 end;
 
 function TProjectService.ListProjects: TArray<string>;
@@ -94,7 +129,7 @@ begin
       try
         for var LModel in LModels do begin
           if TestProject(LModel) then
-            LList.Add(LModel.ApplicationName);
+            LList.Add(LModel.ProjectName);
         end;
         Result := LList.ToArray();
       finally
@@ -109,12 +144,14 @@ begin
     Result := [];
 end;
 
-function TProjectService.LoadProject(const AApplicationName: string): TProjectModel;
+function TProjectService.LoadProject(const AProjectName: string): TProjectModel;
 begin
-  Result := nil;
+  UnloadProject();
   var LStorage := TDefaultStorage<TProjectModel>.Make();
-  if not LStorage.LoadModel(Result, String.Empty, AApplicationName) then
-    raise EProjectNotFound.CreateFmt('Project %s not found.', [AApplicationName]);
+  if not LStorage.LoadModel(FActiveProject, String.Empty, AProjectName) then
+    raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectName]);
+  Result := FActiveProject;
+  TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(Result));
 end;
 
 function TProjectService.AddMainScriptFile(const AModel: TProjectModel): string;
@@ -139,12 +176,12 @@ const
     + #13#10
     + 'MainForm.Show()';
 begin
-  var LProjectFilesFolder := GetProjectFilesPath(AModel.ApplicationName);
+  var LProjectFilesFolder := GetProjectFilesPath(AModel.ProjectName);
   if not TDirectory.Exists(LProjectFilesFolder) then
     TDirectory.CreateDirectory(LProjectFilesFolder);
 
   var LMainScriptPath := TPath.Combine(
-    GetProjectFilesPath(AModel.ApplicationName),
+    GetProjectFilesPath(AModel.ProjectName),
     'main.py');
 
   if not TFile.Exists(LMainScriptPath) then begin
@@ -179,17 +216,21 @@ begin
   Result := true;
 end;
 
-function TProjectService.RemoveProject(const AAplicationName: string): boolean;
+function TProjectService.RemoveProject(const AProjectName: string): boolean;
 begin
-  var LProjectModel := LoadProject(AAplicationName);
+  var LProjectModel := LoadProject(AProjectName);
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   Result := LStorage.DeleteModel(LProjectModel);
 
   if not Result then
     Exit;
 
-  var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ApplicationName);
-  TDirectory.Delete(LProjectFilesFolder, true);
+  var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ProjectName);
+  if TDirectory.Exists(LProjectFilesFolder) then
+    TDirectory.Delete(LProjectFilesFolder, true);
+
+  if Assigned(FActiveProject) and (FActiveProject.ProjectName = AProjectName) then
+    UnLoadProject();
 end;
 
 procedure TProjectService.RemoveScriptFile(const AModel: TProjectModel;

@@ -14,8 +14,8 @@ var
   ImageContainer: TImageContainer;
 
 const
-  PROJECT_ICON_INDEX = 11;
-  MODULE_ICON_INDEX = 12;
+  PROJECT_ICON_INDEX = 4;
+  MODULE_ICON_INDEX = 5;
   ANY_FILE_ICON_INDEX = 15;
 
 implementation

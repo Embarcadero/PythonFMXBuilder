@@ -6,8 +6,8 @@ uses
   System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Layouts, FMX.TreeView, System.Rtti, FMX.Menus, System.ImageList,
-  FMX.ImgList, Builder.Services, System.Actions, FMX.ActnList, Builder.Model.Project,
-  Container.Images;
+  FMX.ImgList, Builder.Services, System.Actions, FMX.ActnList,
+  Builder.Chain, Builder.Model.Project, Container.Images;
 
 type
   TNodeType = (ntProject, ntModule, ntOther);
@@ -33,8 +33,9 @@ type
     FFileExt: TArray<string>;
     FProjectServices: IProjectServices;
     FRoot: TTreeViewItem;
+    FOpenProjectEvent: IDisconnectable;
+    FCloseProjectEvent: IDisconnectable;
   private
-    FOnScriptFileDblClick: TNotifyEvent;
     function GetProjectServices: IProjectServices;
     procedure SaveChanges();
     // TreeView operations
@@ -48,21 +49,29 @@ type
     procedure AddDirectoryModuleNodes(const ARoot: TTreeViewItem);
     function FileIsScriptFile(const AFileName: string): boolean;
     function GetNodeTypeByFileName(const AFileName: string): TNodeType;
+    procedure TreeViewIteDblClick(Sender: TObject);
+    procedure BroadcastOpenFile(const AFilePath: string);
+    procedure BroadcastCloseFile(const AFilePath: string);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
 
     procedure LoadProject(const AProjectModel: TProjectModel);
-    function GetDefaultScriptFilePath(): string;
+    procedure UnLoadProject(const AProjectModel: TProjectModel);
+
+    function GetDefaultScriptFilePath(const AProject: TProjectModel): string; overload;
+    function GetDefaultScriptFilePath(): string; overload;
+
     function GetItemFilePath(const AItem: TTreeViewItem): string;
 
     property FileExt: TArray<string> read FFileExt write FFileExt;
-    property OnScriptFileDblClick: TNotifyEvent read FOnScriptFileDblClick write FOnScriptFileDblClick;
   end;
 
 implementation
 
 uses
-  System.StrUtils, System.IOUtils, Builder.Services.Factory, System.SysUtils;
+  System.StrUtils, System.IOUtils, System.SysUtils,
+  FMX.DialogService, Builder.Services.Factory;
 
 type
   TProjectFilesTreeViewItem = class(FMX.TreeView.TTreeViewItem)
@@ -81,10 +90,8 @@ type
 
     class operator Implicit(ANodeInfo: TNodeInfo): TValue;
   public
-    case NodeType: TNodeType of
-      ntModule: (
-        FilePath: string[255];
-      );
+    NodeType: TNodeType;
+    FilePath: string;
   end;
 
 {$R *.fmx}
@@ -107,9 +114,7 @@ constructor TNodeInfo.Create(const ANodeType: TNodeType;
   const AFilePath: string);
 begin
   NodeType := ANodeType;
-  case NodeType of
-    ntModule: FilePath := ShortString(AFilePath);
-  end;
+  FilePath := AFilePath;
 end;
 
 constructor TNodeInfo.Create(const ANodeType: TNodeType);
@@ -128,6 +133,46 @@ constructor TProjectFilesFrame.Create(AOwner: TComponent);
 begin
   inherited;
   FFileExt := ['.py'];
+
+  FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
+    procedure(const AEventNotification: TOpenProjectEvent)
+    begin
+      TGlobalBuilderChain.BroadcastEventAsync(
+        TAsyncOperationStartedEvent.Create(TAsyncOperation.OpenProject));
+
+      var LProject := AEventNotification.Body.Project;
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          try
+            LoadProject(LProject);
+            var LDefaultScriptFile := GetDefaultScriptFilePath();
+            if TFile.Exists(LDefaultScriptFile) then
+              BroadcastOpenFile(LDefaultScriptFile);
+          finally
+            TGlobalBuilderChain.BroadcastEventAsync(
+              TAsyncOperationEndedEvent.Create(TAsyncOperation.OpenProject));
+          end;
+        end);
+    end);
+
+  FCloseProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TCloseProjectEvent>(
+    procedure(const AEventNotification: TCloseProjectEvent)
+    begin
+      var LProject := AEventNotification.Body.Project;
+      TThread.Queue(TThread.Current,
+        procedure()
+        begin
+          UnLoadProject(LProject);
+        end);
+    end);
+end;
+
+destructor TProjectFilesFrame.Destroy;
+begin
+  FOpenProjectEvent.Disconnect();
+  FCloseProjectEvent.Disconnect();
+  inherited;
 end;
 
 function TProjectFilesFrame.FileIsScriptFile(const AFileName: string): boolean;
@@ -140,24 +185,27 @@ begin
   Result := String(AItem.Data.AsType<TNodeInfo>().FilePath);
 end;
 
-function TProjectFilesFrame.GetDefaultScriptFilePath: string;
+function TProjectFilesFrame.GetDefaultScriptFilePath(const AProject: TProjectModel): string;
 begin
-  if not Assigned(FProjectModel) then
+  if not Assigned(AProject) then
     Exit(String.Empty);
 
   //We try to find the main script
-  for var LScriptFile in FProjectModel.Files.Files do begin
-    if (TPath.GetFileName(LScriptFile) = 'main.py') and TFile.Exists(LScriptFile) then
-      Exit(LScriptFile);
-  end;
+  if TFile.Exists(AProject.Files.MainFile) then
+    Exit(AProject.Files.MainFile);
 
   //If we don't have a main script, we try to get the first existent script
-  for var LScriptFile in FProjectModel.Files.Files do begin
+  for var LScriptFile in AProject.Files.Files do begin
     if TFile.Exists(LScriptFile) then
       Exit(LScriptFile);
   end;
 
   Result := String.Empty;
+end;
+
+function TProjectFilesFrame.GetDefaultScriptFilePath: string;
+begin
+  Result := GetDefaultScriptFilePath(FProjectModel);
 end;
 
 function TProjectFilesFrame.GetNodeTypeByFileName(
@@ -178,7 +226,7 @@ end;
 procedure TProjectFilesFrame.LoadEvents(const AItem: TTreeViewItem);
 begin
   if AItem.Data.AsType<TNodeInfo>().NodeType = TNodeType.ntModule then
-    AItem.OnDblClick := OnScriptFileDblClick;
+    AItem.OnDblClick := TreeViewIteDblClick;
 end;
 
 procedure TProjectFilesFrame.LoadIcon(const AItem: TTreeViewItem);
@@ -216,6 +264,30 @@ begin
   GetProjectServices().SaveProject(FProjectModel);
 end;
 
+procedure TProjectFilesFrame.TreeViewIteDblClick(Sender: TObject);
+begin
+  BroadcastOpenFile(GetItemFilePath(TTreeViewItem(Sender)));
+end;
+
+procedure TProjectFilesFrame.UnLoadProject(const AProjectModel: TProjectModel);
+begin
+  tvProjectFiles.Clear();
+  FRoot := nil;
+  FProjectModel := nil;
+end;
+
+procedure TProjectFilesFrame.BroadcastOpenFile(const AFilePath: string);
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TOpenFileEvent.Create(AFilePath));
+end;
+
+procedure TProjectFilesFrame.BroadcastCloseFile(const AFilePath: string);
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TCloseFileEvent.Create(AFilePath));
+end;
+
 function TProjectFilesFrame.BuildNode(const AParent: TFmxObject;
   const ANodeType: TNodeType; const AFilePath: string): TTreeViewItem;
 begin
@@ -231,19 +303,19 @@ function TProjectFilesFrame.AddProjectNode: TTreeViewItem;
 begin
   Result := BuildNode(tvProjectFiles, ntProject);
   Result.Text := ExtractFileName(
-    ExcludeTrailingPathDelimiter(FProjectModel.ApplicationName));
+    ExcludeTrailingPathDelimiter(FProjectModel.ProjectName));
 end;
 
 procedure TProjectFilesFrame.altvProjectFilesUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
-  actAddFile.Visible := Assigned(tvProjectFiles.Selected)
-    and NodeIsType(tvProjectFiles.Selected, TNodeType.ntProject);
+  actAddFile.Enabled := Assigned(FRoot)
+    and NodeIsType(FRoot, TNodeType.ntProject);
 
-  actRemoveFile.Visible := Assigned(tvProjectFiles.Selected)
+  actRemoveFile.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule);
 
-  actSetToMain.Visible := Assigned(tvProjectFiles.Selected)
+  actSetToMain.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
     and not FProjectServices.IsMainScriptFile(FProjectModel,
       GetItemFilePath(tvProjectFiles.Selected));
@@ -255,15 +327,19 @@ begin
     //Save file into the project
     var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
     try
-      if GetProjectServices().AddScriptFile(
-        FProjectModel, odtvProjectFiles.FileName) then
+      if GetProjectServices().AddScriptFile(FProjectModel, odtvProjectFiles.FileName) then
       begin
+        //Add as the deafult script file if none
+        if FProjectModel.Files.MainFile.IsEmpty() then
+          GetProjectServices().SetMainScriptFile(FProjectModel, odtvProjectFiles.FileName);
         //Creates the tree item
         var LItem := BuildNode(FRoot,
           GetNodeTypeByFileName(odtvProjectFiles.FileName),
           odtvProjectFiles.FileName);
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
         SaveChanges();
+        tvProjectFiles.Selected := LItem;
+        BroadcastOpenFile(odtvProjectFiles.FileName);
       end;
     finally
       LStream.Free();
@@ -281,15 +357,28 @@ begin
   if not NodeIsType(LNode, TNodeType.ntModule) then
     Exit;
 
+  var LRemove := true;
+  if not IsConsole then
+    TDialogService.MessageDialog('Do you really want to remove this file?',
+      TMsgDlgType.mtConfirmation,
+      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
+      procedure(const AResult: TModalResult) begin
+        LRemove := AResult = mrYes;
+      end);
+
+  if not LRemove then
+    Exit;
+
   LNode.Free();
 
-  GetProjectServices().RemoveScriptFile(FProjectModel, String(LInfo.FilePath));
+  GetProjectServices().RemoveScriptFile(FProjectModel, LInfo.FilePath);
   SaveChanges();
+  BroadcastCloseFile(LInfo.FilePath);
 end;
 
 procedure TProjectFilesFrame.actSetToMainExecute(Sender: TObject);
 begin
-  FProjectServices.SetMainScriptFile(FProjectModel,
+  GetProjectServices().SetMainScriptFile(FProjectModel,
     GetItemFilePath(tvProjectFiles.Selected));
   SaveChanges();
 end;

@@ -1,0 +1,36 @@
+inherited LocalVariablesDebugFrame: TLocalVariablesDebugFrame
+  inherited tbFrame: TToolBar
+    inherited lbDescription: TLabel
+      Text = 'Local Variables'
+    end
+  end
+  object grdLocalVariables: TGrid
+    Align = Client
+    CanFocus = True
+    ClipChildren = True
+    Size.Width = 320.000000000000000000
+    Size.Height = 200.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Viewport.Width = 316.000000000000000000
+    Viewport.Height = 175.000000000000000000
+  end
+  object bsdbLocalVariables: TBindSourceDB
+    DataSet = DebuggerDataSetContainer.fdmtVariable
+    ScopeMappings = <>
+    Left = 40
+    Top = 80
+  end
+  object blLocalVariables: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 148
+    Top = 77
+    object lgdsbsdbLocalVariables: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = bsdbLocalVariables
+      GridControl = grdLocalVariables
+      Columns = <>
+    end
+  end
+end

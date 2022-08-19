@@ -1,0 +1,99 @@
+object BottomPanelDebugFrame: TBottomPanelDebugFrame
+  Size.Width = 785.000000000000000000
+  Size.Height = 411.000000000000000000
+  Size.PlatformDefault = False
+  object tbBottomPanelDebugControls: TTabControl
+    Align = Client
+    Size.Width = 785.000000000000000000
+    Size.Height = 411.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = Bottom
+    Sizes = (
+      785s
+      385s
+      785s
+      385s
+      785s
+      385s)
+    object tiBottomPanelDebugEvents: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 55.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Events'
+      ExplicitSize.cx = 55.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      inline frmDebugEvents: TEventsDebugFrame
+        Align = Client
+        Size.Width = 785.000000000000000000
+        Size.Height = 385.000000000000000000
+        Size.PlatformDefault = False
+        inherited tbFrame: TToolBar
+          Size.Width = 785.000000000000000000
+          inherited lbDescription: TLabel
+            Size.Width = 780.000000000000000000
+          end
+        end
+      end
+    end
+    object tiBottomPanelDebugBreakpoints: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 83.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Breakpoints'
+      ExplicitSize.cx = 83.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      inline frmDebugBreakpoint: TBreakpointsDebugFrame
+        Align = Client
+        Size.Width = 785.000000000000000000
+        Size.Height = 385.000000000000000000
+        Size.PlatformDefault = False
+        inherited tbFrame: TToolBar
+          Size.Width = 785.000000000000000000
+          inherited lbDescription: TLabel
+            Size.Width = 780.000000000000000000
+          end
+        end
+      end
+    end
+    object tiBottomPanelDebugThreads: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 62.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Threads'
+      ExplicitSize.cx = 62.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      inline frmDebugThreads: TThreadsDebugFrame
+        Align = Client
+        Size.Width = 785.000000000000000000
+        Size.Height = 385.000000000000000000
+        Size.PlatformDefault = False
+        inherited tbFrame: TToolBar
+          Size.Width = 785.000000000000000000
+          inherited lbDescription: TLabel
+            Size.Width = 780.000000000000000000
+          end
+        end
+      end
+    end
+  end
+end

@@ -12,6 +12,8 @@ type
 
   EInvalidPythonVersion = class(Exception);
 
+  EInvalidEnvironment = class(Exception);
+
 implementation
 
 end.
