@@ -10,7 +10,9 @@ object BaseForm: TBaseForm
   FormFactor.Devices = [Desktop]
   DesignerMasterStyle = 0
   object StyleBook1: TStyleBook
-    Styles = <>
+    Styles = <
+      item
+      end>
     Left = 304
     Top = 224
   end

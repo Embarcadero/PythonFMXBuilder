@@ -74,7 +74,7 @@ begin
         begin
           var LTextEditor := OpenEditor(LFilePath);
 
-          if LActiveLine > 0 then begin
+          if (LActiveLine > 0) then begin
             LTextEditor.ActiveLine := LActiveLine - 1;
             LTextEditor.ShowActiveLine := LShowActiveLine;
           end;
@@ -139,8 +139,8 @@ begin
     Exit();
 
   var LFilePath := LDatS.FieldByName('active_source_local_file_path').AsString;
+  { TODO : Let's create an open file dialog here and ask users for file path }
   if not TFile.Exists(LFilePath) then
-    { TODO : Let's create an open file dialog here and ask users for file path }
     Exit;
 
   var LTextEditor := OpenEditor(LFilePath);

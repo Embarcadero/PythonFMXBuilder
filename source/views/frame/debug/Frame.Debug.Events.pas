@@ -8,7 +8,7 @@ uses
   Fmx.Bind.Grid, System.Bindings.Outputs, Fmx.Bind.Editors,
   Data.Bind.Components, Data.Bind.Grid, Data.Bind.DBScope, FMX.ScrollBox,
   FMX.Grid, FMX.StdCtrls, System.Classes, FMX.Types, FMX.Controls,
-  FMX.Controls.Presentation, Container.DataSet.Debugger, BaseProtocol.Client;
+  FMX.Controls.Presentation, Container.DataSet.Debugger;
 
 type
   TEventsDebugFrame = class(TDebugFrame)
@@ -16,34 +16,10 @@ type
     bsdbEvents: TBindSourceDB;
     bsEvents: TBindingsList;
     lgdsbsdbEvents: TLinkGridToDataSource;
-  private
-  protected
-    procedure DebugSessionStarted(const ABaseProtocolClient: TBaseProtocolClient); override;
-    procedure DebugSessionEnded(); override;
-  public
   end;
 
 implementation
 
-uses
-  System.StrUtils,
-  BaseProtocol.Types,
-  BaseProtocol.Events;
-
 {$R *.fmx}
-
-{ TEventsDebugFrame }
-
-procedure TEventsDebugFrame.DebugSessionStarted(
-  const ABaseProtocolClient: TBaseProtocolClient);
-begin
-
-end;
-
-procedure TEventsDebugFrame.DebugSessionEnded;
-begin
-  inherited;
-
-end;
 
 end.

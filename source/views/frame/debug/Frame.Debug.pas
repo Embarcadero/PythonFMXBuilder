@@ -53,13 +53,13 @@ end;
 
 procedure TDebugFrame.DebugSessionEnded;
 begin
-
+  //
 end;
 
 procedure TDebugFrame.DebugSessionStarted(
   const ABaseProtocolClient: TBaseProtocolClient);
 begin
-
+  //
 end;
 
 end.

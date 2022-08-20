@@ -3,6 +3,7 @@ inherited MainForm: TMainForm
   ClientHeight = 679
   ClientWidth = 940
   Position = ScreenCenter
+  WindowState = wsMaximized
   OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook

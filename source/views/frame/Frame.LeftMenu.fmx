@@ -64,7 +64,7 @@ object LeftMenuFrame: TLeftMenuFrame
         Align = Client
         Enabled = True
         Images = ImageContainer.images
-        ImageIndex = 9
+        ImageIndex = 1
         Size.Width = 53.000000000000000000
         Size.Height = 50.000000000000000000
         Size.PlatformDefault = False
@@ -92,7 +92,7 @@ object LeftMenuFrame: TLeftMenuFrame
         Align = Left
         Enabled = True
         Images = ImageContainer.images
-        ImageIndex = 8
+        ImageIndex = 11
         Size.Width = 53.000000000000000000
         Size.Height = 50.000000000000000000
         Size.PlatformDefault = False
@@ -110,7 +110,7 @@ object LeftMenuFrame: TLeftMenuFrame
         Align = Client
         Enabled = True
         Images = ImageContainer.images
-        ImageIndex = 5
+        ImageIndex = 12
         Size.Width = 53.000000000000000000
         Size.Height = 50.000000000000000000
         Size.PlatformDefault = False
@@ -128,7 +128,7 @@ object LeftMenuFrame: TLeftMenuFrame
         Align = Client
         Enabled = True
         Images = ImageContainer.images
-        ImageIndex = 2
+        ImageIndex = 13
         Size.Width = 53.000000000000000000
         Size.Height = 50.000000000000000000
         Size.PlatformDefault = False

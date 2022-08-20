@@ -12,10 +12,6 @@ type
     sbBuildCurrentProject: TSpeedButton;
     spDeployCurrentProject: TSpeedButton;
     sbRunCurrentProject: TSpeedButton;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 implementation

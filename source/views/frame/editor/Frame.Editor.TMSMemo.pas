@@ -43,7 +43,6 @@ type
     function GetTextEditor(): ITextEditor; override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy(); override;
   end;
 
 implementation
@@ -210,11 +209,6 @@ begin
   FEditor := TTMSMemoEditorFrame.Create(Self);
   FEditor.Parent := Self;
   FEditor.Align := TAlignLayout.Client;
-end;
-
-destructor TTMSMemoScriptEditorTabItem.Destroy;
-begin
-  inherited;
 end;
 
 function TTMSMemoScriptEditorTabItem.GetTextEditor: ITextEditor;

@@ -4,9 +4,6 @@ Coordinates=374,1,162,33
 [fdmtBreakpointbreakpoint_source_name]
 Coordinates=355,53,215,33
 
-[dsSource]
-Coordinates=0,0,61,33
-
 [fdmtBreakpointbreakpoint_line]
 Coordinates=574,1,166,33
 
@@ -39,4 +36,7 @@ Coordinates=96,125,70,69
 
 [fdmtEventevent_desc]
 Coordinates=374,157,126,33
+
+[]
+Coordinates=0,0,61,33
 

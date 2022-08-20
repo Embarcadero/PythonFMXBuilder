@@ -17,8 +17,8 @@ inherited ThreadsDebugFrame: TThreadsDebugFrame
     Size.PlatformDefault = False
     TabOrder = 1
     Options = [ColumnResize, ColumnMove, Tabs, Header, AutoDisplacement]
-    Viewport.Width = 532.000000000000000000
-    Viewport.Height = 339.000000000000000000
+    Viewport.Width = 536.000000000000000000
+    Viewport.Height = 364.000000000000000000
   end
   object bsdbThreads: TBindSourceDB
     DataSet = DebuggerDataSetContainer.fdmtThread

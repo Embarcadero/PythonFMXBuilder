@@ -396,7 +396,8 @@ procedure TDebuggerDataSetContainer.SetupBreakpointsForCurrentSource(
 begin
   fdmtBreakpoint.DisableControls();
   try
-    fdmtBreakpoint.Filter := 'breakpoint_source_name=' + fdmtSourcesource_name.AsString.QuotedString();
+    fdmtBreakpoint.Filter := 'breakpoint_source_name='
+                           + fdmtSourcesource_name.AsString.QuotedString();
     fdmtBreakpoint.Filtered := true;
     try
       if fdmtBreakpoint.IsEmpty() then

@@ -18,3 +18,6 @@ Coordinates=190,148,174,190
 [blStackTrace]
 Coordinates=0,0,91,36
 
+[DebuggerDataSetContainer.fdmtStackTrace]
+Visible=False
+

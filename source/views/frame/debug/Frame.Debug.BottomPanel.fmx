@@ -41,6 +41,19 @@ object BottomPanelDebugFrame: TBottomPanelDebugFrame
             Size.Width = 780.000000000000000000
           end
         end
+        inherited grdEvents: TGrid
+          Size.Width = 785.000000000000000000
+          Size.Height = 345.000000000000000000
+          Viewport.Width = 781.000000000000000000
+          Viewport.Height = 320.000000000000000000
+        end
+        inherited bsdbEvents: TBindSourceDB
+          Left = 48
+        end
+        inherited bsEvents: TBindingsList
+          Left = 44
+          Top = 141
+        end
       end
     end
     object tiBottomPanelDebugBreakpoints: TTabItem
@@ -67,6 +80,19 @@ object BottomPanelDebugFrame: TBottomPanelDebugFrame
             Size.Width = 780.000000000000000000
           end
         end
+        inherited grdEvents: TGrid
+          Size.Width = 785.000000000000000000
+          Size.Height = 345.000000000000000000
+          Viewport.Width = 785.000000000000000000
+          Viewport.Height = 345.000000000000000000
+        end
+        inherited bsdbBreakpoints: TBindSourceDB
+          Left = 208
+          Top = 88
+        end
+        inherited blBreakpoints: TBindingsList
+          Top = 141
+        end
       end
     end
     object tiBottomPanelDebugThreads: TTabItem
@@ -92,6 +118,19 @@ object BottomPanelDebugFrame: TBottomPanelDebugFrame
           inherited lbDescription: TLabel
             Size.Width = 780.000000000000000000
           end
+        end
+        inherited grdThreads: TGrid
+          Size.Width = 785.000000000000000000
+          Size.Height = 345.000000000000000000
+          Viewport.Width = 785.000000000000000000
+          Viewport.Height = 345.000000000000000000
+        end
+        inherited bsdbThreads: TBindSourceDB
+          Left = 120
+        end
+        inherited blThreads: TBindingsList
+          Left = 116
+          Top = 141
         end
       end
     end

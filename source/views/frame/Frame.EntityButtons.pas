@@ -11,10 +11,6 @@ type
   TEntityButtonsFrame = class(TFrame)
     sbUpdateEnvironment: TSpeedButton;
     sbUpdateProject: TSpeedButton;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 implementation
