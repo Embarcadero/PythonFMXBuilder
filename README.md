@@ -10,46 +10,36 @@ An application builder for Python using [DelphiFMX for Python](https://github.co
 There is an free [eBook and styles bundle](https://embt.co/PythonGUIBundle) with 29 custom styles and 50 pages of content.
  <a href="https://embt.co/PythonGUIBundle"><img alt="Download the free eBook and Python styles bundle." width="750" src="https://github.com/Embarcadero/PythonFMXBuilder/blob/main/images/30_Banner_Ebook_GGetting Started with Python GUI_830x256.jpg"></a>
  
-Watch the live stream covering [PythonFMX and related projects](https://youtu.be/Ccfe0rbwgcM).
+Watch one of our live streams covering [PythonFMX and related projects](https://youtu.be/Ccfe0rbwgcM).
 
 ## Requirements
 While PythonFMXBuilder is made with Delphi, it does not require Delphi to use. 
 
 1. Download the latest release
-   * We provide prebuild [binaries in releases](https://github.com/Embarcadero/PythonFMXBuilder/releases)
-3. Install Java's JDK 
+   * We provide prebuild [binaries in releases](https://github.com/Embarcadero/PythonFMXBuilder/releases/latest)
+2. Download, Install, and set up the Android SDK using the following wiki guide: [Android-SDK Wiki](https://github.com/Embarcadero/PythonFMXBuilder/wiki/Android-SDK-guide)
+3. Download, Install, and set up the Java JDK using the following wiki guide: [Java-JDK Wiki](https://github.com/Embarcadero/PythonFMXBuilder/wiki/Open-JDK-guide)
    * You may already have this
    * Tested with [Adopt Open JDK](https://adoptopenjdk.net/?variant=openjdk8&jvmVariant=hotspot) v8 with Hotspot JVM
-4. Install the [Android SDK](https://developer.android.com/studio#downloads)
-   * If you don't alreayd have it, then you only need the **Command line tools** from the bottom of the list and not the full Android Studio.
-   * You can use the [sdkmanager command-line](https://developer.android.com/studio/command-line/sdkmanager) tool to install as follows
-     
-     ```
-     sdkmanager "cmdline-tools;latest" "platform-tools" "platforms;android-30"
-     ```
-   * The installed package list should look something like the following
 
-      **Path**               | **Version** | **Description**                           | **Location**
-      -------                | ------------| -------                                   | -------
-      `cmdline-tools;latest` | `7.0`       | `Android SDK Command-line Tools (latest)` | `cmdline-tools\latest\`
-      `platform-tools`       | `33.0.1`    | `Android SDK Platform-Tools`              | `platform-tools\`
-      `platforms;android-30` | `3`         | `Android SDK Platform 30`                 | `platforms\android-30\`
-
+We've provided a complete step by step comprehensive guide to create an Android application using PythonFMXBuilder at: [PythonFMXBuilder Wiki](https://github.com/Embarcadero/PythonFMXBuilder/wiki/Step-by-step-guide-to-create-an-Android-application-using-PythonFMXBuilder)
 
 ## Screenshots
 The application has a GUI to simplify navigation and usage. Consult the following screenshots for a brief overview of it's functions.
 
 ### Main Window
-Edit your Python script, or load it from a file.
+Create or open a project, add and edit your Python scripts and load any supporting files. The most exciting feature is that we support debugging of your Android application right from the PythonFMXBuilder application.
 
-<img src="images/PythonFMXBuilder_Main.png">
+![PythonFMXBuilderGUI_Window](https://user-images.githubusercontent.com/17174106/185759597-18a69224-eb9d-4a01-91ac-f409b4eedd33.png)
+
+### Enviroment Setup
+Configure your environment using the Environment set up window.
+
+![PythonFMXBuilderGUI_Environment_Settings](https://user-images.githubusercontent.com/17174106/185759657-9a88142d-90f0-4c45-98d5-1696d130d28f.png)
 
 ### Project Settings
 Configure settings for your project.
 
-<img src="images/PythonFMXBuilder_Project.png">
+![PythonFMXBuilderGUI_Project_Settings](https://user-images.githubusercontent.com/17174106/185759669-b47b1ed7-b26d-4e92-bc25-ff1c33018d14.png)
 
-### Enviroment Setup
-Specify the locations for the JDK and Android SDK
 
-<img src="images/PythonFMXBuilder_Enviroment.png">
