@@ -45,27 +45,46 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <SanitizedProjectName>PythonFMXBuilderCLI</SanitizedProjectName>
         <DCC_DcuOutput>.\lib\$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_Define>.\lib\$(Platform)\$(Config);$(DCC_Define)</DCC_Define>
         <DCC_ExeOutput>.\out\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_UnitSearchPath>modules\.dcp;modules\.dcu;modules;modules\dap4delphi\source;modules\dap4delphi\source\client;modules\dunitx\Examples;modules\dunitx\Expert;modules\dunitx\Source;modules\dunitx\Tests;modules\python4delphi\Demos\Demo01;modules\python4delphi\Demos\Demo02;modules\python4delphi\Demos\Demo03;modules\python4delphi\Demos\Demo04;modules\python4delphi\Demos\Demo05;modules\python4delphi\Demos\Demo06;modules\python4delphi\Demos\Demo07;modules\python4delphi\Demos\Demo08;modules\python4delphi\Demos\Demo09;modules\python4delphi\Demos\Demo10_FireDAC;modules\python4delphi\Demos\Demo11;modules\python4delphi\Demos\Demo16\Example1;modules\python4delphi\Demos\Demo16\Example2;modules\python4delphi\Demos\Demo17;modules\python4delphi\Demos\Demo19;modules\python4delphi\Demos\Demo20;modules\python4delphi\Demos\Demo21;modules\python4delphi\Demos\Demo22;modules\python4delphi\Demos\Demo23;modules\python4delphi\Demos\Demo25;modules\python4delphi\Demos\Demo26;modules\python4delphi\Demos\Demo27;modules\python4delphi\Demos\Demo28;modules\python4delphi\Demos\Demo29;modules\python4delphi\Demos\Demo30;modules\python4delphi\Demos\Demo31;modules\python4delphi\Demos\Demo32;modules\python4delphi\Demos\Demo33;modules\python4delphi\Demos\Demo34;modules\python4delphi\Demos\FMX\SimpleDemo;modules\python4delphi\Demos\FPC\Demo01;modules\python4delphi\Demos\FPC\Demo06;modules\python4delphi\Demos\FPC\Demo25;modules\python4delphi\Demos\FPC\Demo31;modules\python4delphi\Modules\DelphiVCL;modules\python4delphi\Modules\DemoModule;modules\python4delphi\Modules\RttiModule;modules\python4delphi\Packages\FPC;modules\python4delphi\Source;modules\python4delphi\Source\fmx;modules\python4delphi\Source\lcl;modules\python4delphi\Source\vcl;modules\python4delphi\Tests;modules\python4delphi\Tutorials\Webinar I\ModuleDemo;modules\python4delphi\Tutorials\Webinar I\SimpleDemo;modules\python4delphi\Tutorials\Webinar I\WrapDelphiDemo;modules\python4delphi\Tutorials\Webinar II\AnalyticsDemo;modules\python4delphi\Tutorials\Webinar II\VarPythDemo;modules\python4delphi\Tutorials\Webinar II\VizDemo;modules\python4delphi\Unsupported\VCL\Demo10;modules\python4delphi\Unsupported\VCL\Demo13;modules\python4delphi\Unsupported\VCL\Demo14;modules\python4delphi\Unsupported\VCL\Demo15;modules\python4delphi\Unsupported\VCL;modules\pythonenviroments\src\AddOn;modules\pythonenviroments\src\Embeddable;modules\pythonenviroments\src\Embeddable\Res;modules\pythonenviroments\src\Project\IDE;modules\pythonenviroments\src\Project;modules\pythonenviroments\src;modules\pythonenviroments\src\Tools;modules\vsoft.commandlineparser\Samples\Command;modules\vsoft.commandlineparser\Samples\Simple;modules\vsoft.commandlineparser\Src;modules\vsoft.commandlineparser\Tests;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Locale>1046</VerInfo_Locale>
+        <DCC_UnitSearchPath>modules\.dcp;modules\.dcu;modules;modules\dunitx\Examples;modules\dunitx\Expert;modules\dunitx\Source;modules\dunitx\Tests;source;source\models;source\models\project;source\containers;source\services;source\storage;source\views;source\views\frame;source\cli;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
+        <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
+        <PreBuildEvent>
+            <![CDATA[(xcopy /y "$(PROJECTDIR)\python" "$(OUTPUTDIR)python" /S /E /H /I)
+( xcopy /y "$(PROJECTDIR)\android\pre-built" "$(OUTPUTDIR)android\pre-built" /S /E /H /I)
+$(PreBuildEvent)]]>
+        </PreBuildEvent>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
         <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_UsePackage>vclwinx;DataSnapServer;P4DMatplotLib;fmx;emshosting;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;DBXMSSQLDriver;FireDACCommonODBC;emsclient;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;IndyIPClient;dbxcds;vcledge;bindcompvclwinx;emsedge;bindcompfmx;DBXFirebirdDriver;inetdb;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;soapmidas;vclactnband;fmxFireDAC;dbexpress;Python;FireDACInfxDriver;P4DPyPackage;DBXMySQLDriver;VclSmp;inet;DataSnapCommon;PythonVcl;vcltouch;fmxase;P4DOpenCV;DBXOdbcDriver;dbrtl;FireDACDBXDriver;FireDACOracleDriver;fmxdae;FireDACMSAccDriver;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;P4DTensorFlow;DataSnapConnectors;vcldsnap;DBXInterBaseDriver;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;vcldb;vclFireDAC;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;emsserverresource;IndyCore;RESTBackendComponents;P4DPyTorch;P4DScikitLearn;bindcompdbx;rtl;FireDACMySQLDriver;FireDACADSDriver;RESTComponents;DBXSqliteDriver;vcl;IndyIPServer;dsnapxml;dsnapcon;DataSnapClient;DataSnapProviderClient;adortl;P4DNLTK;DBXSybaseASEDriver;DBXDb2Driver;vclimg;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;P4DEnvironment;bindcompvcl;dsnap;CloudService;DBXSybaseASADriver;DBXOracleDriver;FireDACDb2Driver;DBXInformixDriver;P4DNumPy;fmxobj;bindcompvclsmp;DataSnapNativeClient;PythonFmx;DatasnapConnectorsFreePascal;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_Locale>1033</VerInfo_Locale>
+        <DCC_UnitSearchPath>..\dap4delphi\lib\Win32\Release;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <Icon_MainIcon>images\PythonFMXBuilder.ico</Icon_MainIcon>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_UnitSearchPath>..\dap4delphi\lib\Win64\Release;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <Icon_MainIcon>images\PythonFMXBuilder.ico</Icon_MainIcon>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
@@ -96,6 +115,12 @@
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+        <Icon_MainIcon>images\PythonFMXBuilder.ico</Icon_MainIcon>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -143,4 +168,36 @@
     <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
     <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
     <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>
+    <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win32'">
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent/>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win64'">
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent/>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win32'">
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent/>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent/>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
 </Project>

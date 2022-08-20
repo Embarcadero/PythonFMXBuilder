@@ -79,3 +79,4 @@ modules/
 !Win32/Release/data/project/project.json
 !Win64/Release/data/project/project.json
 !source/views/frame/debug
+*.res
