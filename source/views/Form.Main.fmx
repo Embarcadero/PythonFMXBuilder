@@ -3,6 +3,7 @@ inherited MainForm: TMainForm
   ClientHeight = 1282
   ClientWidth = 1938
   Position = ScreenCenter
+  WindowState = wsMaximized
   OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook
@@ -363,8 +364,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 1928.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 1908.000000000000000000
-                    Viewport.Height = 76.000000000000000000
+                    Viewport.Width = 1924.000000000000000000
+                    Viewport.Height = 92.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
