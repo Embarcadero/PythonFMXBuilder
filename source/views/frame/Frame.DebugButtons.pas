@@ -16,10 +16,6 @@ type
     btnStop: TSpeedButton;
     btnPause: TSpeedButton;
     sbContinue: TSpeedButton;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 implementation

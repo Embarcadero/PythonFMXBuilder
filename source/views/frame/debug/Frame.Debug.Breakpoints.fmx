@@ -17,8 +17,8 @@ inherited BreakpointsDebugFrame: TBreakpointsDebugFrame
     Size.PlatformDefault = False
     TabOrder = 1
     Options = [ColumnResize, ColumnMove, Tabs, Header, AutoDisplacement]
-    Viewport.Width = 570.000000000000000000
-    Viewport.Height = 245.000000000000000000
+    Viewport.Width = 574.000000000000000000
+    Viewport.Height = 270.000000000000000000
   end
   object bsdbBreakpoints: TBindSourceDB
     DataSet = DebuggerDataSetContainer.fdmtBreakpoint

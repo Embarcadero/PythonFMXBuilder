@@ -12,8 +12,8 @@ inherited LocalVariablesDebugFrame: TLocalVariablesDebugFrame
     Size.Height = 200.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
-    Viewport.Width = 316.000000000000000000
-    Viewport.Height = 175.000000000000000000
+    Viewport.Width = 320.000000000000000000
+    Viewport.Height = 200.000000000000000000
   end
   object bsdbLocalVariables: TBindSourceDB
     DataSet = DebuggerDataSetContainer.fdmtVariable

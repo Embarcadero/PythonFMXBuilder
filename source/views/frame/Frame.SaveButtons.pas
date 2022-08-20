@@ -11,10 +11,6 @@ type
   TSaveButtonsFrame = class(TFrame)
     sbSaveAll: TSpeedButton;
     sbSave: TSpeedButton;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 implementation

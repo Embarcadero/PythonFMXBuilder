@@ -56,6 +56,12 @@ object LeftPanelFrame: TLeftPanelFrame
               Size.Width = 448.000000000000000000
             end
           end
+          inherited grdLocalVariables: TGrid
+            Size.Width = 453.000000000000000000
+            Size.Height = 366.000000000000000000
+            Viewport.Width = 453.000000000000000000
+            Viewport.Height = 366.000000000000000000
+          end
         end
         inherited frmStackTrace: TStackTraceDebugFrame
           Size.Width = 453.000000000000000000
@@ -65,6 +71,12 @@ object LeftPanelFrame: TLeftPanelFrame
             inherited lbDescription: TLabel
               Size.Width = 448.000000000000000000
             end
+          end
+          inherited grdStackTrace: TGrid
+            Size.Width = 453.000000000000000000
+            Size.Height = 385.000000000000000000
+            Viewport.Width = 453.000000000000000000
+            Viewport.Height = 385.000000000000000000
           end
         end
         inherited spHorizontal: TSplitter

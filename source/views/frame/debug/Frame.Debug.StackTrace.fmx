@@ -17,8 +17,8 @@ inherited StackTraceDebugFrame: TStackTraceDebugFrame
     Size.PlatformDefault = False
     TabOrder = 1
     Options = [Tabs, AutoDisplacement]
-    Viewport.Width = 382.000000000000000000
-    Viewport.Height = 268.000000000000000000
+    Viewport.Width = 386.000000000000000000
+    Viewport.Height = 272.000000000000000000
   end
   object bsdbStackTrace: TBindSourceDB
     DataSet = DebuggerDataSetContainer.fdmtStackTrace

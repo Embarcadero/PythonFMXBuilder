@@ -16,7 +16,6 @@ type
   private
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
-    { Private declarations }
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;

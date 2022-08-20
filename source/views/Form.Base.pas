@@ -9,10 +9,6 @@ uses
 type
   TBaseForm = class(TForm)
     StyleBook1: TStyleBook;
-  private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 var

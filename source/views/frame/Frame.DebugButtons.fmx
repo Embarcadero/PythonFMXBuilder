@@ -7,7 +7,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 16
+    ImageIndex = 14
     Margins.Left = 5.000000000000000000
     Position.X = 5.000000000000000000
     Size.Width = 30.000000000000000000
@@ -20,7 +20,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 17
+    ImageIndex = 15
     Margins.Left = 5.000000000000000000
     Position.X = 75.000000000000000000
     Size.Width = 30.000000000000000000
@@ -33,7 +33,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 19
+    ImageIndex = 17
     Margins.Left = 5.000000000000000000
     Position.X = 110.000000000000000000
     Size.Width = 30.000000000000000000
@@ -46,7 +46,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 18
+    ImageIndex = 16
     Margins.Left = 5.000000000000000000
     Position.X = 145.000000000000000000
     Size.Width = 30.000000000000000000
@@ -59,7 +59,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 21
+    ImageIndex = 19
     Margins.Left = 5.000000000000000000
     Position.X = 215.000000000000000000
     Size.Width = 30.000000000000000000
@@ -72,7 +72,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 20
+    ImageIndex = 18
     Margins.Left = 5.000000000000000000
     Position.X = 180.000000000000000000
     Size.Width = 30.000000000000000000
@@ -85,7 +85,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Align = Left
     Enabled = True
     Images = ImageContainer.images
-    ImageIndex = 22
+    ImageIndex = 20
     Margins.Left = 5.000000000000000000
     Position.X = 40.000000000000000000
     Size.Width = 30.000000000000000000

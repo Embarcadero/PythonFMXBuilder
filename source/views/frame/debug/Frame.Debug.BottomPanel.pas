@@ -16,29 +16,10 @@ type
     frmDebugEvents: TEventsDebugFrame;
     frmDebugBreakpoint: TBreakpointsDebugFrame;
     frmDebugThreads: TThreadsDebugFrame;
-  private
-    { Private declarations }
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy(); override;
   end;
 
 implementation
 
 {$R *.fmx}
-
-{ TBottomPanelDebugFrame }
-
-constructor TBottomPanelDebugFrame.Create(AOwner: TComponent);
-begin
-  inherited;
-
-end;
-
-destructor TBottomPanelDebugFrame.Destroy;
-begin
-
-  inherited;
-end;
 
 end.

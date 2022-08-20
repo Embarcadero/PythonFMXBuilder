@@ -23,6 +23,4 @@ uses
 
 {$R *.fmx}
 
-{ TProjectButtonsFrame }
-
 end.

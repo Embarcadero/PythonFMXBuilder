@@ -17,8 +17,8 @@ inherited EventsDebugFrame: TEventsDebugFrame
     Size.PlatformDefault = False
     TabOrder = 1
     Options = [ColumnResize, ColumnMove, Tabs, Header, AutoDisplacement]
-    Viewport.Width = 650.000000000000000000
-    Viewport.Height = 219.000000000000000000
+    Viewport.Width = 654.000000000000000000
+    Viewport.Height = 244.000000000000000000
   end
   object bsdbEvents: TBindSourceDB
     DataSet = DebuggerDataSetContainer.fdmtEvent
