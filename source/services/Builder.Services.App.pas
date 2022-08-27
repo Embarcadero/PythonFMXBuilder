@@ -298,7 +298,7 @@ begin
   var LContent := TFile.ReadAllText(LDelpoyedDataSetsFile);
 
   if not LContent.IsEmpty() then
-    TFile.AppendAllText(LDelpoyedDataSetsFile, sLineBreak);
+    TFile.AppendAllText(LDelpoyedDataSetsFile, #13#10 {MUST be CRLF even on UNIX});
 
   if not LContent.Contains(LDeployedFilePath) then
     TFile.AppendAllText(LDelpoyedDataSetsFile, LDeployedFilePath);
