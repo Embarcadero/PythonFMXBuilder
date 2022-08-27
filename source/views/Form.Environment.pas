@@ -210,9 +210,9 @@ begin
     Exit;
 
   LoadToolPath(edtSdkBasePath.Text, 'apksigner.jar', edtApkSigner);
-  LoadToolPath(edtSdkBasePath.Text, 'adb.exe', edtAdbLocation);
-  LoadToolPath(edtSdkBasePath.Text, 'aapt.exe', edtAaptLocation);
-  LoadToolPath(edtSdkBasePath.Text, 'zipalign.exe', edtZipAlign);
+  LoadToolPath(edtSdkBasePath.Text, {$IFDEF POSIX}'adb'{$ELSE}'adb.exe'{$ENDIF}, edtAdbLocation);
+  LoadToolPath(edtSdkBasePath.Text, {$IFDEF POSIX}'aapt'{$ELSE}'aapt.exe'{$ENDIF}, edtAaptLocation);
+  LoadToolPath(edtSdkBasePath.Text, {$IFDEF POSIX}'zipalign'{$ELSE}'zipalign.exe'{$ENDIF}, edtZipAlign);
 
   if edtSdkApiLocation.Text.IsEmpty() then
     LoadEditContent(edtSdkAPILocation, function(): string begin
@@ -225,8 +225,12 @@ begin
   if not TDirectory.Exists(ABasePath) then
     Exit;
 
-  LoadToolPath(edtJdkBasePath.Text, 'keytool.exe', edtKeyTool);
-  LoadToolPath(edtJdkBasePath.Text, 'jarsigner.exe', edtJarSignerLocation);
+  LoadToolPath(edtJdkBasePath.Text,
+    {$IFDEF POSIX}'keytool'{$ELSE}'keytool.exe'{$ENDIF},
+    edtKeyTool);
+  LoadToolPath(edtJdkBasePath.Text,
+    {$IFDEF POSIX}'jarsigner'{$ELSE}'jarsigner.exe'{$ENDIF},
+    edtJarSignerLocation);
 end;
 
 procedure TEnvironmentForm.FormUpdate;
