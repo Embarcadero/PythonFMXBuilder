@@ -25,15 +25,6 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
-  TMemoScriptEditorTabItem = class(TCustomEditorTabItem)
-  private
-    FEditor: TMemoEditorFrame;
-  protected
-    function GetTextEditor(): ITextEditor; override;
-  public
-    constructor Create(AOwner: TComponent); override;
-  end;
-
 implementation
 
 {$R *.fmx}
@@ -87,25 +78,10 @@ begin
   //
 end;
 
-{ TMemoScriptEditorTabItem }
-
-constructor TMemoScriptEditorTabItem.Create(AOwner: TComponent);
-begin
-  inherited;
-  FEditor := TMemoEditorFrame.Create(Self);
-  FEditor.Parent := Self;
-  FEditor.Align := TAlignLayout.Client;
-end;
-
-function TMemoScriptEditorTabItem.GetTextEditor: ITextEditor;
-begin
-  Result := FEditor;
-end;
-
 initialization
-  TCustomEditorTabItem.DefaultTabItemClass := TMemoScriptEditorTabItem;
+  TEditorTabItem.DefaultEditorClass := TMemoEditorFrame;
 
 finalization
-  TCustomEditorTabItem.DefaultTabItemClass := nil;
+  TEditorTabItem.DefaultEditorClass := nil;
 
 end.
