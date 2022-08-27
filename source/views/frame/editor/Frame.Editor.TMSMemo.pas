@@ -8,7 +8,7 @@ uses
   FMX.Dialogs, FMX.StdCtrls, FMX.TMSBaseControl, FMX.TMSMemo, FMX.Controls.Presentation,
   Frame.Editor.TabItem, Builder.Chain, BaseProtocol, BaseProtocol.Types,
   BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client,
-  Builder.Storage, Builder.Model.Environment, Builder.Services;
+  Builder.Storage, Builder.Model.Environment, Builder.Services, FMX.TabControl;
 
 type
   TTMSMemoEditorFrame = class(TFrame, ITextEditor)
@@ -34,15 +34,6 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
-  end;
-
-  TTMSMemoScriptEditorTabItem = class(TCustomEditorTabItem)
-  private
-    FEditor: TTMSMemoEditorFrame;
-  protected
-    function GetTextEditor(): ITextEditor; override;
-  public
-    constructor Create(AOwner: TComponent); override;
   end;
 
 implementation
@@ -201,25 +192,10 @@ begin
   end;
 end;
 
-{ TTMSMemoScriptEditorTabItem }
-
-constructor TTMSMemoScriptEditorTabItem.Create(AOwner: TComponent);
-begin
-  inherited;
-  FEditor := TTMSMemoEditorFrame.Create(Self);
-  FEditor.Parent := Self;
-  FEditor.Align := TAlignLayout.Client;
-end;
-
-function TTMSMemoScriptEditorTabItem.GetTextEditor: ITextEditor;
-begin
-  Result := FEditor;
-end;
-
 initialization
-  TCustomEditorTabItem.DefaultTabItemClass := TTMSMemoScriptEditorTabItem;
+  TEditorTabItem.DefaultEditorClass := TTMSMemoEditorFrame;
 
 finalization
-  TCustomEditorTabItem.DefaultTabItemClass := nil;
+  TEditorTabItem.DefaultEditorClass := nil;
 
 end.
