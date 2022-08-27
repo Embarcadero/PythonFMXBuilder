@@ -8,10 +8,9 @@ object EditorControlFrame: TEditorControlFrame
     Size.Width = 747.000000000000000000
     Size.Height = 540.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'tbScriptsStyle1'
     TabIndex = 0
     TabOrder = 0
-    TabPosition = PlatformDefault
+    TabPosition = Top
   end
   object dsActiveSource: TDataSource
     DataSet = DebuggerDataSetContainer.fdmtActiveSource
