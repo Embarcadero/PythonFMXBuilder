@@ -10,7 +10,7 @@ uses
   Builder.Model.Environment,
   Builder.Services,
   Builder.Storage,
-  Builder.Model;
+  Builder.Model, FMX.StdActns;
 
 type
   TMenuActionsContainer = class(TDataModule)
@@ -35,6 +35,9 @@ type
     actContinue: TAction;
     actSaveState: TAction;
     actSaveAllState: TAction;
+    actFileExit: TFileExit;
+    actFileHideApp: TFileHideApp;
+    actFileHideAppOthers: TFileHideAppOthers;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
