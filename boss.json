@@ -4,7 +4,13 @@
 	"version": "1.0.0",
 	"homepage": "https://github.com/Embarcadero/PythonFMXBuilder",
 	"mainsrc": "./source",
-	"projects": [],
+	"projects": [
+		"./packages/PythonFMXBuilder.dproj",
+		"PythonFMXBuilderGUI.dproj",
+		"PythonFMXBuilderGUIWithTMS.dproj",
+		"PythonFMXBuilderCLI.dproj",
+		"PythonFMXBuilderEntityEditor.dproj"
+	],
 	"dependencies": {
 		"https://github.com/embarcadero/pythonenviroments": "^v0.0.1-alpha",
 		"https://github.com/lmbelo/dap4delphi": "^v0.1.0-alpha",
