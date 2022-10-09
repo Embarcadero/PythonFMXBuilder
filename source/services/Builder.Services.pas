@@ -3,11 +3,22 @@ unit Builder.Services;
 interface
 
 uses
-  System.Classes, System.IOUtils, System.SysUtils,
-  Builder.Architecture, Builder.PythonVersion,
-  Builder.Model.Project, Builder.Model.Environment;
+  System.Classes,
+  System.IOUtils,
+  System.SysUtils,
+  System.Types,
+  Builder.Types,
+  Builder.Model.Project,
+  Builder.Model.Environment;
 
 type
+  IRunner<T> = interface
+    ['{8C84D954-BD52-4B33-A6C0-C006B16A9248}']
+    procedure Run(const AProxy: TProc<T>);
+    function RunAsync(const AProxy: TProc<T>;
+      const AAsyncCallback: TAsyncCallback = nil): IAsyncResult;
+  end;
+
   IAdbServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
     procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
@@ -57,6 +68,13 @@ type
     procedure RemoveScriptFile(const AModel: TProjectModel;
       const AFilePath: string);
     function GetScriptFiles(const AModel: TProjectModel): TArray<string>;
+
+    function AddDependency(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemoveDependency(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetDependencies(const AModel: TProjectModel): TArray<string>;
+    procedure ClearDependencies(const AModel: TProjectModel);
   end;
 
   IAppServices = interface
@@ -68,12 +86,13 @@ type
     //App defs. file (used by the Android app)
     procedure CreateAppDefs(const AModel: TProjectModel);
     //assets/internal dataset
-    procedure CopyScriptFiles(const AModel: TProjectModel);
-    function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
+    function AddFile(const AModel: TProjectModel; const AFileName: string;
       const AStream: TStream): string;
-    procedure RemoveScriptFile(const AModel: TProjectModel; const AFilePath: string);
-    function GetScriptFiles(const AModel: TProjectModel;
+    procedure RemoveFile(const AModel: TProjectModel; const AFilePath: string);
+    function GetFiles(const AModel: TProjectModel;
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
+    procedure CopyScripts(const AModel: TProjectModel);
+    procedure CopyDependencies(const AModel: TProjectModel);
     //Send the user icons to the deployable folder
     procedure CopyIcons(const AModel: TProjectModel);
     procedure BuildProject(const AModel: TProjectModel);
@@ -96,13 +115,14 @@ type
 
   {$SCOPEDENUMS ON}
   TDebuggerConnectionStatus = (
-    OutOfWork,
+    OutOfWork, //We are tension-free
     Connecting, //We are ordering a conenction to the debugger
     Started, //We are conected to the debugger - Debugger has confirmed
     Disconnecting, //We ordered to disconnect from the debugger
     Stopped //We are disconnected from the debugger - Debugger has confirmed
   );
   {$SCOPEDENUMS OFF}
+
   IDebugServices = interface
     ['{568CC96C-4A33-4CA1-8972-1F2C7280B0EE}']
     function GetConnectionStatus(): TDebuggerConnectionStatus;
@@ -128,19 +148,25 @@ type
     property IsDebugging: boolean read GetIsDebugging;
   end;
 
-  IBuildServices = interface
+  {$SCOPEDENUMS ON}
+  TRunMode = (
+    RunNormalMode, //It launches the application, but it doesn't initialize the debugger
+    RunDebugMode //It launches the application and initialize the debugger - it sets the Python interpreter to interactive mode
+  );
+  {$SCOPEDENUMS OFF}
+
+  IBuilderTasks = interface
+    ['{84F93F2A-AD66-46C7-B93D-FA9F70076212}']
+    procedure BuildActiveProject();
+    procedure DeployActiveProject(const AUninstall: boolean = true);
+    procedure RunActiveProject(const ARunMode: TRunMode = TRunMode.RunNormalMode);
+    procedure DebugActiveProject(const ADebugger: IDebugServices);
+    procedure StopActiveProject();
+  end;
+
+  IBuildServices = interface(IRunner<IBuilderTasks>)
     ['{8BA3AEDE-8E35-42AE-9014-DCBFD0AA197C}']
     function GetIsBuilding(): boolean;
-    //Active project build operations
-    procedure BuildActiveProject();
-    procedure BuildActiveProjectAsync();
-    procedure DeployActiveProject();
-    procedure DeployActiveProjectAsync();
-    procedure RunActiveProject();
-    procedure RunActiveProjectAsync();
-    procedure DebugActiveProject(const ADebugger: IDebugServices);
-    procedure DebugActiveProjectAsync(const ADebugger: IDebugServices);
-
     property IsBuilding: boolean read GetIsBuilding;
   end;
 

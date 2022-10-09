@@ -3,28 +3,21 @@ unit Builder.Services.App;
 interface
 
 uses
+  System.Classes,
+  System.IOUtils,
+  Builder.Types,
   Builder.Services,
-  Builder.Architecture, Builder.PythonVersion,
-  Builder.Model.Project, Builder.Model.Environment,
-  System.Classes, System.IOUtils;
+  Builder.Model.Project,
+  Builder.Model.Environment;
 
 type
   TAppService = class(TInterfacedObject, IAppServices)
   private
-    function GetPreBuiltFolder(const AArchitecture: TArchitecture): string;
     function GetPythonZipFile(const APythonVersion: TPythonVersion;
       const AArchitecture: TArchitecture): string;
     function GetPythonInterpreterFiles(const APythonVersion: TPythonVersion;
       const AArchitecture: TArchitecture): TArray<string>;
-    function GetDependencyFiles(): TArray<string>;
-    function GetAppPythonInterpreterFolder(const AArchitecture: TArchitecture): string;
-    function GetApkPath(const AProjectName: string): string;
-    function GetManifestPath(const AProjectName: string): string;
-    function GetPythonFolder(): string;
-    function GetAppPath(const AProjectName: string): string;
-    function GetAppAssetsInternal(const AProjectName: string; const AValidate: boolean = true): string;
-    function GetAppAssestsInternalFolder(const AProjectName: string): string;
-    function GetAppDeployInfoFolder(const AProjectName: string): string;
+
     procedure ClearAssetsInternal(const AProjectName: string);
     procedure ClearDeployInfo(const AProjectName: string);
     procedure AddAssetsInternalFileToDeployInfo(const AProjectName: string; const AFileName: string);
@@ -32,15 +25,18 @@ type
   public
     procedure CopyAppFiles(const AModel: TProjectModel);
     procedure CopyIcons(const AModel: TProjectModel);
+    //App script files
+    procedure CopyScripts(const AModel: TProjectModel);
+    procedure CopyDependencies(const AModel: TProjectModel);
+    procedure CopyDebugger(const AModel: TProjectModel);
+    //App deployables
+    function AddFile(const AModel: TProjectModel; const AFileName: string;
+      const AStream: TStream): string;
+    procedure RemoveFile(const AModel: TProjectModel; const AFilePath: string);
+    function GetFiles(const AModel: TProjectModel;
+      const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //App defs. file (used by the Android app)
     procedure CreateAppDefs(const AModel: TProjectModel);
-    //App script files
-    procedure CopyScriptFiles(const AModel: TProjectModel);
-    function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
-      const AStream: TStream): string;
-    procedure RemoveScriptFile(const AModel: TProjectModel; const AFilePath: string);
-    function GetScriptFiles(const AModel: TProjectModel;
-      const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //App basic info
     procedure UpdateManifest(const AModel: TProjectModel);
     //Project builder
@@ -62,96 +58,18 @@ type
 implementation
 
 uses
-  System.SysUtils, System.JSON,
+  System.SysUtils,
+  System.JSON,
+  Builder.Paths,
   Builder.Services.Factory;
 
-const
-  APPS_FOLDER = 'apps';
-  APP_IMAGE_NAME = 'PyApp';
-  APP_IMAGE_APK_NAME = 'PyApp.apk';
-
 { TPreBuiltCopyService }
-
-function TAppService.GetApkPath(const AProjectName: string): string;
-begin
-  Result := TPath.Combine(GetAppPath(AProjectName), 'bin');
-  Result := TPath.Combine(Result, ChangeFileExt(AProjectName, '.apk'));
-end;
-
-function TAppService.GetAppAssetsInternal(const AProjectName: string;
-  const AValidate: boolean): string;
-begin
-  Result := GetAppPath(AProjectName);
-  Result := TPath.Combine(Result, 'assets');
-  Result := TPath.Combine(Result, 'internal');
-
-  if AValidate and not TDirectory.Exists(Result) then
-    raise Exception.CreateFmt('Script folder not found at: %s', [Result]);
-end;
-
-function TAppService.GetAppDeployInfoFolder(const AProjectName: string): string;
-begin
-  Result := GetAppPath(AProjectName);
-  Result := TPath.Combine(Result, 'assets');
-  Result := TPath.Combine(Result, 'deployinfo');
-end;
-
-function TAppService.GetAppPath(const AProjectName: string): string;
-begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), APPS_FOLDER);
-  Result := TPath.Combine(Result, AProjectName);
-end;
-
-function TAppService.GetAppAssestsInternalFolder(const AProjectName: string): string;
-begin
-  Result := GetAppPath(AProjectName);
-  Result := TPath.Combine(Result, 'assets');
-  Result := TPath.Combine(Result, 'internal');
-end;
-
-function TAppService.GetAppPythonInterpreterFolder(const AArchitecture: TArchitecture): string;
-begin
-  Result := TPath.Combine('library', 'lib');
-  case AArchitecture of
-    arm: Result := TPath.Combine(Result, 'armeabi-v7a');
-    aarch64: Result := TPath.Combine(Result, 'arm64-v8a');
-  end;
-end;
-
-function TAppService.GetDependencyFiles: TArray<string>;
-begin
-  var LPath := GetPythonFolder();
-  LPath := TPath.Combine(LPath, 'dependencies');
-  Result := TDirectory.GetFiles(LPath, '*.zip');
-end;
-
-function TAppService.GetManifestPath(const AProjectName: string): string;
-begin
-  Result := TPath.Combine(GetAppPath(AProjectName), 'AndroidManifest.xml');
-end;
-
-function TAppService.GetPreBuiltFolder(
-  const AArchitecture: TArchitecture): string;
-begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'android');
-  Result := TPath.Combine(Result, 'pre-built');
-  case AArchitecture of
-    arm: Result := TPath.Combine(Result, 'arm');
-    aarch64: Result := TPath.Combine(Result, 'aarch64');
-  end;
-  Result := TPath.Combine(Result, APP_IMAGE_NAME);
-end;
-
-function TAppService.GetPythonFolder: string;
-begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'python');
-end;
 
 function TAppService.GetPythonInterpreterFiles(
   const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture): TArray<string>;
 begin
-  var LPath := GetPythonFolder();
+  var LPath := TBuilderPaths.GetPythonFolder();
   case AArchitecture of
     arm: LPath := TPath.Combine(LPath, 'arm');
     aarch64: LPath := TPath.Combine(LPath, 'aarch64');
@@ -213,7 +131,7 @@ end;
 function TAppService.InstallApk(const AProjectModel: TProjectModel;
   const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
 begin
-  var LApkPath := GetApkPath(AProjectModel.ProjectName);
+  var LApkPath := TBuilderPaths.GetApkPath(AProjectModel.ProjectName);
   if not TFile.Exists(LApkPath) then
     raise Exception.CreateFmt('Apk file %s not found at: %s', [
       AProjectModel.ProjectName, LApkPath]);
@@ -269,7 +187,7 @@ end;
 
 procedure TAppService.UpdateManifest(const AModel: TProjectModel);
 begin
-  var LManifestPath := GetManifestPath(AModel.ProjectName);
+  var LManifestPath := TBuilderPaths.GetManifestPath(AModel.ProjectName);
   var LText := TFile.ReadAllText(LManifestPath, TEncoding.UTF8);
   LText := LText
     .Replace('package="com.embarcadero.PyApp"', Format('package="%s"', [AModel.PackageName]))
@@ -285,7 +203,7 @@ end;
 procedure TAppService.AddAssetsInternalFileToDeployInfo(
   const AProjectName: string; const AFileName: string);
 begin
-  var LDeployInfoFolder := GetAppDeployInfoFolder(AProjectName);
+  var LDeployInfoFolder := TBuilderPaths.GetAppAssetsDeployInfoFolder(AProjectName);
   if not TDirectory.Exists(LDeployInfoFolder) then
     TDirectory.CreateDirectory(LDeployInfoFolder);
 
@@ -304,11 +222,10 @@ begin
     TFile.AppendAllText(LDelpoyedDataSetsFile, LDeployedFilePath);
 end;
 
-
 procedure TAppService.RemoveAssetsInternalFileToDeployInfo(const AProjectName,
   AFileName: string);
 begin
-  var LDeployInfoFolder := GetAppDeployInfoFolder(AProjectName);
+  var LDeployInfoFolder := TBuilderPaths.GetAppAssetsDeployInfoFolder(AProjectName);
   if not TDirectory.Exists(LDeployInfoFolder) then
     Exit;
 
@@ -332,17 +249,17 @@ begin
   end;
 end;
 
-function TAppService.AddScriptFile(const AModel: TProjectModel;
+function TAppService.AddFile(const AModel: TProjectModel;
   const AFileName: string; const AStream: TStream): string;
 var
   LBytes: TBytes;
 begin
-  var LScriptFolder := GetAppAssetsInternal(AModel.ProjectName);
+  var LAssetsInternal := TBuilderPaths.GetAppAssetsInternalFolder(AModel.ProjectName);
 
   SetLength(LBytes, AStream.Size);
   AStream.Position := 0;
   AStream.Read(LBytes, AStream.Size);
-  var LFilePath := TPath.Combine(LScriptFolder, AFileName);
+  var LFilePath := TPath.Combine(LAssetsInternal, AFileName);
   TFile.WriteAllBytes(LFilePath, LBytes);
 
   AddAssetsInternalFileToDeployInfo(AModel.ProjectName, AFileName);
@@ -350,20 +267,20 @@ begin
   Result := LFilePath
 end;
 
-procedure TAppService.RemoveScriptFile(const AModel: TProjectModel;
+procedure TAppService.RemoveFile(const AModel: TProjectModel;
   const AFilePath: string);
 begin
-  var LScriptFolder := GetAppAssetsInternal(AModel.ProjectName);
+  var LScriptFolder := TBuilderPaths.GetAppAssetsInternalFolder(AModel.ProjectName);
   //Remove from the dataset file
   RemoveAssetsInternalFileToDeployInfo(AModel.ProjectName, TPath.GetFileName(AFilePath));
   //Physically delete file
   TFile.Delete(AFilePath);
 end;
 
-function TAppService.GetScriptFiles(
+function TAppService.GetFiles(
   const AModel: TProjectModel; const AFilter: TDirectory.TFilterPredicate): TArray<string>;
 begin
-  var LScriptFolder := GetAppAssetsInternal(AModel.ProjectName);
+  var LScriptFolder := TBuilderPaths.GetAppAssetsInternalFolder(AModel.ProjectName);
   Result := TDirectory.GetFiles(LScriptFolder, '*', TSearchOption.soTopDirectoryOnly, AFilter);
 end;
 
@@ -373,7 +290,7 @@ begin
   var LService := TServiceSimpleFactory.CreateAdb();
   var LStrings := TStringList.Create();
   try
-    Result := LService.BuildApk(GetAppPath(AProjectModel.ProjectName),
+    Result := LService.BuildApk(TBuilderPaths.GetAppPath(AProjectModel.ProjectName),
       AProjectModel.ProjectName, AEnvironmentModel, LStrings);
   finally
     LStrings.Free();
@@ -387,7 +304,11 @@ begin
   //Copy icons
   CopyIcons(AModel);
   //Save aditional scripts to the APP files
-  CopyScriptFiles(AModel);
+  CopyScripts(AModel);
+  //Save aditional dependencies to the APP files
+  CopyDependencies(AModel);
+  //Save debugger files
+  CopyDebugger(AModel);
   //Update the manifest with the custom APP settings
   UpdateManifest(AModel);
   //Creates the app_defs file - it defines which file is the main script and more
@@ -396,14 +317,14 @@ end;
 
 procedure TAppService.ClearAssetsInternal(const AProjectName: string);
 begin
-  var LAssetsInternalFolder := GetAppAssestsInternalFolder(AProjectName);
+  var LAssetsInternalFolder := TBuilderPaths.GetAppAssetsInternalFolder(AProjectName);
   if TDirectory.Exists(LAssetsInternalFolder) then
     TDirectory.Delete(LAssetsInternalFolder, true);
 end;
 
 procedure TAppService.ClearDeployInfo(const AProjectName: string);
 begin
-  var LDeployInfoFolder := GetAppDeployInfoFolder(AProjectName);
+  var LDeployInfoFolder := TBuilderPaths.GetAppAssetsDeployInfoFolder(AProjectName);
   var LDelpoyedDataSetsFile := TPath.Combine(LDeployInfoFolder, 'deployedassets.txt');
   if TFile.Exists(LDelpoyedDataSetsFile) then
     TFile.Delete(LDelpoyedDataSetsFile);
@@ -412,7 +333,7 @@ end;
 procedure TAppService.CopyAppFiles(const AModel: TProjectModel);
 begin
   {|||||| APP folder ||||||}
-  var LAppPath := GetAppPath(AModel.ProjectName);
+  var LAppPath := TBuilderPaths.GetAppPath(AModel.ProjectName);
 
   if TDirectory.Exists(LAppPath) then
     TDirectory.Delete(LAppPath, true);
@@ -421,7 +342,7 @@ begin
 
   {|||||| Pre-build APP folder ||||||}
 
-  var LPreBuiltFolder := GetPreBuiltFolder(AModel.Architecture);
+  var LPreBuiltFolder := TBuilderPaths.GetPreBuiltFolder(AModel.Architecture);
   if not TDirectory.Exists(LPreBuiltFolder) then
     raise Exception.CreateFmt('Pre-built folder not found at: %s', [LPreBuiltFolder]);
 
@@ -431,7 +352,7 @@ begin
   ClearAssetsInternal(AModel.ProjectName);
   ClearDeployInfo(AModel.ProjectName);
 
-  var LAppAssetsInternalFolder := GetAppAssestsInternalFolder(AModel.ProjectName);
+  var LAppAssetsInternalFolder := TBuilderPaths.GetAppAssetsInternalFolder(AModel.ProjectName);
   //Create the /assets/internal/ folder
   if not TDirectory.Exists(LAppAssetsInternalFolder) then
     TDirectory.CreateDirectory(LAppAssetsInternalFolder);
@@ -449,23 +370,13 @@ begin
   //Add the python zip file to the deploy info file
   AddAssetsInternalFileToDeployInfo(AModel.ProjectName, ExtractFileName(LPythonZipFile));
 
-  {|||||| Python dependencies ||||||}
-
-  for var LDependency in GetDependencyFiles() do begin
-    LAppPythonPath := TPath.Combine(LAppAssetsInternalFolder, ExtractFileName(LDependency));
-    //Copy the python zip to the app assets/internal/
-    TFile.Copy(LDependency, LAppPythonPath);
-    //Add the python zip file to the deploy info file
-    AddAssetsInternalFileToDeployInfo(AModel.ProjectName, ExtractFileName(LDependency));
-  end;
-
   {|||||| Python Interpreter ||||||}
 
   //Get the python interpreter shared lib and executable paths
   var LPythonInterpreterFiles := GetPythonInterpreterFiles(AModel.PythonVersion, AModel.Architecture);
 
   //Copy the python interpreter to the app lib
-  var LAppPythonInterpreterFolder := TPath.Combine(LAppPath, GetAppPythonInterpreterFolder(AModel.Architecture));
+  var LAppPythonInterpreterFolder := TPath.Combine(LAppPath, TBuilderPaths.GetAppPythonInterpreterFolder(AModel.Architecture));
 
   //Create the /library/lib/ folder
   if not TDirectory.Exists(LAppPythonInterpreterFolder) then
@@ -480,7 +391,7 @@ end;
 
 procedure TAppService.CopyIcons(const AModel: TProjectModel);
 begin
-  var LAppResPath := TPath.Combine(GetAppPath(AModel.ProjectName), 'res');
+  var LAppResPath := TPath.Combine(TBuilderPaths.GetAppPath(AModel.ProjectName), 'res');
 
   if TFile.Exists(AModel.Icons.DrawableSmall) then
     TFile.Copy(AModel.Icons.DrawableSmall,
@@ -523,12 +434,63 @@ begin
       TPath.Combine(LAppResPath, 'drawable-xxxhdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
 end;
 
-procedure TAppService.CopyScriptFiles(const AModel: TProjectModel);
+procedure TAppService.CopyScripts(const AModel: TProjectModel);
 begin
   for var LScript in AModel.Files.Files do begin
     var LStream := TFileStream.Create(LScript, fmOpenRead);
     try
-      AddScriptFile(AModel, TPath.GetFileName(LScript), LStream);
+      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+    finally
+      LStream.Free();
+    end;
+  end;
+end;
+
+procedure TAppService.CopyDebugger(const AModel: TProjectModel);
+begin
+  var LDebuggerPackage := String.Empty;
+  var LDebuggerScript := String.Empty;
+  case AModel.Debugger of
+    TDebugger.DebugPy: begin
+      LDebuggerPackage := TPath.Combine(TBuilderPaths.GetPythonDependenciesFolder(), 'debugpy.zip');
+      LDebuggerScript := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'debugpy.py');
+    end;
+    TDebugger.Rpyc: begin
+      LDebuggerPackage := TPath.Combine(TBuilderPaths.GetPythonDependenciesFolder(), 'rpyc.zip');
+      LDebuggerScript := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'rpyc.py');
+    end;
+  end;
+
+  if TFile.Exists(LDebuggerPackage) then begin
+    var LStream := TFileStream.Create(LDebuggerPackage, fmOpenRead);
+    try
+      AddFile(AModel, TPath.GetFileName(LDebuggerPackage), LStream);
+    finally
+      LStream.Free();
+    end;
+  end;
+
+  if TFile.Exists(LDebuggerScript) then begin
+    //The Android app will look for a file called debug.py
+    var LDebugPath := TPath.Combine(TPath.GetTempPath(), 'debug.py');
+    if TFile.Exists(LDebugPath) then
+      TFile.Delete(LDebugPath);
+    TFile.Copy(LDebuggerScript, LDebugPath);
+    var LStream := TFileStream.Create(LDebugPath, fmOpenRead);
+    try
+      AddFile(AModel, TPath.GetFileName(LDebugPath), LStream);
+    finally
+      LStream.Free();
+    end;
+  end;
+end;
+
+procedure TAppService.CopyDependencies(const AModel: TProjectModel);
+begin
+  for var LScript in AModel.Files.Dependencies do begin
+    var LStream := TFileStream.Create(LScript, fmOpenRead);
+    try
+      AddFile(AModel, TPath.GetFileName(LScript), LStream);
     finally
       LStream.Free();
     end;
@@ -539,7 +501,7 @@ procedure TAppService.CreateAppDefs(const AModel: TProjectModel);
 const
   APP_DEFS_FILE_NAME = 'app_defs.json';
 begin
-  var LScriptFolder := GetAppAssetsInternal(AModel.ProjectName);
+  var LScriptFolder := TBuilderPaths.GetAppAssetsInternalFolder(AModel.ProjectName);
   var LAppDefsFiles := TPath.Combine(LScriptFolder, APP_DEFS_FILE_NAME);
 
   if not TFile.Exists(LAppDefsFiles) then
@@ -551,17 +513,28 @@ begin
 
     var LDependencies := TJSONArray.Create();
     try
-      for var LDependency in GetDependencyFiles() do begin
+      for var LDependency in AModel.Files.Dependencies do begin
         var LJSONDependency := TJSONObject.Create();
         try
           var LFileName := TPath.GetFileName(LDependency);
-          //We are only accepting packages following PIP formated names
-          var LIdx := Pos('-', LFileName) - 1;
-          if LIdx <= 0 then
-            raise Exception.Create('Invalid dependency package name');
-
-          LJSONDependency.AddPair('module_name', LFileName.Substring(0, LIdx));
+          LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LFileName));
           LJSONDependency.AddPair('file_name', LFileName);
+        finally
+          LDependencies.Add(LJSONDependency);
+        end;
+      end;
+
+      var LDebugger := String.Empty;
+      case AModel.Debugger of
+        DebugPy: LDebugger := 'debugpy.zip';
+        Rpyc: LDebugger := 'rpyc.zip';
+      end;
+
+      if not LDebugger.IsEmpty() then begin
+        var LJSONDependency := TJSONObject.Create();
+        try
+          LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LDebugger));
+          LJSONDependency.AddPair('file_name', LDebugger);
         finally
           LDependencies.Add(LJSONDependency);
         end;

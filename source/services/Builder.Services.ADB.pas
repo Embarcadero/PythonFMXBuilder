@@ -3,7 +3,9 @@ unit Builder.Services.ADB;
 interface
 
 uses
-  System.Classes, System.SysUtils, System.IOUtils,
+  System.Classes,
+  System.SysUtils,
+  System.IOUtils,
   Builder.Services,
   Builder.Model.Environment;
 
@@ -47,9 +49,162 @@ implementation
 uses
   PyTools.ExecCmd,
   Builder.Chain,
+  Builder.Exception,
   Builder.Storage.Default;
 
 { TADBService }
+
+procedure TADBService.EnumAssets(const AAssetsBasePath: string;
+  const AProc: TProc<string>);
+begin
+  if not Assigned(AProc) then
+    Exit;
+
+  for var LFile in TDirectory.GetFiles(AAssetsBasePath, '*.*', TSearchOption.soAllDirectories) do begin
+    var LRelativeFilePath := LFile
+      .Replace(AAssetsBasePath, String.Empty)
+      .Replace('\', '/');
+
+    if LRelativeFilePath.StartsWith('/') then
+      LRelativeFilePath := LRelativeFilePath.Remove(0, 1);
+
+    AProc('assets/' + LRelativeFilePath);
+  end;
+end;
+
+procedure TADBService.EnumDevices(const ADeviceList: TStrings;
+  const AProc: TProc<string>);
+begin
+  if not Assigned(AProc) then
+    Exit;
+  //TStrings is not breaking line on macOS :/
+  //Still needs to invastigate this
+  var LInputs := ADeviceList.Text.Split([sLineBreak]);
+
+  if Length(LInputs) > 1 then begin
+    for var I := 1 to High(LInputs) do begin
+      if LInputs[I].Trim().IsEmpty() then
+        Continue;
+
+      var LPos := Pos(#9, LInputs[I]);
+      if LPos = -1 then
+        Continue;
+
+      var LDevice := Copy(LInputs[I], 1, LPos - 1);
+      if not LDevice.Trim.IsEmpty() then
+        AProc(LDevice);
+    end;
+  end;
+end;
+
+procedure TADBService.EnumLibraries(const ALibBasePath: string;
+  const AProc: TProc<string>);
+begin
+  if not Assigned(AProc) then
+    Exit;
+
+  for var LFile in TDirectory.GetFiles(ALibBasePath, '*', TSearchOption.soAllDirectories) do begin
+    var LRelativeFilePath := LFile
+      .Replace(ALibBasePath, String.Empty)
+      .Replace('\', '/');
+
+    if LRelativeFilePath.StartsWith('/') then
+      LRelativeFilePath := LRelativeFilePath.Remove(0, 1);
+
+    AProc('lib/' + LRelativeFilePath);
+  end;
+end;
+
+procedure TADBService.CheckActiveDevice;
+begin
+  if GetActiveDevice().IsEmpty() then
+    raise ENoActiveDevice.Create('No device selected.');
+end;
+
+function TADBService.GetActiveDevice: string;
+begin
+  Result := FActiveDevice;
+end;
+
+procedure TADBService.SetActiveDevice(const ADeviceName: string);
+begin
+  FActiveDevice := ADeviceName;
+end;
+
+procedure TADBService.ExecCmd(const ACmd: string; const AArgs: TArray<string>;
+  ACmdResult: TStrings);
+var
+  LResult: string;
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create(
+      'ExecCmd: ' + ACmd + ' ' + String.Join(' ', AArgs),
+      TMessageLevel.Explanatory));
+
+  TExecCmdService.Cmd(
+    ACmd,
+    {$IFDEF POSIX}[ACmd] + {$ENDIF} AArgs,
+    [])
+    .Run(LResult)
+      .Wait();
+
+  LResult := LResult.Trim();
+  ACmdResult.Add(LResult);
+
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create(LResult, TMessageLevel.Explanatory));
+end;
+
+function TADBService.FindDeviceVendorModel(const AAdbPath, ADevice: string): string;
+begin
+  var LStrings := TStringList.Create();
+  try
+    ExecCmd(AAdbPath, [
+      '-s',
+      ADevice,
+      'shell',
+      'getprop',
+      'ro.product.model'],
+      LStrings);
+    Result := LStrings.Text
+      .Replace(#13#10, String.Empty);
+  finally
+    LStrings.Free();
+  end;
+end;
+
+procedure TADBService.ForceStopApp(const AAdbPath, APkgName, ADevice: string;
+  const AResult: TStrings);
+begin
+  ExecCmd(AAdbPath, [
+    '-s',
+    ADevice,
+    'shell',
+    'am',
+    'force-stop',
+    APkgName],
+    AResult);
+end;
+
+function TADBService.GetAppInstallationPath(const AAdbPath, APkgName,
+  ADevice: string; const AResult: TStrings): string;
+begin
+  var LStrings := TStringList.Create();
+  try
+    AResult.AddStrings(LStrings);
+    ExecCmd(AAdbPath, [
+      '-s',
+      ADevice,
+      'shell',
+      'pm',
+      'path',
+      APkgName],
+      AResult);
+    Result := LStrings.Text.Replace(sLineBreak, '', [rfReplaceAll]);
+  finally
+    LStrings.Free();
+  end;
+end;
 
 function TADBService.BuildApk(const AAppBasePath, AProjectName: string;
   const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
@@ -172,143 +327,6 @@ begin
     and not AResult.Text.Contains('Failure');
 end;
 
-procedure TADBService.EnumAssets(const AAssetsBasePath: string;
-  const AProc: TProc<string>);
-begin
-  if not Assigned(AProc) then
-    Exit;
-
-  for var LFile in TDirectory.GetFiles(AAssetsBasePath, '*.*', TSearchOption.soAllDirectories) do begin
-    var LRelativeFilePath := LFile
-      .Replace(AAssetsBasePath, String.Empty)
-      .Replace('\', '/');
-
-    if LRelativeFilePath.StartsWith('/') then
-      LRelativeFilePath := LRelativeFilePath.Remove(0, 1);
-
-    AProc('assets/' + LRelativeFilePath);
-  end;
-end;
-
-procedure TADBService.EnumDevices(const ADeviceList: TStrings;
-  const AProc: TProc<string>);
-begin
-  if not Assigned(AProc) then
-    Exit;
-  //TStrings is not breaking line on macOS :/
-  //Still needs to invastigate this
-  var LInputs := ADeviceList.Text.Split([sLineBreak]);
-
-  if Length(LInputs) > 1 then begin
-    for var I := 1 to High(LInputs) do begin
-      if LInputs[I].Trim().IsEmpty() then
-        Continue;
-
-      var LPos := Pos(#9, LInputs[I]);
-      if LPos = -1 then
-        Continue;
-
-      var LDevice := Copy(LInputs[I], 1, LPos - 1);
-      if not LDevice.Trim.IsEmpty() then
-        AProc(LDevice);
-    end;
-  end;
-end;
-
-procedure TADBService.EnumLibraries(const ALibBasePath: string;
-  const AProc: TProc<string>);
-begin
-  if not Assigned(AProc) then
-    Exit;
-
-  for var LFile in TDirectory.GetFiles(ALibBasePath, '*', TSearchOption.soAllDirectories) do begin
-    var LRelativeFilePath := LFile
-      .Replace(ALibBasePath, String.Empty)
-      .Replace('\', '/');
-
-    if LRelativeFilePath.StartsWith('/') then
-      LRelativeFilePath := LRelativeFilePath.Remove(0, 1);
-
-    AProc('lib/' + LRelativeFilePath);
-  end;
-end;
-
-procedure TADBService.ExecCmd(const ACmd: string; const AArgs: TArray<string>; ACmdResult: TStrings);
-var
-  LResult: string;
-begin
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TMessageEvent.Create('ExecCmd: ' + ACmd + ' ' + String.Join(' ', AArgs)));
-
-  TExecCmdService.Cmd(
-    ACmd,
-    {$IFDEF POSIX}[ACmd] + {$ENDIF} AArgs,
-    [])
-    .Run(LResult)
-      .Wait();
-
-  LResult := LResult.Trim();
-  ACmdResult.Add(LResult);
-
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(LResult));
-end;
-
-function TADBService.FindDeviceVendorModel(const AAdbPath, ADevice: string): string;
-begin
-  var LStrings := TStringList.Create();
-  try
-    ExecCmd(AAdbPath, [
-      '-s',
-      ADevice,
-      'shell',
-      'getprop',
-      'ro.product.model'],
-      LStrings);
-    Result := LStrings.Text
-      .Replace(#13#10, String.Empty);
-  finally
-    LStrings.Free();
-  end;
-end;
-
-procedure TADBService.ForceStopApp(const AAdbPath, APkgName, ADevice: string;
-  const AResult: TStrings);
-begin
-  ExecCmd(AAdbPath, [
-    '-s',
-    ADevice,
-    'shell',
-    'am',
-    'force-stop',
-    APkgName],
-    AResult);
-end;
-
-function TADBService.GetActiveDevice: string;
-begin
-  Result := FActiveDevice;
-end;
-
-function TADBService.GetAppInstallationPath(const AAdbPath, APkgName,
-  ADevice: string; const AResult: TStrings): string;
-begin
-  var LStrings := TStringList.Create();
-  try
-    AResult.AddStrings(LStrings);
-    ExecCmd(AAdbPath, [
-      '-s',
-      ADevice,
-      'shell',
-      'pm',
-      'path',
-      APkgName],
-      AResult);
-    Result := LStrings.Text.Replace(sLineBreak, '', [rfReplaceAll]);
-  finally
-    LStrings.Free();
-  end;
-end;
-
 function TADBService.InstallApk(const AAdbPath, AApkPath, ADevice: string; const AResult: TStrings): boolean;
 begin
   var LStrings := TStringList.Create();
@@ -415,12 +433,6 @@ begin
     AResult);
 end;
 
-procedure TADBService.CheckActiveDevice;
-begin
-  if GetActiveDevice().IsEmpty() then
-    raise Exception.Create('No device selected.');
-end;
-
 procedure TADBService.DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;
   const APort: integer; const AResult: TStrings);
 begin
@@ -434,13 +446,8 @@ begin
     Format('%s/com.embarcadero.firemonkey.FMXNativeActivity', [APkgName]),
     '--es',
     'args',
-    Format('"--debugpy -port %d"', [APort])],
+    Format('"--dbg -host %s -port %d"'.QuotedString(), [AHost, APort])],
     AResult);
-end;
-
-procedure TADBService.SetActiveDevice(const ADeviceName: string);
-begin
-  FActiveDevice := ADeviceName;
 end;
 
 procedure TADBService.StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);

@@ -3,6 +3,9 @@ unit Builder.Services.Build;
 interface
 
 uses
+  System.Types,
+  System.SysUtils,
+  System.Classes,
   Builder.Chain,
   Builder.Model.Project,
   Builder.Model.Environment,
@@ -11,10 +14,11 @@ uses
   Builder.Model;
 
 type
-  TBuildService = class(TInterfacedObject, IBuildServices)
+  TBuildService = class(TInterfacedObject, IBuildServices, IRunner<IBuilderTasks>, IBuilderTasks)
   private
     //Status
     FBuilding: boolean;
+    FAsync: boolean;
     //Models
     FProjectModel: TProjectModel;
     FEnvironmentModel: TEnvironmentModel;
@@ -27,35 +31,54 @@ type
     FProjectStorage: IStorage<TProjectModel>;
     //Events
     FDebugSessionEndedEvent: IDisconnectable;
-    //Getters
+    //Getters and setters
     function GetIsBuilding(): boolean;
     //Validators
     procedure UpdateModels();
+    //Runner
+    procedure DoRunAsync(const AAsyncOperation: TAsyncOperation; const AProc: TProc);
     //Internal build
+    procedure BeginBuild(const AAsync: boolean = false);
+    procedure EndBuild();
     procedure DoBuildProject();
-    procedure DoDeployProject(const ABuildProject: boolean = true);
-    procedure DoRunProject();
+    procedure DoDeployProject(const AUninstall: boolean);
+    procedure DoRunProject(const ARunMode: TRunMode);
+    procedure DoStopProject();
     procedure DoDebugProject(const ADebugger: IDebugServices);
+    //IBuilderTasks
+    procedure BuildActiveProject();
+    procedure DeployActiveProject(const AUninstall: boolean = true);
+    procedure RunActiveProject(const ARunMode: TRunMode = TRunMode.RunNormalMode);
+    procedure DebugActiveProject(const ADebugger: IDebugServices);
+    procedure StopActiveProject();
+  protected type
+    TBuilderRunnerAsyncResult = class(TBaseAsyncResult)
+    private
+      FAsyncTask: TProc;
+      FAsyncCallback: TAsyncCallback;
+    protected
+      procedure Complete; override;
+      procedure Schedule; override;
+      procedure AsyncDispatch; override;
+      constructor Create(const AContext: TObject; const AAsyncTask: TProc;
+        AAsyncCallback: TAsyncCallback = nil);
+    end;
   public
     constructor Create();
     destructor Destroy(); override;
 
-    procedure BuildActiveProject();
-    procedure BuildActiveProjectAsync();
-    procedure DeployActiveProject();
-    procedure DeployActiveProjectAsync();
-    procedure RunActiveProject();
-    procedure RunActiveProjectAsync();
-    procedure DebugActiveProject(const ADebugger: IDebugServices);
-    procedure DebugActiveProjectAsync(const ADebugger: IDebugServices);
+    procedure Run(const ATasksProxy: TProc<IBuilderTasks>);
+    function RunAsync(const ATasksProxy: TProc<IBuilderTasks>;
+      const AAsyncCallback: TAsyncCallback = nil): IAsyncResult;
   end;
 
 implementation
 
 uses
-  System.Classes,
-  System.SysUtils,
   System.Threading,
+  System.IOUtils,
+  Builder.Paths,
+  Builder.Exception,
   Builder.Storage.Factory,
   Builder.Services.Factory,
   Builder.Storage.Default;
@@ -103,12 +126,12 @@ end;
 procedure TBuildService.UpdateModels;
 begin
   if not FEnvironmentStorage.LoadModel(FEnvironmentModel) then
-    raise Exception.Create('The Environment Settings are empty.');
+    raise EEmptySettings.Create('The Environment Settings are empty.');
 
   FProjectModel := FProjectServices.GetActiveProject();
   if not Assigned(FProjectModel)
     or not FProjectStorage.LoadModel(FProjectModel, String.Empty, FProjectModel.Id) then
-      raise Exception.Create('The Project Settings are empty.');
+      raise EEmptySettings.Create('The Project Settings are empty.');
 
   var LModelErrors := TStringList.Create();
   try
@@ -128,39 +151,124 @@ begin
   end;
 end;
 
+procedure TBuildService.BeginBuild(const AAsync: boolean);
+begin
+  FBuilding := true;
+  FAsync := AAsync;
+  FProjectServices.CheckActiveProject();
+  UpdateModels();
+end;
+
+procedure TBuildService.EndBuild;
+begin
+  FBuilding := false;
+  FAsync := false;
+end;
+
+procedure TBuildService.DoRunAsync(const AAsyncOperation: TAsyncOperation;
+  const AProc: TProc);
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TAsyncOperationStartedEvent.Create(AAsyncOperation));
+  try
+    AProc();
+    TGlobalBuilderChain.BroadcastEventAsync(
+      TAsyncOperationEndedEvent.Create(AAsyncOperation));
+  except
+    on E: exception do begin
+      TGlobalBuilderChain.BroadcastEventAsync(
+        TAsyncOperationEndedEvent.Create(AAsyncOperation));
+      TGlobalBuilderChain.BroadcastEventAsync(
+        TAsyncExceptionEvent.Create());
+    end;
+  end;
+end;
+
 procedure TBuildService.DoBuildProject;
 begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create('Build process has started.'));
   //Generates the project necessary files and settings
   FAppServices.BuildProject(FProjectServices.GetActiveProject());
   //Creates and signs the APK file
   if not FAppServices.BuildApk(FProjectModel, FEnvironmentModel) then
-    raise Exception.Create('Build process failed. Check log for details.');
+    raise EBuildFailed.Create('Build process failed. Check log for details.');
   TGlobalBuilderChain.BroadcastEventAsync(
-    TMessageEvent.Create('Build process done.'));
+    TMessageEvent.Create('Build process finished.'));
 end;
 
-procedure TBuildService.DoDeployProject(const ABuildProject: boolean);
+procedure TBuildService.DoDeployProject(const AUninstall: boolean);
 begin
-  if ABuildProject then
-    DoBuildProject();
-  //Installs the APK on the device
-  if FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create('Deployment process has started.'));
+  if AUninstall and FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
     FAppServices.UnInstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice);
   if not FAppServices.InstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
-    raise Exception.Create('Install process failed. Check log for details.');
+    raise EInstallFailed.Create('Install process failed. Check log for details.');
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create('Deployment process finished.'));
 end;
 
-procedure TBuildService.DoRunProject;
+procedure TBuildService.DoRunProject(const ARunMode: TRunMode);
 begin
-  DoDeployProject();
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create('Launch process has started.'));
   var LResult := TStringList.Create();
   try
-    //Launch app on device
-    FAdbServices.RunApp(
+    FAdbServices.ForceStopApp(
       FEnvironmentModel.AdbLocation,
       FProjectModel.PackageName,
       FAdbServices.ActiveDevice,
       LResult);
+
+    //Launch app on device
+    case ARunMode of
+      TRunMode.RunNormalMode:
+        FAdbServices.RunApp(
+          FEnvironmentModel.AdbLocation,
+          FProjectModel.PackageName,
+          FAdbServices.ActiveDevice,
+          LResult);
+      TRunMode.RunDebugMode: begin
+        FAdbServices.StartDebugSession(
+          FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
+        try
+          FAdbServices.DebugApp(
+            FEnvironmentModel.AdbLocation,
+            FProjectModel.PackageName,
+            FAdbServices.ActiveDevice,
+            FEnvironmentModel.RemoteDebuggerHost,
+            FEnvironmentModel.RemoteDebuggerPort,
+            LResult);
+        except
+          on E: Exception do begin
+            FAdbServices.StopDebugSession(
+              FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
+            raise;
+          end;
+        end;
+      end;
+    end;
+
+    TGlobalBuilderChain.BroadcastEventAsync(
+      TMessageEvent.Create('Launch process finished.'));
+  finally
+    LResult.Free();
+  end;
+end;
+
+procedure TBuildService.DoStopProject;
+begin
+  var LResult := TStringList.Create();
+  try
+    FAdbServices.ForceStopApp(
+      FEnvironmentModel.AdbLocation,
+      FProjectModel.PackageName,
+      FAdbServices.ActiveDevice,
+      LResult);
+
+    FAdbServices.StopDebugSession(
+      FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
   finally
     LResult.Free();
   end;
@@ -168,7 +276,6 @@ end;
 
 procedure TBuildService.DoDebugProject(const ADebugger: IDebugServices);
 begin
-  //DoDeployProject(true);
   //Launch app on device and debug the Python script
   var LResult := TStringList.Create();
   try
@@ -190,6 +297,8 @@ begin
     try
       ADebugger.Start(
         FEnvironmentModel.RemoteDebuggerHost, FEnvironmentModel.RemoteDebuggerPort);
+      TGlobalBuilderChain.BroadcastEventAsync(
+        TMessageEvent.Create('Debug process has started.'));
     except
       on E: Exception do begin
         FAdbServices.StopDebugSession(
@@ -204,175 +313,108 @@ end;
 
 procedure TBuildService.BuildActiveProject();
 begin
-  FProjectServices.CheckActiveProject();
-  UpdateModels();
-  FBuilding := true;
-  try
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.BuildProject, DoBuildProject)
+  end else
     DoBuildProject();
-  finally
-    FBuilding := false;
-  end;
 end;
 
-procedure TBuildService.BuildActiveProjectAsync();
+procedure TBuildService.DeployActiveProject(const AUninstall: boolean = true);
 begin
-  FProjectServices.CheckActiveProject();
-  UpdateModels();
+  FAdbServices.CheckActiveDevice();
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.DeployProject, procedure() begin
+      DoDeployProject(AUninstall)
+    end);
+  end else
+    DoDeployProject(AUninstall);
+end;
 
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.BuildProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoBuildProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
-    except
-      on E: exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.BuildProject));
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+procedure TBuildService.RunActiveProject(const ARunMode: TRunMode);
+begin
+  FAdbServices.CheckActiveDevice();
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.DebugProject, procedure() begin
+      DoRunProject(ARunMode);
+    end);
+  end else
+    DoRunProject(ARunMode);
 end;
 
 procedure TBuildService.DebugActiveProject(const ADebugger: IDebugServices);
 begin
-  FProjectServices.CheckActiveProject();
   FAdbServices.CheckActiveDevice();
-  UpdateModels();
-
-  FBuilding := true;
-  try
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.RunProject, procedure() begin
+      DoDebugProject(ADebugger);
+    end);
+  end else
     DoDebugProject(ADebugger);
-  finally
-    FBuilding := false;
-  end;
 end;
 
-procedure TBuildService.DebugActiveProjectAsync(const ADebugger: IDebugServices);
+procedure TBuildService.StopActiveProject;
 begin
-  FProjectServices.CheckActiveProject();
   FAdbServices.CheckActiveDevice();
-  UpdateModels();
-
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.DebugProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoDebugProject(ADebugger);
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
-    except
-      on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.DebugProject));
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.StopProject, procedure() begin
+      DoStopProject();
+    end);
+  end else
+    DoStopProject();
 end;
 
-procedure TBuildService.DeployActiveProject();
+procedure TBuildService.Run(const ATasksProxy: TProc<IBuilderTasks>);
 begin
-  FProjectServices.CheckActiveProject();
-  FAdbServices.CheckActiveDevice();
-  UpdateModels();
-  FBuilding := true;
+  Assert(Assigned(ATasksProxy), 'Invalid argument [ATasksProxy].');
+  BeginBuild();
   try
-    DoDeployProject();
+    ATasksProxy(Self);
   finally
-    FBuilding := false;
+    EndBuild();
   end;
 end;
 
-procedure TBuildService.DeployActiveProjectAsync();
+function TBuildService.RunAsync(
+  const ATasksProxy: TProc<IBuilderTasks>;
+  const AAsyncCallback: TAsyncCallback): IAsyncResult;
 begin
-  FProjectServices.CheckActiveProject();
-  FAdbServices.CheckActiveDevice();
-  UpdateModels();
-
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.DeployProject));
-
-  FBuilding := true;
-  TTask.Run(procedure begin
+  Assert(Assigned(ATasksProxy), 'Invalid argument [ATasksProxy].');
+  Result := TBuilderRunnerAsyncResult.Create(Self, procedure() begin
+    BeginBuild(true);
     try
-      try
-        DoDeployProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
-    except
-      on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.DeployProject));
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncExceptionEvent.Create());
-      end;
+      ATasksProxy(Self);
+    finally
+      EndBuild();
     end;
-  end);
+  end, AAsyncCallback).Invoke();
 end;
 
-procedure TBuildService.RunActiveProject();
+{ TBuildService.TBuilderRunnerAsyncResult }
+
+procedure TBuildService.TBuilderRunnerAsyncResult.AsyncDispatch;
 begin
-  FProjectServices.CheckActiveProject();
-  FAdbServices.CheckActiveDevice();
-  UpdateModels();
-  DoRunProject();
+  FAsyncTask();
 end;
 
-procedure TBuildService.RunActiveProjectAsync();
+procedure TBuildService.TBuilderRunnerAsyncResult.Complete;
 begin
-  FProjectServices.CheckActiveProject();
-  FAdbServices.CheckActiveDevice();
-  UpdateModels();
+  inherited;
+  if Assigned(FAsyncCallback) then
+    FAsyncCallback(Self as IAsyncResult);
+end;
 
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TMessageEvent.Create(true));
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TAsyncOperationStartedEvent.Create(TAsyncOperation.RunProject));
+constructor TBuildService.TBuilderRunnerAsyncResult.Create(
+  const AContext: TObject; const AAsyncTask: TProc;
+  AAsyncCallback: TAsyncCallback);
+begin
+  inherited Create(AContext);
+  FAsyncTask := AAsyncTask;
+  FAsyncCallback := AAsyncCallback;
+end;
 
-  FBuilding := true;
-  TTask.Run(procedure begin
-    try
-      try
-        DoRunProject();
-      finally
-        FBuilding := false;
-      end;
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
-    except
-      on E: Exception do begin
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncOperationEndedEvent.Create(TAsyncOperation.RunProject));
-        TGlobalBuilderChain.BroadcastEventAsync(
-          TAsyncExceptionEvent.Create());
-      end;
-    end;
-  end);
+procedure TBuildService.TBuilderRunnerAsyncResult.Schedule;
+begin
+  TTask.Run(DoAsyncDispatch);
 end;
 
 end.
