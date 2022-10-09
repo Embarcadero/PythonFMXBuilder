@@ -3,9 +3,12 @@ unit Builder.Model.Project;
 interface
 
 uses
-  System.Classes, REST.Json.Types,
-  Builder.Architecture, Builder.PythonVersion,
-  Builder.Model, Builder.Model.Project.Icon, Builder.Model.Project.Files;
+  System.Classes,
+  REST.Json.Types,
+  Builder.Types,
+  Builder.Model,
+  Builder.Model.Project.Icon,
+  Builder.Model.Project.Files;
 
 type
   PProjectModel = ^TProjectModel;
@@ -31,6 +34,7 @@ type
     [JSONName('files')]
     FFiles: TProjectFilesModel;
   private
+    FDebugger: TDebugger;
     function GetId(): string;
     function GetProjectName: string;
   public
@@ -51,6 +55,7 @@ type
     property Architecture: TArchitecture read FArchitecture write FArchitecture;
     property Icons: TProjectIconModel read FIcons write FIcons;
     property Files: TProjectFilesModel read FFiles write FFiles;
+    property Debugger: TDebugger read FDebugger write FDebugger;
   end;
 
 implementation

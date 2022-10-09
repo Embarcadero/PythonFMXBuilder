@@ -13,6 +13,8 @@ type
     FFiles: TList<string>;
     [JSONName('main_file')]
     FMainFile: string;
+    [JSONName('dependencies')]
+    FDependencies: TList<string>;
   public
     constructor Create(); override;
     destructor Destroy(); override;
@@ -21,6 +23,7 @@ type
   public
     property Files: TList<string> read FFiles write FFiles;
     property MainFile: string read FMainFile write FMainFile;
+    property Dependencies: TList<string> read FDependencies write FDependencies;
   end;
 
 implementation
@@ -34,10 +37,12 @@ constructor TProjectFilesModel.Create;
 begin
   inherited;
   FFiles := TList<string>.Create();
+  FDependencies := TList<string>.Create();
 end;
 
 destructor TProjectFilesModel.Destroy;
 begin
+  FDependencies.Free();
   FFiles.Free();
   inherited;
 end;
@@ -55,12 +60,20 @@ begin
     if not LMainFileExists and not MainFile.Trim().IsEmpty() then
       LMainFileExists := (TPath.GetFileName(LFile) = MainFile);
   end;
+
   if MainFile.Trim().IsEmpty() then begin
     Result := false;
     AErrors.Add('* Main script file is empty.');
   end else if not LMainFileExists then begin
     Result := false;
     AErrors.Add('* Main script file not found.');
+  end;
+
+  for var LFile in FDependencies do begin
+    if not TFile.Exists(LFile) then begin
+      Result := false;
+      AErrors.Add(Format('* Dependency %s not found.', [LFile]))
+    end;
   end;
 end;
 
