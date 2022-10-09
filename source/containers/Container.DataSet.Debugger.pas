@@ -420,7 +420,10 @@ begin
           fdmtBreakpoint.Next();
         end;
       except
-        LSetBreakpoints.Free();
+        on E: Exception do begin
+          LSetBreakpoints.Free();
+          raise;
+        end;
       end;
 
       try
