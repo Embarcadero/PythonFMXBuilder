@@ -32,11 +32,10 @@ package PythonFMXBuilder;
 requires
   rtl,
   RESTComponents,
-  dap4delphi;
+  dap4delphi,
+  p4dtools;
 
 contains
-  Builder.Architecture in '..\source\Builder.Architecture.pas',
-  Builder.PythonVersion in '..\source\Builder.PythonVersion.pas',
   Builder.Model.Environment in '..\source\models\Builder.Model.Environment.pas',
   Builder.Model in '..\source\models\Builder.Model.pas',
   Builder.Model.Project.Files in '..\source\models\project\Builder.Model.Project.Files.pas',
@@ -55,7 +54,9 @@ contains
   Builder.Exception in '..\source\Builder.Exception.pas',
   Builder.Chain in '..\source\Builder.Chain.pas',
   Builder.Services.Debug in '..\source\services\Builder.Services.Debug.pas',
-  Builder.Services.Build in '..\source\services\Builder.Services.Build.pas';
+  Builder.Services.Build in '..\source\services\Builder.Services.Build.pas',
+  Builder.Paths in '..\source\Builder.Paths.pas',
+  Builder.Types in '..\source\Builder.Types.pas';
 
 end.
 

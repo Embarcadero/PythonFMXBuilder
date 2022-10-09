@@ -30,7 +30,7 @@ begin
     String.Empty,
     'environment [options]');
 
-  LCmd.Examples.Add('environment --name my_project');
+  LCmd.Examples.Add('environment');
 end;
 
 procedure ConfigureProjectOptions();
