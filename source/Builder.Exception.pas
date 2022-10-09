@@ -14,6 +14,16 @@ type
 
   EInvalidEnvironment = class(Exception);
 
+  EEmptySettings = class(Exception);
+
+  EModelValidationError = class(Exception);
+
+  EBuildFailed = class(Exception);
+
+  EInstallFailed = class(Exception);
+
+  ENoActiveDevice = class(Exception);
+
 implementation
 
 end.

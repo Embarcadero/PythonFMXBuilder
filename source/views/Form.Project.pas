@@ -93,8 +93,8 @@ implementation
 
 uses
   System.IOUtils,
-  Container.Images,
-  Builder.Architecture, Builder.PythonVersion;
+  Builder.Types,
+  Container.Images;
 
 {$R *.fmx}
 
