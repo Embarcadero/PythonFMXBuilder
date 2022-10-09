@@ -12,6 +12,12 @@ type
       HelpCommand : string;
   end;
 
+  TGlobalOptions = class
+  public
+    class var
+      DebuggerCommand: string;
+  end;
+
   TCreateOptions = class
   public
     class var
@@ -46,6 +52,22 @@ type
       VerboseCommand: boolean;
       DeviceCommand: string;
       UninstallCommand: boolean;
+  end;
+
+  TRunOptions = class
+  public
+    class var
+      ProjectNameCommand: string;
+      VerboseCommand: boolean;
+      DeviceCommand: string;
+      DebugModeCommand: boolean;
+  end;
+
+  TStopOptions = class
+  public
+    class var
+      ProjectNameCommand: string;
+      DeviceCommand: string;
   end;
 
   TDeviceOptions = class
@@ -97,11 +119,10 @@ type
       DrawableXxxHDpiCommand: TValue;
       //Files
       MainFileCommand: TValue;
-      AddFileCommand: TList<string>;
-      RemoveFileCommand: TList<string>;
-  public
-    class constructor Create();
-    class destructor Destroy();
+      AddFileCommand: TArray<string>;
+      RemoveFileCommand: TArray<string>;
+      AddDependencyCommand: TArray<string>;
+      RemoveDependencyCommand: TArray<string>;
   end;
 
   TEntityOptionsHelper = class
@@ -122,20 +143,6 @@ const
 function GetGUIEntityEditorPath(): string;
 begin
   Result := TPath.Combine(TPath.GetDirectoryName(ParamStr(0)), GUI_ENTITY_EDITOR_APP);
-end;
-
-{ TProjectOptions }
-
-class constructor TProjectOptions.Create;
-begin
-  AddFileCommand := TList<string>.Create();
-  RemoveFileCommand := TList<string>.Create();
-end;
-
-class destructor TProjectOptions.Destroy;
-begin
-  RemoveFileCommand.Free();
-  AddFileCommand.Free();
 end;
 
 { TEntityOptions }

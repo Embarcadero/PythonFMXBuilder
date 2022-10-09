@@ -9,6 +9,8 @@ const
   REMOVE_CMD       = 'remove';
   BUILD_CMD        = 'build';
   DEPLOY_CMD       = 'deploy';
+  RUN_CMD          = 'run';
+  STOP_CMD         = 'stop';
   DEVICE_CMD       = 'device';
   ENVIRONMENT_CMD  = 'environment';
   PROJECT_CMD      = 'project';
@@ -16,11 +18,13 @@ const
 implementation
 
 uses
-  System.SysUtils, System.IOUtils,
+  System.SysUtils,
+  System.IOUtils,
   VSoft.CommandLine.Options,
   Cli.Options,
-  Builder.Architecture, Builder.PythonVersion,
-  Builder.Model, Builder.Model.Environment,
+  Builder.Types,
+  Builder.Model,
+  Builder.Model.Environment,
   Builder.Storage.Default;
 
 procedure ConfigureHelpOptions();
@@ -39,6 +43,17 @@ begin
     end);
 
   LCmd.Examples.Add('help create');
+end;
+
+procedure ConfigureGlobalOptions();
+begin
+  TOptionsRegistry.RegisterOption<string>(
+    'debugger',
+    String.Empty,
+    'Select a debuger.',
+    procedure(const AValue: string) begin
+      TGlobalOptions.DebuggerCommand := AValue;
+    end);
 end;
 
 procedure ConfigureCreateOptions();
@@ -155,7 +170,7 @@ begin
   var LCmd := TOptionsRegistry.RegisterCommand(
     DEPLOY_CMD,
     String.Empty,
-    'Deploy the current project to a device.',
+    'Deploy the selected project to a device.',
     String.Empty,
     'deploy [options]');
 
@@ -167,7 +182,6 @@ begin
       TDeployOptions.ProjectNameCommand := AValue;
     end);
   LOption.Required := true;
-
   LOption := LCmd.RegisterOption<string>(
     'device',
     'd',
@@ -184,7 +198,6 @@ begin
     'Uninstall application before deployment.',
     procedure(const AValue: boolean) begin
       TDeployOptions.UninstallCommand := true;
-
     end);
   LOption.Required := false;
   LOption.HasValue := false;
@@ -204,6 +217,93 @@ begin
   LCmd.Examples.Add('deploy --name my_project -d my_device');
   LCmd.Examples.Add('deploy --name my_project -d my_device -u');
   LCmd.Examples.Add('deploy --name my_project -d my_device -u -v');
+end;
+
+procedure ConfigureRunOptions();
+begin
+  var LCmd := TOptionsRegistry.RegisterCommand(
+    RUN_CMD,
+    String.Empty,
+    'Run the selected project in a device.',
+    String.Empty,
+    'run [options]');
+
+  var LOption := LCmd.RegisterOption<string>(
+    'name',
+    String.Empty,
+    'Project name.',
+    procedure(const AValue: string) begin
+      TRunOptions.ProjectNameCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<string>(
+    'device',
+    'd',
+    'Select the target device. Empty to auto detect.',
+    procedure(const Value: string) begin
+      TRunOptions.DeviceCommand := Value;
+    end);
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LOption := LCmd.RegisterOption<boolean>(
+    'debug',
+    'dbg',
+    'Run in debug mode.',
+    procedure(const AValue: boolean) begin
+      TRunOptions.DebugModeCommand := true;
+    end);
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LOption := LCmd.RegisterOption<boolean>(
+    'verbose',
+    'v',
+    'Print logs.',
+    procedure(const AValue: boolean) begin
+      TRunOptions.VerboseCommand := true;
+    end
+  );
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LCmd.Examples.Add('deploy --name my_project');
+  LCmd.Examples.Add('deploy --name my_project -d my_device');
+  LCmd.Examples.Add('deploy --name my_project -d my_device -dbg');
+  LCmd.Examples.Add('deploy --name my_project -d my_device -dbg -v');
+end;
+
+procedure ConfigureStopOptions();
+begin
+  var LCmd := TOptionsRegistry.RegisterCommand(
+    STOP_CMD,
+    String.Empty,
+    'Stop the selected project running on a device.',
+    String.Empty,
+    'stop [options]');
+
+  var LOption := LCmd.RegisterOption<string>(
+    'name',
+    String.Empty,
+    'Project name.',
+    procedure(const AValue: string) begin
+      TStopOptions.ProjectNameCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<string>(
+    'device',
+    'd',
+    'Select the target device. Empty to auto detect.',
+    procedure(const Value: string) begin
+      TStopOptions.DeviceCommand := Value;
+    end);
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LCmd.Examples.Add('stop --name my_project');
+  LCmd.Examples.Add('stop --name my_project -d my_device');
 end;
 
 //miscellaneous
@@ -564,7 +664,7 @@ begin
     String.Empty,
     'Add a file.',
     procedure(const AValue: string) begin
-      TProjectOptions.AddFileCommand.Add(AValue);
+      TProjectOptions.AddFileCommand := TProjectOptions.AddFileCommand + [AValue];
     end);
   LOption.Required := false;
   LOption.AllowMultiple := true;
@@ -574,7 +674,27 @@ begin
     String.Empty,
     'Remove a file.',
     procedure(const AValue: string) begin
-      TProjectOptions.RemoveFileCommand.Add(AValue);
+      TProjectOptions.RemoveFileCommand := TProjectOptions.RemoveFileCommand + [AValue];
+    end);
+  LOption.Required := false;
+  LOption.AllowMultiple := true;
+
+  LOption := LCmd.RegisterOption<string>(
+    'add_dependency',
+    String.Empty,
+    'Add a dependency.',
+    procedure(const AValue: string) begin
+      TProjectOptions.AddDependencyCommand := TProjectOptions.AddDependencyCommand + [AValue];
+    end);
+  LOption.Required := false;
+  LOption.AllowMultiple := true;
+
+  LOption := LCmd.RegisterOption<string>(
+    'remove_dependency',
+    String.Empty,
+    'Remove a dependency.',
+    procedure(const AValue: string) begin
+      TProjectOptions.RemoveDependencyCommand := TProjectOptions.RemoveDependencyCommand + [AValue];
     end);
   LOption.Required := false;
   LOption.AllowMultiple := true;
@@ -600,20 +720,23 @@ begin
   LCmd.Examples.Add('project my_project --add_file "file_path_1" --add_file "file_path_2"');
   LCmd.Examples.Add('project my_project --remove_file "file_path_1"');
   LCmd.Examples.Add('project my_project --add_file "file_path_1" --add_file "file_path_3" --remove_file "file_path_2"');
+  LCmd.Examples.Add('project my_project --add_dependency "file_path_1" --add_dependency "file_path_2" --remove_dependency "file_path_3"');
 end;
 
 procedure ConfigureOptions();
 begin
   TOptionsRegistry.DescriptionTab := 35;
   TOptionsRegistry.NameValueSeparator := ' ';
-
   ConfigureHelpOptions();
+  ConfigureGlobalOptions();
   ConfigureDeviceOptions();
   ConfigureCreateOptions();
   ConfigureListOptions();
   ConfigureRemoveOptions();
   ConfigureBuildOptions();
   ConfigureDeployOptions();
+  ConfigureRunOptions();
+  ConfigureStopOptions();
   ConfigureEnvironment();
   ConfigureProject();
 end;
