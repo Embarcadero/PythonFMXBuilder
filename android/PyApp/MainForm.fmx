@@ -9,7 +9,6 @@ object PyMainForm: TPyMainForm
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
-  OnCreate = FormCreate
   DesignerMasterStyle = 3
   object StyleBook1: TStyleBook
     Styles = <
@@ -38097,10 +38096,5 @@ object PyMainForm: TPyMainForm
   object NotificationCenter1: TNotificationCenter
     Left = 208
     Top = 616
-  end
-  object PyEnvironmentAddOnEnsurePip1: TPyEnvironmentAddOnEnsurePip
-    Environment = PyEmbeddedEnvironment1
-    Left = 224
-    Top = 264
   end
 end

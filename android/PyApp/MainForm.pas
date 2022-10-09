@@ -32,8 +32,8 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  System.JSON, FMX.Forms, FMX.Memo.Types, System.Notification, PyEnvironment.AddOn,
-  PyEnvironment.AddOn.EnsurePip, FMX.Layouts, PyEnvironment,
+  System.JSON, FMX.Forms, FMX.Memo.Types, System.Notification,
+  FMX.Layouts, PyEnvironment,
   PyEnvironment.Embeddable, PythonEngine, FMX.PythonGUIInputOutput, WrapDelphi,
   System.Actions, FMX.ActnList, FMX.Objects, FMX.StdCtrls, FMX.ScrollBox,
   FMX.Memo, FMX.Controls, FMX.Types, FMX.Controls.Presentation, Dependencies,
@@ -59,37 +59,47 @@ type
     PyEmbeddedEnvironment1: TPyEmbeddedEnvironment;
     loEditor: TLayout;
     NotificationCenter1: TNotificationCenter;
-    PyEnvironmentAddOnEnsurePip1: TPyEnvironmentAddOnEnsurePip;
-    procedure FormCreate(Sender: TObject);
     procedure actRunExecute(Sender: TObject);
   private
-    FMainScriptPath: string;
+    const
+      DEBUGGER_SCRIPT_NAME = 'debug.py';
+      DEFAULT_DEBUGGER_HOST = '127.0.0.1';
+      DEFAULT_DEBUGGER_PORT = 5678;
+  private
+    FAppDefs: TJSONObject;
     FFailure: boolean;
+    FFailureMessage: string;
     FDebugging: boolean;
     FDebugHost: string;
     FDebugPort: integer;
+    FRunMainScript: boolean;
     FLog: boolean;
     FInstaller: IInstallDependency;
-
+    procedure Log(const AMsg: string; const AArgs: array of const);
     function AppEventHandler(AAppEvent: TApplicationEvent; AContext: TObject): boolean;
     procedure DisableComponents();
     procedure EnableComponents();
-    procedure FailureState(const AError: string);
     procedure ReadArgs();
     procedure Initialize();
     procedure NotifyDebugSessionStarted();
-
-    function TryToSetupPython(): boolean;
-    function TryToActivatePython(): boolean;
+    procedure ConfigureEngine();
+    procedure SetupPython();
+    procedure ActivatePython();
     procedure IncludeAppModulesToPath();
-    function TryToGetAppDefs(out AAppDefs: TJSONObject): boolean;
-    function TryToGetMainFilePath(out AFilePath: string): boolean;
-    function TryToInstallDependencies(): boolean;
-    function TryToLoadMainScript(): boolean;
+    function GetAppDefs(): TJSONObject;
+    function GetDependencies(): TJSONArray;
+    function GetMainFilePath(): string;
+    procedure InstallDependencies();
+    procedure LoadMainScript();
+    procedure RunDebugScript();
     procedure RunMainScript();
     procedure RunScript(const AScriptPath: string);
+    procedure SafeExec(const AStatement: TProc);
+    procedure RaiseGeneralFailure(const AError: string);
+    procedure CheckState();
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy(); override;
   end;
 
 var
@@ -98,159 +108,231 @@ var
 implementation
 
 uses
-  System.IOUtils,
+  System.IOUtils, TypInfo,
   AndroidApi.JniBridge, AndroidApi.Jni.App, AndroidApi.Jni.GraphicsContentViewText,
-  FMX.Helpers.Android, Androidapi.JNI.JavaTypes, Androidapi.Helpers,
+  FMX.Helpers.Android, Androidapi.JNI.JavaTypes, Androidapi.Helpers, Androidapi.Log,
   FMX.Surfaces, FMX.Platform.Android, FMX.DialogService,
-  VarPyth, Dependencies.Setup, Dependencies.Pip;
+  VarPyth, Dependencies.SysPath;
 
 {$R *.fmx}
 
+type
+  EGeneralFailure = class(Exception);
+
 { TPyMainForm }
 
-procedure TPyMainForm.FailureState(const AError: string);
+constructor TPyMainForm.Create(AOwner: TComponent);
 begin
-  FFailure := true;
-  TDialogService.ShowMessage(
-    Format('%s.' + sLineBreak + sLineBreak + 'Application must quit.', [AError]),
-    procedure(const AResult: TModalResult)
-    begin
-      Halt(1);
-    end);
-end;
-
-procedure TPyMainForm.FormCreate(Sender: TObject);
-begin
+  inherited;       
+  Log('TPyMainForm.Create', []);
   FFailure := false;
+  FFailureMessage := String.Empty;
+
   var LAppEventService := IFMXApplicationEventService(nil);
   if TPlatformServices.Current.SupportsPlatformService(
     IFMXApplicationEventService, IInterface(LAppEventService)) then
       LAppEventService.SetApplicationEventHandler(AppEventHandler)
   else begin
-    Log.d('Platform service "IFMXApplicationEventService" not supported.');
+    Log('Platform service "IFMXApplicationEventService" not supported.', []);
     Halt(1);
   end;
-  Initialize()
+
+  SafeExec(Initialize);
 end;
 
-procedure TPyMainForm.Initialize;
+destructor TPyMainForm.Destroy;
 begin
-  DisableComponents();
-  ReadArgs();
-  if TryToSetupPython() and TryToActivatePython() then begin
-    IncludeAppModulesToPath();
-    if TryToInstallDependencies() and TryToLoadMainScript() then begin
-      EnableComponents();
+  FAppDefs.Free();
+  inherited;
+end;
+
+procedure TPyMainForm.SafeExec(const AStatement: TProc);
+begin
+  CheckState();
+  try
+    if Assigned(AStatement) then
+      AStatement();
+  except
+    on E: Exception do begin
+      FFailure := true;
+      FFailureMessage := E.ToString();
     end;
   end;
 end;
 
+procedure TPyMainForm.RaiseGeneralFailure(const AError: string);
+begin
+  Log('TPyMainForm.FailureState - Error = %s', [AError]);
+  var LException := EGeneralFailure.Create(AError);
+  if Assigned(ExceptObject()) and (ExceptObject() is Exception) then
+    Exception.RaiseOuterException(LException)
+  else
+    raise LException;
+end;
+
+procedure TPyMainForm.Log(const AMsg: string; const AArgs: array of const);
+var
+  LMarshaller: TMarshaller;
+begin
+  LOGI(LMarshaller.AsUtf8(Format(AMsg, AArgs)).ToPointer);
+end;
+
+procedure TPyMainForm.CheckState;
+begin
+  Log('TPyMainForm.CheckState', []);
+  if FFailure then
+    TDialogService.ShowMessage(
+      Format(
+        '%s.'
+        + sLineBreak
+        + sLineBreak
+        + 'Application must quit.', [FFailureMessage]),
+      procedure(const AResult: TModalResult)
+      begin
+        TAndroidHelper.Activity.finish();
+      end);
+end;
+
+function TPyMainForm.AppEventHandler(AAppEvent: TApplicationEvent;
+  AContext: TObject): boolean;
+begin
+  Log('TPyMainForm.AppEventHandler - Event = %s', [
+    GetEnumName(TypeInfo(TApplicationEvent), Ord(AAppEvent))]);
+  case AAppEvent of
+    TApplicationEvent.FinishedLaunching: begin
+      SafeExec(RunMainScript);
+      CheckState();
+    end;
+  end;
+  Result := true;
+end;
+
+procedure TPyMainForm.Initialize;
+begin
+  Log('TPyMainForm.Initialize', []);
+  FAppDefs := GetAppDefs();
+  FInstaller :=  TSysPathInstallStrategy.Create(GetDependencies());
+  DisableComponents();
+  ReadArgs();
+  ConfigureEngine();
+  SetupPython();
+  ActivatePython();
+  IncludeAppModulesToPath();
+  InstallDependencies();
+  LoadMainScript();
+  EnableComponents();
+end;
+
 procedure TPyMainForm.NotifyDebugSessionStarted;
 begin
+  Log('TPyMainForm.NotifyDebugSessionStarted', []);
   if NotificationCenter1.Supported then begin
     var LNotification := NotificationCenter1.CreateNotification();
     LNotification.Name := 'PyDebug';
     LNotification.Title := 'Python Debugger for Android';
     LNotification.AlertBody := Format('Debug session started at %s:%d', [FDebugHost, FDebugPort]);
     LNotification.FireDate := Now();
+    Log('NotificationCenter1.PresentNotification()', []);
     NotificationCenter1.PresentNotification(LNotification);
   end;
 end;
 
-function TPyMainForm.TryToSetupPython: boolean;
+procedure TPyMainForm.ConfigureEngine;
 begin
-  Result := false;
+  Log('TPyMainForm.ConfigureEngine', []);
+  if FDebugging then begin
+    PythonEngine1.IO := nil;
+    PythonEngine1.PyFlags := PythonEngine1.PyFlags
+      + [pfDebug, pfInteractive, pfVerbose];
+    PythonEngine1.RedirectIO := false;
+    PythonEngine1.InitThreads := true;
+  end else begin
+    PythonEngine1.IO := PythonGUIInputOutput1;
+    PythonEngine1.RedirectIO := true;
+  end;
+end;
+
+procedure TPyMainForm.SetupPython;
+begin
+  Log('TPyMainForm.SetupPython', []);
   try
     PyEmbeddedEnvironment1.Setup();
-    Result := true;
   except
-    on E: Exception do
-      FailureState('Failed setting up Python.');
+    RaiseGeneralFailure('Failed setting up Python.');
   end;
 end;
 
-function TPyMainForm.TryToActivatePython: boolean;
+procedure TPyMainForm.ActivatePython;
 begin
-  Result := false;
+  Log('TPyMainForm.ActivatePython', []);
   try
     PyEmbeddedEnvironment1.Activate();
-    Result := true;
   except
     on E: Exception do
-      FailureState('Failed activating Python.');
+      RaiseGeneralFailure('Failed activating Python.');
   end;
 end;
 
-function TPyMainForm.TryToGetAppDefs(out AAppDefs: TJSONObject): boolean;
+function TPyMainForm.GetAppDefs(): TJSONObject;
 begin
-  Result := false;
+  Log('TPyMainForm.GetAppDefs', []);
+  Result := nil;
   var LAppDefsFilePath := TPath.Combine(TPath.GetDocumentsPath(), 'app_defs.json');
   if TFile.Exists(LAppDefsFilePath) then begin
-    AAppDefs := TJSONValue.ParseJSONValue(
+    Result := TJSONValue.ParseJSONValue(
       TFile.ReadAllText(LAppDefsFilePath, TEncoding.UTF8)) as TJSONobject;
-    Result := Assigned(AAppDefs);
   end else
-    FailureState('Configuration file not found.');
+    RaiseGeneralFailure('Configuration file not found.');
 end;
 
-function TPyMainForm.TryToGetMainFilePath(out AFilePath: string): boolean;
-var
-  LAppDefs: TJSONobject;
+function TPyMainForm.GetDependencies: TJSONArray;
 begin
-  Result := TryToGetAppDefs(LAppDefs);
-  if Result then begin
-    try
-      AFilePath := TPath.Combine(
-        TPath.GetDocumentsPath(), LAppDefs.GetValue<string>('main_file', ''));
-      Result := TFile.Exists(AFilePath);
-      if not Result then
-        FailureState('Main script not found.');
-    finally
-      LAppDefs.Free();
-    end;
+  Log('TPyMainForm.GetDependencies', []);
+  if not FAppDefs.TryGetValue<TJSONArray>('dependencies', Result) then
+    RaiseGeneralFailure('Dependencies not set.');
+end;
+
+function TPyMainForm.GetMainFilePath(): string;
+begin
+  Log('TPyMainForm.GetMainFilePath', []);
+  Result := TPath.Combine(
+    TPath.GetDocumentsPath(), FAppDefs.GetValue<string>('main_file', ''));
+  if not TFile.Exists(Result) then begin
+    RaiseGeneralFailure('Main script not found.');
   end;
 end;
 
-function TPyMainForm.TryToLoadMainScript: boolean;
+procedure TPyMainForm.LoadMainScript;
 begin
-  Result := TryToGetMainFilePath(FMainScriptPath);
-  if Result then
-    mmMainScript.Lines.LoadFromFile(FMainScriptPath);
+  Log('TPyMainForm.LoadMainScript', []);
+  mmMainScript.Lines.LoadFromFile(GetMainFilePath());
 end;
 
-function TPyMainForm.TryToInstallDependencies: boolean;
-var
-  LAppDefs: TJSONObject;
+procedure TPyMainForm.InstallDependencies;
 begin
-  Result := TryToGetAppDefs(LAppDefs);
-  if Result then begin
-    try
-      var LDependencies := LAppDefs.GetValue('dependencies') as TJSONArray;
-      if Assigned(LDependencies) then
-        for var LDependency in LDependencies do begin
-          var LModuleName := (LDependency as TJSONObject).GetValue<string>('module_name');
-          var LFileName := (LDependency as TJSONObject).GetValue<string>('file_name');
-          var LFilePath := TPath.Combine(TPath.GetDocumentsPath(), LFileName);
-          if not FInstaller.IsInstalled(LModuleName, LFilePath) then
-            if not FInstaller.Install(LModuleName, LFilePath) then begin
-              FailureState(Format('Failed to install %s.', [LFileName]));
-              Exit(false);
-            end else if TFile.Exists(LFilePath)  then
-              TFile.Delete(LFilePath);
-        end;
-    finally
-      LAppDefs.Free();
-    end;
+  Log('TPyMainForm.InstallDependencies', []);
+  if not Assigned(FInstaller) then
+    Exit;
+
+  for var LDependency in GetDependencies() do begin
+    var LModuleName := (LDependency as TJSONObject).GetValue<string>('module_name');
+    var LFileName := (LDependency as TJSONObject).GetValue<string>('file_name');
+    var LFilePath := TPath.Combine(TPath.GetDocumentsPath(), LFileName);
+    if not FInstaller.IsInstalled(LModuleName, LFilePath) then
+      if not FInstaller.Install(LModuleName, LFilePath) then
+        RaiseGeneralFailure(Format('Failed to install %s.', [LFileName]))
+      else if TFile.Exists(LFilePath)  then
+        TFile.Delete(LFilePath);
   end;
 end;
 
 procedure TPyMainForm.IncludeAppModulesToPath;
 begin
+  Log('TPyMainForm.IncludeAppModulesToPath', []);
   PythonEngine1.ExecString(AnsiString(Format(
     'import sys'
-    + #13#10 +
-    'sys.path.append("%s")'
-    + #13#10,
+    + sLineBreak
+    + 'sys.path.append("%s")',
     [TPath.GetDocumentsPath()])));
 end;
 
@@ -273,6 +355,7 @@ procedure TPyMainForm.ReadArgs;
   end;
 
 begin
+  Log('TPyMainForm.ReadArgs', []);
   var LArgs := String.Empty;
   var LBundle := MainActivity.getIntent().getExtras();
   if Assigned(LBundle) then begin
@@ -288,84 +371,90 @@ begin
 
   LArgs := LArgs.Trim();
 
-  FDebugging := LArgs.Contains('--debugpy');
+  FDebugging :=  LArgs.Contains('--dbg');
   if FDebugging then begin
     FDebugHost := GetValue(LArgs, '-host');
     if FDebugHost.IsEmpty() then
-      FDebugHost := '127.0.0.1';
-    FDebugPort := StrToIntDef(GetValue(LArgs, '-port'), 5678);
+      FDebugHost := DEFAULT_DEBUGGER_HOST;
+    FDebugPort := StrToIntDef(GetValue(LArgs, '-port'), DEFAULT_DEBUGGER_PORT);
+    FRunMainScript := LArgs.Contains('--run');
     FLog := LArgs.Contains('--log');
-  end;
+  end else
+    FRunMainScript := true;
+end;
+
+procedure TPyMainForm.RunDebugScript;
+begin
+  Log('TPyMainForm.RunDebugScript', []);
+  var LFilePath := TPath.Combine(TPath.GetDocumentsPath(), DEBUGGER_SCRIPT_NAME);
+  if TFile.Exists(LFilePath) then begin
+    TFile.WriteAllText(
+      LFilePath,
+      TFile.ReadAllText(LFilePath, TEncoding.UTF8)
+        .Replace('%lib_path%', GetPythonEngine().DllPath, [rfReplaceAll])
+        .Replace('%python_home%', GetPythonEngine().PythonHome, [rfReplaceAll])
+        .Replace('%path%', TPath.GetDirectoryName(GetPythonEngine().ProgramName), [rfReplaceAll])
+        .Replace('%tmp_dir%', TPath.GetTempPath(), [rfReplaceAll])
+        .Replace('%host%', FDebugHost, [rfReplaceAll])
+        .Replace('%port%', FDebugPort.ToString(), [rfReplaceAll]),
+      TEncoding.UTF8);
+    try
+      RunScript(LFilePath);
+    except
+      RaiseGeneralFailure('Failed initializing debugger.');
+    end;
+  end else
+    RaiseGeneralFailure('Debug script not found.');
 end;
 
 procedure TPyMainForm.RunMainScript;
 begin
+  Log('TPyMainForm.RunMainScript', []);
   if FDebugging then begin
     NotifyDebugSessionStarted();
     try
-      var LSubProcessEnv := NewPythonDict();
-      LSubProcessEnv.SetItem('LD_LIBRARY_PATH', GetPythonEngine().DllPath);
-      LSubProcessEnv.SetItem('PYTHONHOME', GetPythonEngine().PythonHome);
-      LSubProcessEnv.SetItem('PATH', ExtractFileDir(GetPythonEngine().ProgramName));
-      LSubProcessEnv.SetItem('TMPDIR', TPath.GetTempPath());
-
-      var LDebugger := Import('debugpy');
-      if FLog then
-        LDebugger.log_to(TPath.GetDocumentsPath());
-      LDebugger.configure(subProcessEnv := LSubProcessEnv);
-      LDebugger.listen(VarPythonCreate([FDebugHost, FDebugPort], stTuple));
-      LDebugger.wait_for_client();
+      RunDebugScript();
+    finally
       NotificationCenter1.CancelNotification('PyDebug');
-    except
-      on E: Exception do
-        FailureState('Failed initializing debugger.');
     end;
   end;
 
-  RunScript(FMainScriptPath);
+  if FRunMainScript then
+    try
+      RunScript(GetMainFilePath());
+    except
+      if not FDebugging then
+        RaiseGeneralFailure('Failed running main script.');
+    end;
 end;
 
 procedure TPyMainForm.RunScript(const AScriptPath: string);
 begin
+  Log('TPyMainForm.RunScript', []);
   var LRunPy := Import('runpy');
   LRunPy.run_path(AScriptPath, run_name := PythonEngine1.ExecModule);
 end;
 
 procedure TPyMainForm.actRunExecute(Sender: TObject);
 begin
-  mmMainScript.Lines.SaveToFile(FMainScriptPath);
+  Log('TPyMainForm.actRunExecute(', []);
+  mmMainScript.Lines.SaveToFile(GetMainFilePath());
   RunMainScript();
-end;
-
-function TPyMainForm.AppEventHandler(AAppEvent: TApplicationEvent;
-  AContext: TObject): boolean;
-begin
-  case AAppEvent of
-    TApplicationEvent.FinishedLaunching: begin
-      if not FFailure then
-        RunMainScript();
-    end;
-  end;
-  Result := true;
-end;
-
-constructor TPyMainForm.Create(AOwner: TComponent);
-begin
-  inherited;
-  FInstaller := TPipInstallStrategy.Create();
-end;
-
-procedure TPyMainForm.DisableComponents;
-begin
-  loEditor.Visible := false;
-  btnRun.Enabled := false;
 end;
 
 procedure TPyMainForm.EnableComponents;
 begin
+  Log('TPyMainForm.EnableComponents', []);
   btnRun.Enabled := true;
   if FDebugging then
     loEditor.Visible := true;
+end;
+
+procedure TPyMainForm.DisableComponents;
+begin
+  Log('TPyMainForm.DisableComponents', []);
+  loEditor.Visible := false;
+  btnRun.Enabled := false;
 end;
 
 end.
