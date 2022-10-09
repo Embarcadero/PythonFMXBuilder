@@ -934,8 +934,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 930.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 910.000000000000000000
-                    Viewport.Height = 76.000000000000000000
+                    Viewport.Width = 930.000000000000000000
+                    Viewport.Height = 117.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -1446,7 +1446,7 @@ inherited MainForm: TMainForm
         Action = MenuActionsContainer.actFileExit
         Enabled = True
         Locked = True
-        ImageIndex = 43
+        ImageIndex = -1
       end
     end
     object miFiles: TMenuItem

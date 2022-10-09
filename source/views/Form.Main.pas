@@ -97,9 +97,14 @@ var
 implementation
 
 uses
-  System.IOUtils, System.Threading, System.SyncObjs, System.Zip,
+  System.IOUtils,
+  System.Threading,
+  System.SyncObjs,
+  System.Zip,
   FMX.DialogService,
-  Container.Images, Container.Menu.Actions, Builder.Services.Factory;
+  Container.Images,
+  Container.Menu.Actions,
+  Builder.Services.Factory;
 
 {$R *.fmx}
 
