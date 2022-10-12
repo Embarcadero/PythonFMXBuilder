@@ -30,7 +30,7 @@ The application has a GUI to simplify navigation and usage. Consult the followin
 ### Main Window
 Create or open a project, add and edit your Python scripts and load any supporting files. The most exciting feature is that we support debugging of your Android application right from the PythonFMXBuilder application.
 
-![PythonFMXBuilderGUI_Window](https://user-images.githubusercontent.com/17174106/185759597-18a69224-eb9d-4a01-91ac-f409b4eedd33.png)
+![PythonFMXBuilderGUI_Window](https://user-images.githubusercontent.com/17174106/195344044-745d643b-9cf0-4810-95dd-34b8ad7118da.png)
 
 ### Enviroment Setup
 Configure your environment using the Environment set up window.
