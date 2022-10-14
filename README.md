@@ -42,4 +42,6 @@ Configure settings for your project.
 
 ![PythonFMXBuilderGUI_Project_Settings](https://user-images.githubusercontent.com/17174106/185759669-b47b1ed7-b26d-4e92-bc25-ff1c33018d14.png)
 
+# Powered By
 
+Build with [Embarcadero Delphi](https://embarcadero.com/products/delphi), using the [Python4Delphi library](https://github.com/Embarcadero/python4delphi), [Python](https://www.python.org/), and [TMS FMX UI Pack](https://www.tmssoftware.com/site/tmsfmxpack.asp).
