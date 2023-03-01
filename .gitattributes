@@ -1,0 +1,3 @@
+# Disable any line endings auto conversion.
+* -text
+*.py   text eol=lf

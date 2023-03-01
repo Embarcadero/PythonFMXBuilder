@@ -14,6 +14,8 @@ type
 
   EInvalidEnvironment = class(Exception);
 
+  EInvalidRunMode = class(Exception);
+
   EEmptySettings = class(Exception);
 
   EModelValidationError = class(Exception);

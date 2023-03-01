@@ -7,6 +7,7 @@ uses
   System.SysUtils,
   System.Classes,
   Builder.Chain,
+  Builder.Types,
   Builder.Model.Project,
   Builder.Model.Environment,
   Builder.Services,
@@ -96,19 +97,8 @@ begin
   FDebugSessionEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
-      var LResult := TStringList.Create();
-      try
-        FAdbServices.StopDebugSession(
-          FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
-
-        FAdbServices.ForceStopApp(
-          FEnvironmentModel.AdbLocation,
-          FProjectModel.PackageName,
-          FAdbServices.ActiveDevice,
-          LResult);
-      finally
-        LResult.Free();
-      end;
+      FAdbServices.StopDebugSession(FEnvironmentModel.RemoteDebuggerPort);
+      FAdbServices.ForceStopApp(FProjectModel.PackageName);
     end);
 end;
 
@@ -213,101 +203,59 @@ procedure TBuildService.DoRunProject(const ARunMode: TRunMode);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(
     TMessageEvent.Create('Launch process has started.'));
-  var LResult := TStringList.Create();
-  try
-    FAdbServices.ForceStopApp(
-      FEnvironmentModel.AdbLocation,
-      FProjectModel.PackageName,
-      FAdbServices.ActiveDevice,
-      LResult);
 
-    //Launch app on device
-    case ARunMode of
-      TRunMode.RunNormalMode:
-        FAdbServices.RunApp(
-          FEnvironmentModel.AdbLocation,
+  FAdbServices.ForceStopApp(FProjectModel.PackageName);
+
+  //Launch app on device
+  case ARunMode of
+    TRunMode.RunNormalMode:
+      FAdbServices.RunApp(FProjectModel.PackageName);
+    TRunMode.RunDebugMode: begin
+      FAdbServices.StartDebugSession(FEnvironmentModel.RemoteDebuggerPort);
+      try
+        FAdbServices.DebugApp(
           FProjectModel.PackageName,
-          FAdbServices.ActiveDevice,
-          LResult);
-      TRunMode.RunDebugMode: begin
-        FAdbServices.StartDebugSession(
-          FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
-        try
-          FAdbServices.DebugApp(
-            FEnvironmentModel.AdbLocation,
-            FProjectModel.PackageName,
-            FAdbServices.ActiveDevice,
-            FEnvironmentModel.RemoteDebuggerHost,
-            FEnvironmentModel.RemoteDebuggerPort,
-            LResult);
-        except
-          on E: Exception do begin
-            FAdbServices.StopDebugSession(
-              FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
-            raise;
-          end;
+          FEnvironmentModel.RemoteDebuggerHost,
+          FEnvironmentModel.RemoteDebuggerPort);
+      except
+        on E: Exception do begin
+          FAdbServices.StopDebugSession(FEnvironmentModel.RemoteDebuggerPort);
+          raise;
         end;
       end;
     end;
-
-    TGlobalBuilderChain.BroadcastEventAsync(
-      TMessageEvent.Create('Launch process finished.'));
-  finally
-    LResult.Free();
   end;
+
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TMessageEvent.Create('Launch process finished.'));
 end;
 
 procedure TBuildService.DoStopProject;
 begin
-  var LResult := TStringList.Create();
-  try
-    FAdbServices.ForceStopApp(
-      FEnvironmentModel.AdbLocation,
-      FProjectModel.PackageName,
-      FAdbServices.ActiveDevice,
-      LResult);
-
-    FAdbServices.StopDebugSession(
-      FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
-  finally
-    LResult.Free();
-  end;
+  FAdbServices.ForceStopApp(FProjectModel.PackageName);
+  FAdbServices.StopDebugSession(FEnvironmentModel.RemoteDebuggerPort);
 end;
 
 procedure TBuildService.DoDebugProject(const ADebugger: IDebugServices);
 begin
   //Launch app on device and debug the Python script
-  var LResult := TStringList.Create();
-  try
-    FAdbServices.ForceStopApp(
-      FEnvironmentModel.AdbLocation,
-      FProjectModel.PackageName,
-      FAdbServices.ActiveDevice,
-      LResult);
+  FAdbServices.ForceStopApp(FProjectModel.PackageName);
 
-    FAdbServices.DebugApp(
-      FEnvironmentModel.AdbLocation,
-      FProjectModel.PackageName,
-      FAdbServices.ActiveDevice,
-      FEnvironmentModel.RemoteDebuggerHost,
-      FEnvironmentModel.RemoteDebuggerPort,
-      LResult);
-    FAdbServices.StartDebugSession(
-      FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
-    try
-      ADebugger.Start(
-        FEnvironmentModel.RemoteDebuggerHost, FEnvironmentModel.RemoteDebuggerPort);
-      TGlobalBuilderChain.BroadcastEventAsync(
-        TMessageEvent.Create('Debug process has started.'));
-    except
-      on E: Exception do begin
-        FAdbServices.StopDebugSession(
-          FEnvironmentModel.AdbLocation, FEnvironmentModel.RemoteDebuggerPort, LResult);
-        raise;
-      end;
+  FAdbServices.DebugApp(
+    FProjectModel.PackageName,
+    FEnvironmentModel.RemoteDebuggerHost,
+    FEnvironmentModel.RemoteDebuggerPort);
+  FAdbServices.StartDebugSession(FEnvironmentModel.RemoteDebuggerPort);
+  try
+    ADebugger.Start(
+      FEnvironmentModel.RemoteDebuggerHost, FEnvironmentModel.RemoteDebuggerPort);
+    TGlobalBuilderChain.BroadcastEventAsync(
+      TMessageEvent.Create('Debug process has started.'));
+  except
+    on E: Exception do begin
+      FAdbServices.StopDebugSession(FEnvironmentModel.RemoteDebuggerPort);
+      raise;
     end;
-  finally
-    LResult.Free();
   end;
 end;
 

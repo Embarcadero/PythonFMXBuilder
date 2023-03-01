@@ -8,6 +8,7 @@ uses
   System.Threading,
   System.SyncObjs,
   Builder.Chain,
+  Builder.Types,
   Builder.Services,
   Builder.Model.Project,
   Builder.Model.Environment,
@@ -310,6 +311,7 @@ begin
   var LContinue := TContinueRequest.Create();
   try
     LContinue.Arguments.SingleThread := false;
+
     FDebugger.SendRequest<TContinueResponse>(
       LContinue,
       procedure(const AArg: TContinueResponse)

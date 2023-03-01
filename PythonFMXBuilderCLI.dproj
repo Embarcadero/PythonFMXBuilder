@@ -2,12 +2,12 @@
     <PropertyGroup>
         <Base>True</Base>
         <AppType>Console</AppType>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>None</FrameworkType>
         <MainSource>PythonFMXBuilderCLI.dpr</MainSource>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectGuid>{557EC11C-B327-4461-BA26-89B7ED7A835C}</ProjectGuid>
-        <ProjectVersion>19.4</ProjectVersion>
+        <ProjectVersion>19.5</ProjectVersion>
         <TargetedPlatforms>3</TargetedPlatforms>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -57,7 +57,7 @@
         <DCC_Define>.\lib\$(Platform)\$(Config);$(DCC_Define)</DCC_Define>
         <DCC_ExeOutput>.\out\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
-        <DCC_UnitSearchPath>modules\.dcp;modules\.dcu;modules;modules\dunitx\Examples;modules\dunitx\Expert;modules\dunitx\Source;modules\dunitx\Tests;source;source\models;source\models\project;source\containers;source\services;source\storage;source\views;source\views\frame;source\cli;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>D:\dev\projects\pythonfmxbuiler\source;D:\dev\projects\pythonfmxbuiler\source\models;D:\dev\projects\pythonfmxbuiler\source\models\project;D:\dev\projects\pythonfmxbuiler\source\services;D:\dev\projects\pythonfmxbuiler\source\storage;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <PreBuildEvent>
@@ -101,14 +101,19 @@ $(PreBuildEvent)]]>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
+        <Debugger_RunParams>unboundpy --python_version cp39 --architecture arm64</Debugger_RunParams>
+        <Icon_MainIcon>images\PythonFMXBuilder.ico</Icon_MainIcon>
         <Manifest_File>(None)</Manifest_File>
-        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName)</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
-        <Debugger_RunParams>project testcli1 --package_name com.embarcadero.my_app</Debugger_RunParams>
+        <Debugger_RunParams>unboundpy --python_version cp39 --architecture arm64 --mode debug</Debugger_RunParams>
+        <Icon_MainIcon>images\PythonFMXBuilder.ico</Icon_MainIcon>
         <Manifest_File>(None)</Manifest_File>
-        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_DebugInformation>0</DCC_DebugInformation>
@@ -161,6 +166,7 @@ $(PreBuildEvent)]]>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">True</Platform>
                 <Platform value="iOSDevice64">False</Platform>
+                <Platform value="iOSSimARM64">False</Platform>
             </Platforms>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
@@ -169,7 +175,7 @@ $(PreBuildEvent)]]>
     <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
     <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -177,7 +183,7 @@ $(PreBuildEvent)]]>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -185,7 +191,7 @@ $(PreBuildEvent)]]>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win32'">
-        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
@@ -193,7 +199,7 @@ $(PreBuildEvent)]]>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">
-        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>

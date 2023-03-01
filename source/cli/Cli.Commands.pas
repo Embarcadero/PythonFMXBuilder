@@ -12,6 +12,7 @@ const
   RUN_CMD          = 'run';
   STOP_CMD         = 'stop';
   DEVICE_CMD       = 'device';
+  UNBOUNDPY_CMD    = 'unboundpy';
   ENVIRONMENT_CMD  = 'environment';
   PROJECT_CMD      = 'project';
 
@@ -47,6 +48,7 @@ end;
 
 procedure ConfigureGlobalOptions();
 begin
+  TGlobalOptions.DebuggerCommand := TDebugger.Rpyc.AsString();
   TOptionsRegistry.RegisterOption<string>(
     'debugger',
     String.Empty,
@@ -182,6 +184,7 @@ begin
       TDeployOptions.ProjectNameCommand := AValue;
     end);
   LOption.Required := true;
+
   LOption := LCmd.RegisterOption<string>(
     'device',
     'd',
@@ -190,7 +193,6 @@ begin
       TDeployOptions.DeviceCommand := Value;
     end);
   LOption.Required := false;
-  LOption.HasValue := false;
 
   LOption := LCmd.RegisterOption<boolean>(
     'uninstall',
@@ -245,7 +247,6 @@ begin
       TRunOptions.DeviceCommand := Value;
     end);
   LOption.Required := false;
-  LOption.HasValue := false;
 
   LOption := LCmd.RegisterOption<boolean>(
     'debug',
@@ -300,7 +301,6 @@ begin
       TStopOptions.DeviceCommand := Value;
     end);
   LOption.Required := false;
-  LOption.HasValue := false;
 
   LCmd.Examples.Add('stop --name my_project');
   LCmd.Examples.Add('stop --name my_project -d my_device');
@@ -330,8 +330,75 @@ begin
   LCmd.Examples.Add('device --list');
 end;
 
+procedure ConfigureUnboundOptions();
+begin
+  var LCmd := TOptionsRegistry.RegisterCommand(
+    UNBOUNDPY_CMD,
+    String.Empty,
+    'Create an unbound Python installation in the device.',
+    String.Empty,
+    'tmp [options]');
+
+  var LOption := LCmd.RegisterOption<string>(
+    'device',
+    'd',
+    'Select the target device. Empty to auto detect.',
+    procedure(const Value: string) begin
+      TUnboundPyOptions.DeviceCommand := Value;
+    end);
+  LOption.Required := false;
+
+  LOption := LCmd.RegisterOption<string>(
+    'python_version',
+    String.Empty,
+    Format('Python version (%s, %s and %s).', [
+      TPythonVersion.cp38.AsString(),
+      TPythonVersion.cp39.AsString(),
+      TPythonVersion.cp310.AsString()]),
+    procedure(const AValue: string) begin
+      TUnboundPyOptions.PythonVersionCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<string>(
+    'architecture',
+    String.Empty,
+    Format('Architecture (%s or %s).', [
+      TArchitecture.arm.AsString(),
+      TArchitecture.aarch64.AsString]),
+    procedure(const AValue: string) begin
+      TUnboundPyOptions.ArchitectureCommand := AValue;
+    end);
+  LOption.Required := true;
+
+  LOption := LCmd.RegisterOption<string>(
+    'mode',
+    'm',
+    'Set the run mode to debug or normal. When set to debug, the debugger API will be deployed.',
+    procedure(const AValue: string) begin
+      TUnboundPyOptions.RunModeCommand := AValue;
+    end);
+  LOption.Required := false;
+
+  LOption := LCmd.RegisterOption<boolean>(
+    'clean',
+    'c',
+    'Clean up unbound Python environment and remake installation.',
+    procedure(const AValue: boolean) begin
+      TUnboundPyOptions.CleanCommand := true;
+    end);
+  LOption.Required := false;
+  LOption.HasValue := false;
+
+  LCmd.Examples.Add('unboundpy -d my_device');
+  LCmd.Examples.Add('unboundpy -d my_device -m');
+  LCmd.Examples.Add('unboundpy -d my_device -c');
+  LCmd.Examples.Add('unboundpy -d my_device --python_version 3.9 --architecture arm64');
+  LCmd.Examples.Add('unboundpy -d my_device -c --python_version 3.9 --architecture arm64 --mode debug')
+end;
+
 //entity commands
-procedure ConfigureEnvironment();
+procedure ConfigureEnvironmentOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
     ENVIRONMENT_CMD,
@@ -471,7 +538,7 @@ begin
   LCmd.Examples.Add('environment --sdk_base_path "my_sdk_path" --jdk_base_path "my_jdk_path" --jar_signer_location "my_path" --zip_align_location "my_path"');
 end;
 
-procedure ConfigureProject();
+procedure ConfigureProjectOptions();
 begin
   var LCmd := TOptionsRegistry.RegisterCommand(
     PROJECT_CMD,
@@ -730,6 +797,7 @@ begin
   ConfigureHelpOptions();
   ConfigureGlobalOptions();
   ConfigureDeviceOptions();
+  ConfigureUnboundOptions();
   ConfigureCreateOptions();
   ConfigureListOptions();
   ConfigureRemoveOptions();
@@ -737,8 +805,8 @@ begin
   ConfigureDeployOptions();
   ConfigureRunOptions();
   ConfigureStopOptions();
-  ConfigureEnvironment();
-  ConfigureProject();
+  ConfigureEnvironmentOptions();
+  ConfigureProjectOptions();
 end;
 
 initialization

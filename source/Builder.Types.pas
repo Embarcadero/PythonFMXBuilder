@@ -3,6 +3,7 @@ unit Builder.Types;
 interface
 
 type
+  {$SCOPEDENUMS ON}
   TPythonVersion = (
     cp38,
     cp39,
@@ -16,6 +17,20 @@ type
     None,
     DebugPy,
     Rpyc);
+
+  TRunMode = (
+    RunNormalMode, //It launches the application, but it doesn't initialize the debugger
+    RunDebugMode //It launches the application and initialize the debugger - it sets the Python interpreter to interactive mode
+  );
+
+  TDebuggerConnectionStatus = (
+    OutOfWork, //We are tension-free
+    Connecting, //We are ordering a conenction to the debugger
+    Started, //We are conected to the debugger - Debugger has confirmed
+    Disconnecting, //We ordered to disconnect from the debugger
+    Stopped //We are disconnected from the debugger - Debugger has confirmed
+  );
+  {$SCOPEDENUMS OFF}
 
   TArchitectureHelper = record helper for TArchitecture
     function AsString(): string;
@@ -33,6 +48,12 @@ type
     class function FromString(const AValue: string): TDebugger; static;
   end;
 
+  TRunModeHelper = record helper for TRunMode
+  public
+    function AsString(): string;
+    class function FromString(const AValue: string): TRunMode; static;
+  end;
+
 implementation
 
 uses
@@ -43,9 +64,9 @@ uses
 function TPythonVersionHelper.AsString: string;
 begin
   case Self of
-    cp38 : Result := 'cp38';
-    cp39 : Result := 'cp39';
-    cp310: Result := 'cp310';
+    TPythonVersion.cp38 : Result := 'cp38';
+    TPythonVersion.cp39 : Result := 'cp39';
+    TPythonVersion.cp310: Result := 'cp310';
     else
       raise EInvalidPythonVersion.Create('Invalid Python version.');
   end;
@@ -66,8 +87,8 @@ end;
 function TArchitectureHelper.AsString: string;
 begin
   case Self of
-    arm     : Result := 'arm32';
-    aarch64 : Result := 'arm64';
+    TArchitecture.arm     : Result := 'arm32';
+    TArchitecture.aarch64 : Result := 'arm64';
     else
       raise EInvalidArchitecture.Create('Invalid architecture.');
   end;
@@ -102,6 +123,26 @@ begin
     Result := TDebugger.Rpyc
   else
     Result := TDebugger.None;
+end;
+
+{ TRunModeHelper }
+
+function TRunModeHelper.AsString: string;
+begin
+  case Self of
+    TRunMode.RunNormalMode: Result := 'normal';
+    TRunMode.RunDebugMode : Result := 'debug';
+  end;
+end;
+
+class function TRunModeHelper.FromString(const AValue: string): TRunMode;
+begin
+  if AValue = 'normal' then
+    Result := TRunMode.RunNormalMode
+  else if AValue = 'debug' then
+    Result := TRunMode.RunDebugMode
+  else
+    raise EInvalidRunMode.Create('Invalid run mode.');
 end;
 
 end.

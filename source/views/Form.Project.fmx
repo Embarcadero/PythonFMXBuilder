@@ -13,6 +13,7 @@ inherited ProjectForm: TProjectForm
   inherited loBody: TLayout
     Size.Width = 482.000000000000000000
     Size.Height = 1109.000000000000000000
+    TabOrder = 3
     inherited lbProject: TListBox
       Size.Width = 482.000000000000000000
       Size.Height = 1109.000000000000000000
@@ -742,6 +743,7 @@ inherited ProjectForm: TProjectForm
   inherited loFooter: TLayout
     Position.Y = 1159.000000000000000000
     Size.Width = 482.000000000000000000
+    TabOrder = 4
     inherited loLeftActions: TLayout
       inherited btnSave: TButton
         TabOrder = 0

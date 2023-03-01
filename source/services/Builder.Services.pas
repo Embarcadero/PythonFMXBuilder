@@ -21,26 +21,34 @@ type
 
   IAdbServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
-    procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
+    procedure ListDevices(const AStrings: TStrings);
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
     procedure CheckActiveDevice();
 
-    function BuildApk(const AAppBasePath, AProjectName: string;
-      const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
-    function InstallApk(const AAdbPath, AApkPath, ADevice: string;
-      const AResult: TStrings): boolean;
-    function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
-      const AResult: TStrings): boolean;
-    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
-    function IsAppRunning(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
-    function GetAppInstallationPath(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): string;
-    procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
-    procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
-    procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
-    procedure DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;
-      const APort: integer; const AResult: TStrings);
-    procedure ForceStopApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
+    //Exec subprocess
+    procedure RunSubprocess(const ACmd: string; const AArgs, AEnvVars: TArray<string>);
+    //File helpers
+    function SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean;
+    procedure RemoveFile(const ARemoteFilePath: string);
+    function ExtractZip(const ARemoteFilePath, ARemoteDir: string): boolean;
+    //Directory helpers
+    function CreateDirectory(const ARemotePath: string): boolean;
+    procedure DeleteDirectory(const ARemoteDir: string);
+    function DirectoryExists(const ARemoteDir: string): boolean;
+
+    function BuildApk(const AAppBasePath, AProjectName: string): boolean;
+    function InstallApk(const AApkPath: string): boolean;
+    function UnInstallApk(const APkgName: string): boolean;
+    function IsAppInstalled(const APkgName: string): boolean;
+    function IsAppRunning(const APkgName: string): boolean;
+    function GetAppInstallationPath(const APkgName: string): string;
+    procedure RunApp(const APkgName: string);
+    procedure StartDebugSession(const APort: integer);
+    procedure StopDebugSession(const APort: integer);
+    procedure DebugApp(const APkgName, AHost: string;
+      const APort: integer);
+    procedure ForceStopApp(const APkgName: string);
 
     property ActiveDevice: string read GetActiveDevice write SetActiveDevice;
   end;
@@ -113,16 +121,6 @@ type
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 
-  {$SCOPEDENUMS ON}
-  TDebuggerConnectionStatus = (
-    OutOfWork, //We are tension-free
-    Connecting, //We are ordering a conenction to the debugger
-    Started, //We are conected to the debugger - Debugger has confirmed
-    Disconnecting, //We ordered to disconnect from the debugger
-    Stopped //We are disconnected from the debugger - Debugger has confirmed
-  );
-  {$SCOPEDENUMS OFF}
-
   IDebugServices = interface
     ['{568CC96C-4A33-4CA1-8972-1F2C7280B0EE}']
     function GetConnectionStatus(): TDebuggerConnectionStatus;
@@ -148,13 +146,6 @@ type
     property IsDebugging: boolean read GetIsDebugging;
   end;
 
-  {$SCOPEDENUMS ON}
-  TRunMode = (
-    RunNormalMode, //It launches the application, but it doesn't initialize the debugger
-    RunDebugMode //It launches the application and initialize the debugger - it sets the Python interpreter to interactive mode
-  );
-  {$SCOPEDENUMS OFF}
-
   IBuilderTasks = interface
     ['{84F93F2A-AD66-46C7-B93D-FA9F70076212}']
     procedure BuildActiveProject();
@@ -168,6 +159,19 @@ type
     ['{8BA3AEDE-8E35-42AE-9014-DCBFD0AA197C}']
     function GetIsBuilding(): boolean;
     property IsBuilding: boolean read GetIsBuilding;
+  end;
+
+  IUnboundPythonServices = interface
+    ['{114EE2AC-1DC0-4B24-9BBA-3E0D172A8422}']
+    procedure Make(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture);
+    procedure Remove(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture);
+    function Exists(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture): boolean;
+    procedure Run(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture; const ADebugger: TDebugger;
+      const ARunMode: TRunMode);
   end;
 
 implementation

@@ -125,6 +125,17 @@ type
       RemoveDependencyCommand: TArray<string>;
   end;
 
+  //Unbound Python in the Android device
+  TUnboundPyOptions = class
+  public
+    class var
+      DeviceCommand: string;
+      CleanCommand: boolean;
+      PythonVersionCommand: TValue;
+      ArchitectureCommand: TValue;
+      RunModeCommand: TValue;
+  end;
+
   TEntityOptionsHelper = class
   public
     class function HasChanged([ref] AValue: TValue): boolean;

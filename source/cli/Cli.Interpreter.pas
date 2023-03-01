@@ -29,6 +29,7 @@ type
     FProjectServices: IProjectServices;
     FAdbServices: IAdbServices;
     FBuildServices: IBuildServices;
+    FUnboundPyServices: IUnboundPythonServices;
     //Storage
     FEnvironmentStorage: IStorage<TEnvironmentModel>;
     //Builder Chain
@@ -45,6 +46,7 @@ type
     procedure DoDeviceCommand();
     procedure DoEnvironmentCommand();
     procedure DoProjectCommand();
+    procedure DoUnboundPyCommand();
   private
     procedure PrintUsage(const ACommand: string);
   private
@@ -77,6 +79,7 @@ begin
   FProjectServices := TServiceSimpleFactory.CreateProject();
   FAdbServices := TServiceSimpleFactory.CreateAdb();
   FBuildServices := TServiceSimpleFactory.CreateBuild();
+  FUnboundPyServices := TServiceSimpleFactory.CreateUnboundPy();
   FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
   FMessageEvent := TGlobalBuilderChain.SubscribeToEvent<TMessageEvent>(
     procedure(const AEventNotification: TMessageEvent)
@@ -108,7 +111,7 @@ begin
   try
     var LDeviceList := TStringList.Create();
     try
-      FAdbServices.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
+      FAdbServices.ListDevices(LDeviceList);
       if LDeviceList.Count = 0 then
         raise ENoDevicesAttached.Create();
 
@@ -157,17 +160,9 @@ begin
     LCanRemove := (Output = 'yes') or (Output = 'y');
   end;
 
-  if LCanRemove then begin
-    try
-      if not FProjectServices.RemoveProject(TRemoveOptions.ProjectNameCommand) then
-        raise ERemoveProjectFailure.Create();
-    except
-      on E: Builder.Exception.EProjectNotFound do
-        raise Cli.Exception.EProjectNotFound.Create(TRemoveOptions.ProjectNameCommand)
-      else
-        raise;
-    end;
-  end;
+  if LCanRemove then
+    if not FProjectServices.RemoveProject(TRemoveOptions.ProjectNameCommand) then
+      raise ERemoveProjectFailure.Create();
 end;
 
 procedure TCommandInterpreter.DoBuildCommand;
@@ -260,7 +255,7 @@ begin
   try
     var LDeviceList := TStringList.Create();
     try
-      FAdbServices.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
+      FAdbServices.ListDevices(LDeviceList);
       if LDeviceList.Count = 0 then
         raise ENoDevicesAttached.Create();
 
@@ -399,26 +394,12 @@ begin
     LProjectModel.VersionName := TProjectOptions.VersionNameCommand.AsString();
 
   if TEntityOptionsHelper.HasChanged(TProjectOptions.PythonVersionCommand) then
-    try
-      LProjectModel.PythonVersion := TPythonVersion.FromString(
-        TProjectOptions.PythonVersionCommand.AsString());
-    except
-      on E: Builder.Exception.EInvalidPythonVersion do
-        raise Cli.Exception.EInvalidPythonVersion.Create()
-      else
-        raise;
-    end;
+    LProjectModel.PythonVersion := TPythonVersion.FromString(
+      TProjectOptions.PythonVersionCommand.AsString());
 
   if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
-    try
-      LProjectModel.Architecture := TArchitecture.FromString(
-        TProjectOptions.ArchitectureCommand.AsString());
-    except
-      on E: Builder.Exception.EInvalidArchitecture do
-        raise Cli.Exception.EInvalidArchitecture.Create()
-      else
-        raise;
-    end;
+    LProjectModel.Architecture := TArchitecture.FromString(
+      TProjectOptions.ArchitectureCommand.AsString());
 
   if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableSmallCommand) then
     LProjectModel.Icons.DrawableSmall := TProjectOptions.DrawableSmallCommand.AsString();
@@ -508,6 +489,30 @@ begin
   FProjectServices.SaveProject(LProjectModel);
 end;
 
+procedure TCommandInterpreter.DoUnboundPyCommand;
+var
+  LPythonVersion: TPythonVersion;
+  LArchitecture: TArchitecture;
+  LRunMode: TRunMode;
+begin
+  FAdbServices.ActiveDevice := GetSetDeviceOrAutoDetect(
+    TUnboundPyOptions.DeviceCommand);
+
+  LPythonVersion := TPythonVersion.FromString(TUnboundPyOptions.PythonVersionCommand.AsString());
+  LArchitecture := TArchitecture.FromString(TUnboundPyOptions.ArchitectureCommand.AsString());
+  LRunMode := TRunMode.FromString(TUnboundPyOptions.RunModeCommand.AsString());
+
+  if TUnboundPyOptions.CleanCommand then
+    FUnboundPyServices.Remove(LPythonVersion, LArchitecture);
+
+  if not FUnboundPyServices.Exists(LPythonVersion, LArchitecture) then
+    FUnboundPyServices.Make(LPythonVersion, LArchitecture);
+
+  FUnboundPyServices.Run(LPythonVersion, LArchitecture,
+    TDebugger.FromString(TGlobalOptions.DebuggerCommand),
+    LRunMode);
+end;
+
 procedure TCommandInterpreter.PrintUsage(const ACommand: string);
 begin
   if (ACommand = 'help') then begin
@@ -566,11 +571,10 @@ class procedure TCommandInterpreter.Interpret(
   const AParsed: ICommandLineParseResult);
 const
   COMMANDS: array of string = [
-    String.Empty,
-    HELP_CMD,
+    String.Empty, HELP_CMD,
     CREATE_CMD, LIST_CMD, REMOVE_CMD,
     BUILD_CMD, DEPLOY_CMD, RUN_CMD, STOP_CMD,
-    DEVICE_CMD,
+    DEVICE_CMD, UNBOUNDPY_CMD,
     ENVIRONMENT_CMD, PROJECT_CMD];
 begin
   if AParsed.HasErrors then begin
@@ -580,19 +584,29 @@ begin
     Exit;
   end;
 
-  case IndexStr(AParsed.Command, COMMANDS) of
-     0,
-     1: FInstance.DoHelpCommand(AParsed.Command);
-     2: FInstance.DoCreateCommand();
-     3: FInstance.DoListCommand();
-     4: FInstance.DoRemoveCommand();
-     5: FInstance.DoBuildCommand();
-     6: FInstance.DoDeployCommand();
-     7: FInstance.DoRunCommand();
-     8: FInstance.DoStopCommand();
-     9: FInstance.DoDeviceCommand();
-    10: FInstance.DoEnvironmentCommand();
-    11: FInstance.DoProjectCommand();
+  try
+    case IndexStr(AParsed.Command, COMMANDS) of
+       0,
+       1: FInstance.DoHelpCommand(AParsed.Command);
+       2: FInstance.DoCreateCommand();
+       3: FInstance.DoListCommand();
+       4: FInstance.DoRemoveCommand();
+       5: FInstance.DoBuildCommand();
+       6: FInstance.DoDeployCommand();
+       7: FInstance.DoRunCommand();
+       8: FInstance.DoStopCommand();
+       9: FInstance.DoDeviceCommand();
+      10: FInstance.DoUnboundPyCommand();
+      11: FInstance.DoEnvironmentCommand();
+      12: FInstance.DoProjectCommand();
+    end;
+  except
+    on E: Builder.Exception.EInvalidArchitecture do
+        raise Cli.Exception.EInvalidArchitecture.Create();
+    on E: Builder.Exception.EInvalidPythonVersion do
+      raise Cli.Exception.EInvalidPythonVersion.Create();
+    on E: Exception do
+      raise;
   end;
 
   TGlobalBuilderChain.Flush();

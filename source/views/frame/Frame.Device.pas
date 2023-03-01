@@ -133,7 +133,7 @@ begin
         //Let's listen to user's update request
         if FUpdate and not FAdbPath.IsEmpty() then begin
           try
-            FAdbServices.ListDevices(FAdbPath, FDevices);
+            FAdbServices.ListDevices(FDevices);
             TThread.Queue(TThread.Current,
               procedure
               begin

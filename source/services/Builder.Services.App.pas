@@ -13,16 +13,14 @@ uses
 type
   TAppService = class(TInterfacedObject, IAppServices)
   private
-    function GetPythonZipFile(const APythonVersion: TPythonVersion;
-      const AArchitecture: TArchitecture): string;
-    function GetPythonInterpreterFiles(const APythonVersion: TPythonVersion;
-      const AArchitecture: TArchitecture): TArray<string>;
-
+    FAdbServices: IAdbServices;
     procedure ClearAssetsInternal(const AProjectName: string);
     procedure ClearDeployInfo(const AProjectName: string);
     procedure AddAssetsInternalFileToDeployInfo(const AProjectName: string; const AFileName: string);
     procedure RemoveAssetsInternalFileToDeployInfo(const AProjectName: string; const AFileName: string);
   public
+    constructor Create();
+
     procedure CopyAppFiles(const AModel: TProjectModel);
     procedure CopyIcons(const AModel: TProjectModel);
     //App script files
@@ -63,69 +61,12 @@ uses
   Builder.Paths,
   Builder.Services.Factory;
 
-{ TPreBuiltCopyService }
+{ TAppService }
 
-function TAppService.GetPythonInterpreterFiles(
-  const APythonVersion: TPythonVersion;
-  const AArchitecture: TArchitecture): TArray<string>;
+constructor TAppService.Create;
 begin
-  var LPath := TBuilderPaths.GetPythonFolder();
-  case AArchitecture of
-    arm: LPath := TPath.Combine(LPath, 'arm');
-    aarch64: LPath := TPath.Combine(LPath, 'aarch64');
-  end;
-
-  case APythonVersion of
-    cp38: LPath := TPath.Combine(LPath, 'python3.8');
-    cp39: LPath := TPath.Combine(LPath, 'python3.9');
-    cp310: LPath := TPath.Combine(LPath, 'python3.10');
-  end;
-
-  var LFiles := TDirectory.GetFiles(LPath, '*.so', TSearchOption.soTopDirectoryOnly);
-  if (Length(LFiles) = 0) then
-    raise Exception.CreateFmt('Python interpreter not found at %s', [LPath]);
-
-  Result := Result + [TPath.Combine(LPath, LFiles[Low(LFiles)])];
-
-  LFiles := TDirectory.GetFiles(LPath, 'python*', TSearchOption.soTopDirectoryOnly,
-    function(const Path: string; const SearchRec: TSearchRec): boolean
-    begin
-      var LPythonExecutableName := String.Empty;
-      case APythonVersion of
-        cp38: LPythonExecutableName := 'python3.8';
-        cp39: LPythonExecutableName := 'python3.9';
-        cp310: LPythonExecutableName := 'python3.10';
-      end;
-      Result := SearchRec.Name = LPythonExecutableName;
-    end);
-
-  if (Length(LFiles) = 0) then
-    raise Exception.CreateFmt('Python executable not found at %s', [LPath]);
-
-  Result := Result + [TPath.Combine(LPath, LFiles[Low(LFiles)])];
-end;
-
-function TAppService.GetPythonZipFile(
-  const APythonVersion: TPythonVersion;
-  const AArchitecture: TArchitecture): string;
-begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'python');
-  case AArchitecture of
-    arm: Result := TPath.Combine(Result, 'arm');
-    aarch64: Result := TPath.Combine(Result, 'aarch64');
-  end;
-
-  case APythonVersion of
-    cp38: Result := TPath.Combine(Result, 'python3.8');
-    cp39: Result := TPath.Combine(Result, 'python3.9');
-    cp310: Result := TPath.Combine(Result, 'python3.10');
-  end;
-
-  var LFiles := TDirectory.GetFiles(Result, '*.zip', TSearchOption.soTopDirectoryOnly);
-  if (Length(LFiles) = 0) then
-    raise Exception.CreateFmt('Python distribution not found at %s', [Result]);
-
-  Result := TPath.Combine(Result, LFiles[Low(LFiles)]);
+  inherited;
+  FAdbServices := TServiceSimpleFactory.CreateAdb();
 end;
 
 function TAppService.InstallApk(const AProjectModel: TProjectModel;
@@ -136,53 +77,25 @@ begin
     raise Exception.CreateFmt('Apk file %s not found at: %s', [
       AProjectModel.ProjectName, LApkPath]);
 
-  var LService := TServiceSimpleFactory.CreateAdb();
-  var LStrings := TStringList.Create();
-  try
-    Result := LService.InstallApk(AEnvironmentModel.AdbLocation, LApkPath,
-      ADevice, LStrings);
-  finally
-    LStrings.Free();
-  end;
+  Result := FAdbServices.InstallApk(LApkPath);
 end;
 
 function TAppService.IsAppInstalled(const AProjectModel: TProjectModel;
   const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
 begin
-  var LService := TServiceSimpleFactory.CreateAdb();
-  var LStrings := TStringList.Create();
-  try
-    Result := LService.IsAppInstalled(AEnvironmentModel.AdbLocation,
-      AProjectModel.PackageName, ADevice, LStrings);
-  finally
-    LStrings.Free();
-  end;
+  Result := FAdbServices.IsAppInstalled(AProjectModel.PackageName);
 end;
 
 function TAppService.IsAppRunning(const AProjectModel: TProjectModel;
   const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
 begin
-  var LService := TServiceSimpleFactory.CreateAdb();
-  var LStrings := TStringList.Create();
-  try
-    Result := LService.IsAppRunning(AEnvironmentModel.AdbLocation,
-      AProjectModel.PackageName, ADevice, LStrings);
-  finally
-    LStrings.Free();
-  end;
+  Result := FAdbServices.IsAppRunning(AProjectModel.PackageName);
 end;
 
 function TAppService.UnInstallApk(const AProjectModel: TProjectModel;
   const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
 begin
-  var LService := TServiceSimpleFactory.CreateAdb();
-  var LStrings := TStringList.Create();
-  try
-    Result := LService.UnInstallApk(AEnvironmentModel.AdbLocation,
-      AProjectModel.PackageName, ADevice, LStrings);
-  finally
-    LStrings.Free();
-  end;
+  Result := FAdbServices.UnInstallApk(AProjectModel.PackageName);
 end;
 
 procedure TAppService.UpdateManifest(const AModel: TProjectModel);
@@ -193,7 +106,10 @@ begin
     .Replace('package="com.embarcadero.PyApp"', Format('package="%s"', [AModel.PackageName]))
     .Replace('android:versionCode="1"', Format('android:versionCode="%s"', [AModel.VersionCode.ToString()]))
     .Replace('android:versionName="1.0.0"', Format('android:versionName="%s"', [AModel.VersionName]))
+    //android:exported="true" requires this piece of code added to your main activity
+    .Replace('android:label="PyApp"', 'android:label="PyApp"' + ' ' + 'android:exported="true"')
     .Replace('android:label="PyApp"', Format('android:label="%s"', [AModel.ApplicationName]));
+
 
   TFile.WriteAllText(LManifestPath, LText);
 end;
@@ -287,14 +203,8 @@ end;
 function TAppService.BuildApk(const AProjectModel: TProjectModel;
   const AEnvironmentModel: TEnvironmentModel): boolean;
 begin
-  var LService := TServiceSimpleFactory.CreateAdb();
-  var LStrings := TStringList.Create();
-  try
-    Result := LService.BuildApk(TBuilderPaths.GetAppPath(AProjectModel.ProjectName),
-      AProjectModel.ProjectName, AEnvironmentModel, LStrings);
-  finally
-    LStrings.Free();
-  end;
+  Result := FAdbServices.BuildApk(TBuilderPaths.GetAppPath(AProjectModel.ProjectName),
+    AProjectModel.ProjectName);
 end;
 
 procedure TAppService.BuildProject(const AModel: TProjectModel);
@@ -359,7 +269,7 @@ begin
 
   {|||||| Python distribution zip file ||||||}
 
-  var LPythonZipFile := GetPythonZipFile(AModel.PythonVersion, AModel.Architecture);
+  var LPythonZipFile := TBuilderPaths.GetPythonZipFile(AModel.PythonVersion, AModel.Architecture);
   if not TFile.Exists(LPythonZipFile) then
     raise Exception.CreateFmt('Python zip file not found at: %s', [LPythonZipFile]);
 
@@ -373,7 +283,7 @@ begin
   {|||||| Python Interpreter ||||||}
 
   //Get the python interpreter shared lib and executable paths
-  var LPythonInterpreterFiles := GetPythonInterpreterFiles(AModel.PythonVersion, AModel.Architecture);
+  var LPythonInterpreterFiles := TBuilderPaths.GetPythonInterpreterFiles(AModel.PythonVersion, AModel.Architecture);
 
   //Copy the python interpreter to the app lib
   var LAppPythonInterpreterFolder := TPath.Combine(LAppPath, TBuilderPaths.GetAppPythonInterpreterFolder(AModel.Architecture));
@@ -452,12 +362,12 @@ begin
   var LDebuggerScript := String.Empty;
   case AModel.Debugger of
     TDebugger.DebugPy: begin
-      LDebuggerPackage := TPath.Combine(TBuilderPaths.GetPythonDependenciesFolder(), 'debugpy.zip');
-      LDebuggerScript := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'debugpy.py');
+      LDebuggerPackage := TBuilderPaths.GetDebugpyPackagePath();
+      LDebuggerScript := TBuilderPaths.GetDebugpyScriptPath();
     end;
     TDebugger.Rpyc: begin
-      LDebuggerPackage := TPath.Combine(TBuilderPaths.GetPythonDependenciesFolder(), 'rpyc.zip');
-      LDebuggerScript := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'rpyc.py');
+      LDebuggerPackage := TBuilderPaths.GetRpycPackagePath();
+      LDebuggerScript := TBuilderPaths.GetRpycScriptPath();
     end;
   end;
 
@@ -526,8 +436,8 @@ begin
 
       var LDebugger := String.Empty;
       case AModel.Debugger of
-        DebugPy: LDebugger := 'debugpy.zip';
-        Rpyc: LDebugger := 'rpyc.zip';
+        TDebugger.DebugPy: LDebugger := 'debugpy.zip';
+        TDebugger.Rpyc: LDebugger := 'rpyc.zip';
       end;
 
       if not LDebugger.IsEmpty() then begin
