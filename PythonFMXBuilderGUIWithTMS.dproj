@@ -2,10 +2,10 @@
     <PropertyGroup>
         <Base>True</Base>
         <AppType>Application</AppType>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <FrameworkType>FMX</FrameworkType>
         <MainSource>PythonFMXBuilderGUIWithTMS.dpr</MainSource>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <ProjectGuid>{DAF3F81D-FFCC-4EAE-AE0B-6B016A613ED8}</ProjectGuid>
         <ProjectVersion>19.5</ProjectVersion>
         <TargetedPlatforms>693251</TargetedPlatforms>
@@ -472,6 +472,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
                 <Platform value="Android64">True</Platform>
                 <Platform value="iOSDevice64">True</Platform>
                 <Platform value="iOSSimARM64">True</Platform>
+                <Platform value="Linux64">False</Platform>
                 <Platform value="OSX64">True</Platform>
                 <Platform value="OSXARM64">True</Platform>
                 <Platform value="Win32">True</Platform>
@@ -508,6 +509,14 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='iOSSimARM64'">
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent/>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Linux64'">
         <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
@@ -572,6 +581,14 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='iOSSimARM64'">
+        <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent/>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Linux64'">
         <PreBuildEvent>(xcopy /y &quot;$(PROJECTDIR)\python&quot; &quot;$(OUTPUTDIR)python&quot; /S /E /H /I)&amp;&amp;( xcopy /y &quot;$(PROJECTDIR)\android\pre-built&quot; &quot;$(OUTPUTDIR)android\pre-built&quot; /S /E /H /I)</PreBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
