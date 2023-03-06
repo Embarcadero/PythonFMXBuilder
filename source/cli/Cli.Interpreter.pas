@@ -3,32 +3,60 @@ unit Cli.Interpreter;
 interface
 
 uses
-  System.SysUtils, System.StrUtils, System.Classes, System.Rtti,
-  VSoft.CommandLine.Options, Builder.Model, Builder.Model.Environment,
-  Builder.Model.Project, Builder.PythonVersion, Builder.Architecture;
+  System.SysUtils,
+  System.StrUtils,
+  System.Classes,
+  System.Rtti,
+  VSoft.CommandLine.Options,
+  Builder.Types,
+  Builder.Chain,
+  Builder.Model,
+  Builder.Model.Environment,
+  Builder.Model.Project,
+  Builder.Services,
+  Builder.Storage;
 
 type
   TCommandInterpreter = class
+  private class var
+    FInstance: TCommandInterpreter;
   private
-    class procedure DoHelpCommand(const ACommand: string); static;
-    class procedure DoCreateCommand(); static;
-    class procedure DoListCommand(); static;
-    class procedure DoRemoveCommand(); static;
-    class procedure DoBuildCommand(); static;
-    class procedure DoDeployCommand(); static;
-    class procedure DoDeviceCommand(); static;
-    class procedure DoEnvironmentCommand(); static;
-    class procedure DoProjectCommand(); static;
+    class constructor Create();
+    class destructor Destroy();
   private
-    class procedure PrintUsage(const ACommand: string); static;
-    class function ExecuteAction(const AVerbose: boolean;
-      const AAction: TFunc<boolean>): boolean;
+    FVerbose: boolean;
+    //Services
+    FProjectServices: IProjectServices;
+    FAdbServices: IAdbServices;
+    FBuildServices: IBuildServices;
+    FUnboundPyServices: IUnboundPythonServices;
+    //Storage
+    FEnvironmentStorage: IStorage<TEnvironmentModel>;
+    //Builder Chain
+    FMessageEvent: IDisconnectable;
   private
-    class function InternalLoadEnvironment(): TEnvironmentModel;
-    class function InternalLoadProject(const AProjectName: string): TProjectModel;
-    class function InternalBuildApk(const AEnvironment: TEnvironmentModel;
-      const AProject: TProjectModel; const AVerbose: boolean): boolean;
+    procedure DoHelpCommand(const ACommand: string);
+    procedure DoCreateCommand();
+    procedure DoListCommand();
+    procedure DoRemoveCommand();
+    procedure DoBuildCommand();
+    procedure DoDeployCommand();
+    procedure DoRunCommand();
+    procedure DoStopCommand();
+    procedure DoDeviceCommand();
+    procedure DoEnvironmentCommand();
+    procedure DoProjectCommand();
+    procedure DoUnboundPyCommand();
+  private
+    procedure PrintUsage(const ACommand: string);
+  private
+    function InternalLoadEnvironment(): TEnvironmentModel;
+    function InternalLoadProject(const AProjectName: string): TProjectModel;
+    function GetSetDeviceOrAutoDetect(const ADevice: string): string;
   public
+    constructor Create();
+    destructor Destroy(); override;
+
     class procedure Interpret(const AParsed: ICommandLineParseResult); static;
   end;
 
@@ -36,9 +64,7 @@ implementation
 
 uses
   PyTools.ExecCmd,
-  Builder.Chain,
   Builder.Exception,
-  Builder.Services,
   Builder.Services.Factory,
   Builder.Storage.Default,
   Cli.Commands,
@@ -47,37 +73,84 @@ uses
 
 { TCommandInterpreter }
 
-class function TCommandInterpreter.ExecuteAction(
-  const AVerbose: boolean; const AAction: TFunc<boolean>): boolean;
+constructor TCommandInterpreter.Create;
 begin
-  { TODO : Manage verbosity }
-  Result := AAction();
+  FVerbose := false;
+  FProjectServices := TServiceSimpleFactory.CreateProject();
+  FAdbServices := TServiceSimpleFactory.CreateAdb();
+  FBuildServices := TServiceSimpleFactory.CreateBuild();
+  FUnboundPyServices := TServiceSimpleFactory.CreateUnboundPy();
+  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
+  FMessageEvent := TGlobalBuilderChain.SubscribeToEvent<TMessageEvent>(
+    procedure(const AEventNotification: TMessageEvent)
+    begin
+      if FVerbose or (AEventNotification.Body.Level = TMessageLevel.Descriptive) then
+        Writeln(AEventNotification.Body.Message);
+    end);
 end;
 
-class procedure TCommandInterpreter.DoHelpCommand(const ACommand: string);
+destructor TCommandInterpreter.Destroy;
 begin
-  TCommandInterpreter.PrintUsage(ACommand);
+  FMessageEvent.Disconnect()
 end;
 
-class procedure TCommandInterpreter.DoCreateCommand;
+class constructor TCommandInterpreter.Create;
 begin
-  var LService := TServiceSimpleFactory.CreateProject();
-  var LProject := LService.CreateProject(
+  FInstance := TCommandInterpreter.Create();
+end;
+
+class destructor TCommandInterpreter.Destroy;
+begin
+  FInstance.Free();
+end;
+
+function TCommandInterpreter.GetSetDeviceOrAutoDetect(
+  const ADevice: string): string;
+begin
+  var LEnvironmentModel := InternalLoadEnvironment();
+  try
+    var LDeviceList := TStringList.Create();
+    try
+      FAdbServices.ListDevices(LDeviceList);
+      if LDeviceList.Count = 0 then
+        raise ENoDevicesAttached.Create();
+
+      if not ADevice.IsEmpty() and (LDeviceList.IndexOf(ADevice) < 0) then
+        raise EDeviceNotAttached(ADevice);
+
+      if ADevice.IsEmpty() then
+        Result := LDeviceList.KeyNames[0]
+      else
+        Result := ADevice;
+    finally
+      LDeviceList.Free();
+    end;
+  finally
+    LEnvironmentModel.Free();
+  end;
+end;
+
+procedure TCommandInterpreter.DoHelpCommand(const ACommand: string);
+begin
+  PrintUsage(ACommand);
+end;
+
+procedure TCommandInterpreter.DoCreateCommand;
+begin
+  var LProjectModel := FProjectServices.CreateProject(
     TCreateOptions.ProjectNameCommand, TCreateOptions.AddMainScriptCommand);
-  LService.SaveProject(LProject);
+  FProjectServices.SaveProject(LProjectModel);
 end;
 
-class procedure TCommandInterpreter.DoListCommand;
+procedure TCommandInterpreter.DoListCommand;
 begin
-  var LService := TServiceSimpleFactory.CreateProject();
-  for var LProjectName in LService.ListProjects() do begin
+  for var LProjectName in FProjectServices.ListProjects() do begin
     WriteLn(LProjectName);
   end;
 end;
 
-class procedure TCommandInterpreter.DoRemoveCommand;
+procedure TCommandInterpreter.DoRemoveCommand;
 begin
-  var LService := TServiceSimpleFactory.CreateProject();
   var LCanRemove := TRemoveOptions.SkipConfirmationCommand;
 
   if not LCanRemove then begin
@@ -87,111 +160,120 @@ begin
     LCanRemove := (Output = 'yes') or (Output = 'y');
   end;
 
-  if LCanRemove then begin
-    try
-      if not LService.RemoveProject(TRemoveOptions.ProjectNameCommand) then
-        raise ERemoveProjectFailure.Create();
-    except
-      on E: Builder.Exception.EProjectNotFound do
-        raise Cli.Exception.EProjectNotFound.Create(TRemoveOptions.ProjectNameCommand)
-      else
-        raise;
-    end;
-  end;
+  if LCanRemove then
+    if not FProjectServices.RemoveProject(TRemoveOptions.ProjectNameCommand) then
+      raise ERemoveProjectFailure.Create();
 end;
 
-class procedure TCommandInterpreter.DoBuildCommand;
+procedure TCommandInterpreter.DoBuildCommand;
 begin
-  if not InternalBuildApk(
-    InternalLoadEnvironment(),
-    InternalLoadProject(TBuildOptions.ProjectNameCommand),
-    TBuildOptions.VerboseCommand) then
-  begin
-    raise EBuildProcessFailed.Create();
-  end;
-end;
-
-class procedure TCommandInterpreter.DoDeployCommand;
-begin
-  var LEnvironmentModel := InternalLoadEnvironment();
-  var LProjectModel := InternalLoadProject(TDeployOptions.ProjectNameCommand);
-  var LAdbService := TServiceSimpleFactory.CreateAdb();
-  var LDevice := TDeployOptions.DeviceCommand;
-
-  var LDeviceList := TStringList.Create();
+  FVerbose := TBuildOptions.VerboseCommand;
   try
-    LAdbService.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
-    if LDeviceList.Count = 0 then
-      raise ENoDevicesAttached.Create();
-
-    if not LDevice.IsEmpty() and (LDeviceList.IndexOf(LDevice) < 0) then
-      raise EDeviceNotAttached(LDevice);
-
-    if LDevice.IsEmpty() then
-      LDevice := LDeviceList.KeyNames[0];
-  finally
-    LDeviceList.Free();
-  end;
-
-  if not InternalBuildApk(
-    LEnvironmentModel,
-    LProjectModel,
-    TDeployOptions.VerboseCommand) then
-  begin
-    raise EBuildProcessFailed.Create();
-  end else begin
-    var LSuccess := ExecuteAction(TDeployOptions.VerboseCommand,
-      function(): boolean
-      begin
-        WriteLn('Starting deployment.');
-        WriteLn;
-
-        var LAppService := TServiceSimpleFactory.CreateApp();
-        if TDeployOptions.UninstallCommand then
-          LAppService.UnInstallApk(LProjectModel, LEnvironmentModel, LDevice);
-        Result := LAppService.InstallApk(LProjectModel, LEnvironmentModel, LDevice);
-
-        if Result then begin
-          WriteLn('Launching...');
-          WriteLn;
-          var LStrings := TStringList.Create();
-          try
-            LAdbService.RunApp(
-              LEnvironmentModel.AdbLocation, LProjectModel.PackageName,
-              LDevice, LStrings);
-          finally
-            LStrings.Free();
-          end;
-        end;
+    InternalLoadProject(TBuildOptions.ProjectNameCommand);
+    try
+      FBuildServices.Run(procedure(AProxy: IBuilderTasks) begin
+        FProjectServices.GetActiveProject().Debugger := TDebugger.FromString(TGlobalOptions.DebuggerCommand);
+        AProxy.BuildActiveProject();
       end);
 
-    if not LSuccess then
-      raise EDeployProcessFailed.Create();
-  end;
-end;
-
-class procedure TCommandInterpreter.DoDeviceCommand;
-begin
-  var LEnvironmentModel := InternalLoadEnvironment();
-  var LAdbService := TServiceSimpleFactory.CreateAdb();
-  var LDeviceList := TStringList.Create();
-  try
-    LAdbService.ListDevices(LEnvironmentModel.AdbLocation, LDeviceList);
-    if LDeviceList.Count = 0 then
-      raise ENoDevicesAttached.Create();
-
-    for var I := 0 to LDeviceList.Count - 1 do begin
-      if TDeviceOptions.ListCommand then
-        WriteLn(LDeviceList.KeyNames[I] + ' -> ' + LDeviceList.Values[LDeviceList.KeyNames[I]])
-      else
-        WriteLn(LDeviceList.KeyNames[I]);
+      TGlobalBuilderChain.Flush();
+    except
+      Exception.RaiseOuterException(EBuildProcessFailed.Create());
     end;
   finally
-    LDeviceList.Free();
+    FVerbose := false;
   end;
 end;
 
-class procedure TCommandInterpreter.DoEnvironmentCommand;
+procedure TCommandInterpreter.DoDeployCommand;
+begin
+  FVerbose := TDeployOptions.VerboseCommand;
+  try
+    InternalLoadProject(TDeployOptions.ProjectNameCommand);
+    try
+      FAdbServiceS.ActiveDevice := GetSetDeviceOrAutoDetect(
+        TDeployOptions.DeviceCommand);
+
+      FBuildServices.Run(procedure(AProxy: IBuilderTasks) begin
+        AProxy.DeployActiveProject(TDeployOptions.UninstallCommand);
+      end);
+
+      TGlobalBuilderChain.Flush();
+    except
+      Exception.RaiseOuterException(EDeployProcessFailed.Create());
+    end;
+  finally
+    FVerbose := false;
+  end;
+end;
+
+procedure TCommandInterpreter.DoRunCommand;
+begin
+  FVerbose := TRunOptions.VerboseCommand;
+  try
+    InternalLoadProject(TRunOptions.ProjectNameCommand);
+    try
+      FAdbServices.ActiveDevice := GetSetDeviceOrAutoDetect(
+        TRunOptions.DeviceCommand);
+
+      FBuildServices.Run(procedure(AProxy: IBuilderTasks) begin
+        var LRunMode := TRunMode.RunNormalMode;
+        if TRunOptions.DebugModeCommand then
+          LRunMode := TRunMode.RunDebugMode;
+        AProxy.RunActiveProject(LRunMode);
+      end);
+
+      TGlobalBuilderChain.Flush();
+    except
+      Exception.RaiseOuterException(ERunProcessFailed.Create());
+    end;
+  finally
+    FVerbose := false;
+  end;
+end;
+
+procedure TCommandInterpreter.DoStopCommand;
+begin
+  InternalLoadProject(TStopOptions.ProjectNameCommand);
+  try
+    FAdbServices.ActiveDevice := GetSetDeviceOrAutoDetect(
+      TStopOptions.DeviceCommand);
+
+    FBuildServices.Run(procedure(AProxy: IBuilderTasks) begin
+      AProxy.StopActiveProject();
+    end);
+
+    TGlobalBuilderChain.Flush();
+  except
+    Exception.RaiseOuterException(EStopProcessFailed.Create());
+  end;
+end;
+
+procedure TCommandInterpreter.DoDeviceCommand;
+begin
+  var LEnvironmentModel := InternalLoadEnvironment();
+  try
+    var LDeviceList := TStringList.Create();
+    try
+      FAdbServices.ListDevices(LDeviceList);
+      if LDeviceList.Count = 0 then
+        raise ENoDevicesAttached.Create();
+
+      for var I := 0 to LDeviceList.Count - 1 do begin
+        if TDeviceOptions.ListCommand then
+          WriteLn(LDeviceList.KeyNames[I] + ' -> ' + LDeviceList.Values[LDeviceList.KeyNames[I]])
+        else
+          WriteLn(LDeviceList.KeyNames[I]);
+      end;
+    finally
+      LDeviceList.Free();
+    end;
+  finally
+    LEnvironmentModel.Free();
+  end;
+end;
+
+procedure TCommandInterpreter.DoEnvironmentCommand;
 begin
   if TEnvironmentOptions.Gui then begin
     var LOutput: string;
@@ -203,9 +285,8 @@ begin
   end;
 
   var LEnvironmentModel: TEnvironmentModel := nil;
-  var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
 
-  if not LEnvironmentStorage.LoadModel(LEnvironmentModel) then
+  if not FEnvironmentStorage.LoadModel(LEnvironmentModel) then
     LEnvironmentModel := TEnvironmentModel.Create();
   try
     if TEntityOptionsHelper.HasChanged(TEnvironmentOptions.SdkBasePathCommand) then
@@ -277,13 +358,13 @@ begin
       Writeln(Format('--jar_signer_location %s', [LEnvironmentModel.JarSignerLocation]));
     end;
 
-    LEnvironmentStorage.SaveModel(LEnvironmentModel);
+    FEnvironmentStorage.SaveModel(LEnvironmentModel);
   finally
     LEnvironmentModel.Free();
   end;
 end;
 
-class procedure TCommandInterpreter.DoProjectCommand;
+procedure TCommandInterpreter.DoProjectCommand;
 begin
   if TProjectOptions.Gui then begin
     var LOutput: string;
@@ -296,155 +377,143 @@ begin
     Exit;
   end;
 
-  var LProjectService := TServiceSimpleFactory.CreateProject();
-  if not LProjectService.HasProject(TProjectOptions.SelectCommand) then
+  if not FProjectServices.HasProject(TProjectOptions.SelectCommand) then
     raise Cli.Exception.EProjectNotFound.Create(TProjectOptions.SelectCommand);
 
-  var LProjectModel := LProjectService.LoadProject(TProjectOptions.SelectCommand);
-  try
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.ApplicationNameCommand) then
-      LProjectModel.ApplicationName := TProjectOptions.ApplicationNameCommand.AsString();
+  var LProjectModel := FProjectServices.LoadProject(TProjectOptions.SelectCommand);
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.ApplicationNameCommand) then
+    LProjectModel.ApplicationName := TProjectOptions.ApplicationNameCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.PackageNameCommand) then
-      LProjectModel.PackageName := TProjectOptions.PackageNameCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.PackageNameCommand) then
+    LProjectModel.PackageName := TProjectOptions.PackageNameCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.VersionCodeCommand) then
-      LProjectModel.VersionCode := TProjectOptions.VersionCodeCommand.AsInteger();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.VersionCodeCommand) then
+    LProjectModel.VersionCode := TProjectOptions.VersionCodeCommand.AsInteger();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.VersionNameCommand) then
-      LProjectModel.VersionName := TProjectOptions.VersionNameCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.VersionNameCommand) then
+    LProjectModel.VersionName := TProjectOptions.VersionNameCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.PythonVersionCommand) then
-      try
-        LProjectModel.PythonVersion := TPythonVersion.FromString(
-          TProjectOptions.PythonVersionCommand.AsString());
-      except
-        on E: Builder.Exception.EInvalidPythonVersion do
-          raise Cli.Exception.EInvalidPythonVersion.Create()
-        else
-          raise;
-      end;
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.PythonVersionCommand) then
+    LProjectModel.PythonVersion := TPythonVersion.FromString(
+      TProjectOptions.PythonVersionCommand.AsString());
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
-      try
-        LProjectModel.Architecture := TArchitecture.FromString(
-          TProjectOptions.ArchitectureCommand.AsString());
-      except
-        on E: Builder.Exception.EInvalidArchitecture do
-          raise Cli.Exception.EInvalidArchitecture.Create()
-        else
-          raise;
-      end;
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.ArchitectureCommand) then
+    LProjectModel.Architecture := TArchitecture.FromString(
+      TProjectOptions.ArchitectureCommand.AsString());
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableSmallCommand) then
-      LProjectModel.Icons.DrawableSmall := TProjectOptions.DrawableSmallCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableSmallCommand) then
+    LProjectModel.Icons.DrawableSmall := TProjectOptions.DrawableSmallCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableNormalCommand) then
-      LProjectModel.Icons.DrawableNormal := TProjectOptions.DrawableNormalCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableNormalCommand) then
+    LProjectModel.Icons.DrawableNormal := TProjectOptions.DrawableNormalCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableLargeCommand) then
-      LProjectModel.Icons.DrawableLarge := TProjectOptions.DrawableLargeCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableLargeCommand) then
+    LProjectModel.Icons.DrawableLarge := TProjectOptions.DrawableLargeCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXLargeCommand) then
-      LProjectModel.Icons.DrawableXlarge := TProjectOptions.DrawableXLargeCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXLargeCommand) then
+    LProjectModel.Icons.DrawableXlarge := TProjectOptions.DrawableXLargeCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableLDpiCommand) then
-      LProjectModel.Icons.DrawableLdpi := TProjectOptions.DrawableLDpiCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableLDpiCommand) then
+    LProjectModel.Icons.DrawableLdpi := TProjectOptions.DrawableLDpiCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableMDpiCommand) then
-      LProjectModel.Icons.DrawableMdpi := TProjectOptions.DrawableMDpiCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableMDpiCommand) then
+    LProjectModel.Icons.DrawableMdpi := TProjectOptions.DrawableMDpiCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXHDpiCommand) then
-      LProjectModel.Icons.DrawableHdpi := TProjectOptions.DrawableXHDpiCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXHDpiCommand) then
+    LProjectModel.Icons.DrawableHdpi := TProjectOptions.DrawableXHDpiCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXHDpiCommand) then
-      LProjectModel.Icons.DrawableXhdpi := TProjectOptions.DrawableXHDpiCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXHDpiCommand) then
+    LProjectModel.Icons.DrawableXhdpi := TProjectOptions.DrawableXHDpiCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxHDpiCommand) then
-      LProjectModel.Icons.DrawableXxhdpi := TProjectOptions.DrawableXxHDpiCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxHDpiCommand) then
+    LProjectModel.Icons.DrawableXxhdpi := TProjectOptions.DrawableXxHDpiCommand.AsString();
 
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxxHDpiCommand) then
-      LProjectModel.Icons.DrawableXxxHdpi := TProjectOptions.DrawableXxxHDpiCommand.AsString();
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.DrawableXxxHDpiCommand) then
+    LProjectModel.Icons.DrawableXxxHdpi := TProjectOptions.DrawableXxxHDpiCommand.AsString();
 
-    for var LFile in TProjectOptions.AddFileCommand do begin
-      LProjectService.AddScriptFile(LProjectModel, LFile);
-    end;
-
-    for var LFile in TProjectOptions.RemoveFileCommand do begin
-      LProjectService.RemoveScriptFile(LProjectModel, LFile);
-    end;
-
-    if TEntityOptionsHelper.HasChanged(TProjectOptions.MainFileCommand) then
-      LProjectService.SetMainScriptFile(LProjectModel, TProjectOptions.MainFileCommand.AsString());
-
-    if TProjectOptions.ShowCommand then begin
-      Writeln(Format('--application_name %s', [LProjectModel.ApplicationName]));
-      Writeln(Format('--package_name %s', [LProjectModel.PackageName]));
-      Writeln(Format('--version_code %d', [LProjectModel.VersionCode]));
-      Writeln(Format('--version_name %s', [LProjectModel.VersionName]));
-      Writeln(Format('--python_version %s', [LProjectModel.PythonVersion.AsString()]));
-      Writeln(Format('--architecture %s', [LProjectModel.Architecture.AsString()]));
-
-      Writeln(Format('--drawable_small %s', [LProjectModel.Icons.DrawableSmall]));
-      Writeln(Format('--drawable_normal %s', [LProjectModel.Icons.DrawableNormal]));
-      Writeln(Format('--drawable_large %s', [LProjectModel.Icons.DrawableLarge]));
-      Writeln(Format('--drawable_xlarge %s', [LProjectModel.Icons.DrawableXlarge]));
-      Writeln(Format('--drawable_ldpi %s', [LProjectModel.Icons.DrawableLdpi]));
-      Writeln(Format('--drawable_mdpi %s', [LProjectModel.Icons.DrawableMdpi]));
-      Writeln(Format('--drawable_hdpi %s', [LProjectModel.Icons.DrawableHdpi]));
-      Writeln(Format('--drawable_xhdpi %s', [LProjectModel.Icons.DrawableXhdpi]));
-      Writeln(Format('--drawable_xxhdpi %s', [LProjectModel.Icons.DrawableXxhdpi]));
-      Writeln(Format('--drawable_xxxhdpi %s', [LProjectModel.Icons.DrawableXxxHdpi]));
-
-      for var LFile in LProjectModel.Files.Files do begin
-        Writeln(Format('--file %s', [LFile]));
-      end;
-
-      if LProjectModel.Files.Files.Count = 0 then
-        Writeln('--file');
-
-      Writeln(Format('--main_file %s', [LProjectModel.Files.MainFile]));
-    end;
-
-    LProjectService.SaveProject(LProjectModel);
-  finally
-    LProjectModel.Free();
+  for var LFile in TProjectOptions.AddFileCommand do begin
+    FProjectServices.AddScriptFile(LProjectModel, LFile);
   end;
+
+  for var LFile in TProjectOptions.RemoveFileCommand do begin
+    FProjectServices.RemoveScriptFile(LProjectModel, LFile);
+  end;
+
+  for var LDependency in TProjectOptions.AddDependencyCommand do begin
+    FProjectServices.AddDependency(LProjectModel, LDependency);
+  end;
+
+  for var LDependency in TProjectOptions.RemoveDependencyCommand do begin
+    FProjectServices.RemoveDependency(LProjectModel, LDependency);
+  end;
+
+  if TEntityOptionsHelper.HasChanged(TProjectOptions.MainFileCommand) then
+    FProjectServices.SetMainScriptFile(LProjectModel, TProjectOptions.MainFileCommand.AsString());
+
+  if TProjectOptions.ShowCommand then begin
+    Writeln(Format('--application_name %s', [LProjectModel.ApplicationName]));
+    Writeln(Format('--package_name %s', [LProjectModel.PackageName]));
+    Writeln(Format('--version_code %d', [LProjectModel.VersionCode]));
+    Writeln(Format('--version_name %s', [LProjectModel.VersionName]));
+    Writeln(Format('--python_version %s', [LProjectModel.PythonVersion.AsString()]));
+    Writeln(Format('--architecture %s', [LProjectModel.Architecture.AsString()]));
+
+    Writeln(Format('--drawable_small %s', [LProjectModel.Icons.DrawableSmall]));
+    Writeln(Format('--drawable_normal %s', [LProjectModel.Icons.DrawableNormal]));
+    Writeln(Format('--drawable_large %s', [LProjectModel.Icons.DrawableLarge]));
+    Writeln(Format('--drawable_xlarge %s', [LProjectModel.Icons.DrawableXlarge]));
+    Writeln(Format('--drawable_ldpi %s', [LProjectModel.Icons.DrawableLdpi]));
+    Writeln(Format('--drawable_mdpi %s', [LProjectModel.Icons.DrawableMdpi]));
+    Writeln(Format('--drawable_hdpi %s', [LProjectModel.Icons.DrawableHdpi]));
+    Writeln(Format('--drawable_xhdpi %s', [LProjectModel.Icons.DrawableXhdpi]));
+    Writeln(Format('--drawable_xxhdpi %s', [LProjectModel.Icons.DrawableXxhdpi]));
+    Writeln(Format('--drawable_xxxhdpi %s', [LProjectModel.Icons.DrawableXxxHdpi]));
+
+    for var LFile in LProjectModel.Files.Files do begin
+      Writeln(Format('--file %s', [LFile]));
+    end;
+
+    if LProjectModel.Files.Files.Count = 0 then
+      Writeln('--file');
+
+    Writeln(Format('--main_file %s', [LProjectModel.Files.MainFile]));
+
+    for var LDependency in LProjectModel.Files.Dependencies do begin
+      Writeln(Format('--dependency %s', [LDependency]));
+    end;
+
+    if LProjectModel.Files.Dependencies.Count = 0 then
+      Writeln('--dependency');
+  end;
+
+  FProjectServices.SaveProject(LProjectModel);
 end;
 
-class procedure TCommandInterpreter.Interpret(
-  const AParsed: ICommandLineParseResult);
-const
-  COMMANDS: array of string = [
-    String.Empty,
-    HELP_CMD,
-    CREATE_CMD, LIST_CMD, REMOVE_CMD,
-    BUILD_CMD, DEPLOY_CMD,
-    DEVICE_CMD,
-    ENVIRONMENT_CMD, PROJECT_CMD];
+procedure TCommandInterpreter.DoUnboundPyCommand;
+var
+  LPythonVersion: TPythonVersion;
+  LArchitecture: TArchitecture;
+  LRunMode: TRunMode;
 begin
-  if AParsed.HasErrors then begin
-    Writeln;
-    Writeln(AParsed.ErrorText);
-    TCommandInterpreter.PrintUsage(AParsed.Command);
-    Exit;
-  end;
+  FAdbServices.ActiveDevice := GetSetDeviceOrAutoDetect(
+    TUnboundPyOptions.DeviceCommand);
 
-  case IndexStr(AParsed.Command, COMMANDS) of
-    0,
-    1: DoHelpCommand(AParsed.Command);
-    2: DoCreateCommand();
-    3: DoListCommand();
-    4: DoRemoveCommand();
-    5: DoBuildCommand();
-    6: DoDeployCommand();
-    7: DoDeviceCommand();
-    8: DoEnvironmentCommand();
-    9: DoProjectCommand();
-  end;
+  LPythonVersion := TPythonVersion.FromString(TUnboundPyOptions.PythonVersionCommand.AsString());
+  LArchitecture := TArchitecture.FromString(TUnboundPyOptions.ArchitectureCommand.AsString());
+  LRunMode := TRunMode.FromString(TUnboundPyOptions.RunModeCommand.AsString());
+
+  if TUnboundPyOptions.CleanCommand then
+    FUnboundPyServices.Remove(LPythonVersion, LArchitecture);
+
+  if not FUnboundPyServices.Exists(LPythonVersion, LArchitecture) then
+    FUnboundPyServices.Make(LPythonVersion, LArchitecture);
+
+  FUnboundPyServices.Run(LPythonVersion, LArchitecture,
+    TDebugger.FromString(TGlobalOptions.DebuggerCommand),
+    LRunMode);
 end;
 
-class procedure TCommandInterpreter.PrintUsage(const ACommand: string);
+procedure TCommandInterpreter.PrintUsage(const ACommand: string);
 begin
   if (ACommand = 'help') then begin
     if THelpOptions.HelpCommand = '' then
@@ -460,26 +529,10 @@ begin
     end);
 end;
 
-class function TCommandInterpreter.InternalBuildApk(
-  const AEnvironment: TEnvironmentModel; const AProject: TProjectModel;
-  const AVerbose: boolean): boolean;
-begin
-  Result := ExecuteAction(AVerbose, function(): boolean begin
-    WriteLn('Starting up the build process. It may take some time...');
-    WriteLn;
-    var LAppService := TServiceSimpleFactory.CreateApp();
-    //Generates the project necessary files and settings
-    LAppService.BuildProject(AProject);
-    //Create and sign the APK file
-    Result := LAppService.BuildApk(AProject, AEnvironment);
-  end);
-end;
-
-class function TCommandInterpreter.InternalLoadEnvironment: TEnvironmentModel;
+function TCommandInterpreter.InternalLoadEnvironment: TEnvironmentModel;
 begin
   Result := nil;
-  var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  if not LEnvironmentStorage.LoadModel(Result) then
+  if not FEnvironmentStorage.LoadModel(Result) then
     raise EEnvironmentSettingsAreEmpty.Create();
 
   var LModelErrors := TStringList.Create();
@@ -494,14 +547,13 @@ begin
   end;
 end;
 
-class function TCommandInterpreter.InternalLoadProject(
+function TCommandInterpreter.InternalLoadProject(
   const AProjectName: string): TProjectModel;
 begin
-  var LProjectService := TServiceSimpleFactory.CreateProject();
-  if not LProjectService.HasProject(AProjectName) then
+  if not FProjectServices.HasProject(AProjectName) then
     raise EProjectSettingsAreEmpty.Create();
 
-  Result := LProjectService.LoadProject(AProjectName);
+  Result := FProjectServices.LoadProject(AProjectName);
 
   var LModelErrors := TStringList.Create();
   try
@@ -513,6 +565,51 @@ begin
   finally
     LModelErrors.Free();
   end;
+end;
+
+class procedure TCommandInterpreter.Interpret(
+  const AParsed: ICommandLineParseResult);
+const
+  COMMANDS: array of string = [
+    String.Empty, HELP_CMD,
+    CREATE_CMD, LIST_CMD, REMOVE_CMD,
+    BUILD_CMD, DEPLOY_CMD, RUN_CMD, STOP_CMD,
+    DEVICE_CMD, UNBOUNDPY_CMD,
+    ENVIRONMENT_CMD, PROJECT_CMD];
+begin
+  if AParsed.HasErrors then begin
+    Writeln;
+    Writeln(AParsed.ErrorText);
+    FInstance.PrintUsage(AParsed.Command);
+    Exit;
+  end;
+
+  try
+    case IndexStr(AParsed.Command, COMMANDS) of
+       0,
+       1: FInstance.DoHelpCommand(AParsed.Command);
+       2: FInstance.DoCreateCommand();
+       3: FInstance.DoListCommand();
+       4: FInstance.DoRemoveCommand();
+       5: FInstance.DoBuildCommand();
+       6: FInstance.DoDeployCommand();
+       7: FInstance.DoRunCommand();
+       8: FInstance.DoStopCommand();
+       9: FInstance.DoDeviceCommand();
+      10: FInstance.DoUnboundPyCommand();
+      11: FInstance.DoEnvironmentCommand();
+      12: FInstance.DoProjectCommand();
+    end;
+  except
+    on E: Builder.Exception.EInvalidArchitecture do
+        raise Cli.Exception.EInvalidArchitecture.Create();
+    on E: Builder.Exception.EInvalidPythonVersion do
+      raise Cli.Exception.EInvalidPythonVersion.Create();
+    on E: Exception do
+      raise;
+  end;
+
+  TGlobalBuilderChain.Flush();
 end;
 
 end.

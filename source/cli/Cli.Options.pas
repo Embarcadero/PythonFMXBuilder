@@ -12,6 +12,12 @@ type
       HelpCommand : string;
   end;
 
+  TGlobalOptions = class
+  public
+    class var
+      DebuggerCommand: string;
+  end;
+
   TCreateOptions = class
   public
     class var
@@ -46,6 +52,22 @@ type
       VerboseCommand: boolean;
       DeviceCommand: string;
       UninstallCommand: boolean;
+  end;
+
+  TRunOptions = class
+  public
+    class var
+      ProjectNameCommand: string;
+      VerboseCommand: boolean;
+      DeviceCommand: string;
+      DebugModeCommand: boolean;
+  end;
+
+  TStopOptions = class
+  public
+    class var
+      ProjectNameCommand: string;
+      DeviceCommand: string;
   end;
 
   TDeviceOptions = class
@@ -97,11 +119,21 @@ type
       DrawableXxxHDpiCommand: TValue;
       //Files
       MainFileCommand: TValue;
-      AddFileCommand: TList<string>;
-      RemoveFileCommand: TList<string>;
+      AddFileCommand: TArray<string>;
+      RemoveFileCommand: TArray<string>;
+      AddDependencyCommand: TArray<string>;
+      RemoveDependencyCommand: TArray<string>;
+  end;
+
+  //Unbound Python in the Android device
+  TUnboundPyOptions = class
   public
-    class constructor Create();
-    class destructor Destroy();
+    class var
+      DeviceCommand: string;
+      CleanCommand: boolean;
+      PythonVersionCommand: TValue;
+      ArchitectureCommand: TValue;
+      RunModeCommand: TValue;
   end;
 
   TEntityOptionsHelper = class
@@ -122,20 +154,6 @@ const
 function GetGUIEntityEditorPath(): string;
 begin
   Result := TPath.Combine(TPath.GetDirectoryName(ParamStr(0)), GUI_ENTITY_EDITOR_APP);
-end;
-
-{ TProjectOptions }
-
-class constructor TProjectOptions.Create;
-begin
-  AddFileCommand := TList<string>.Create();
-  RemoveFileCommand := TList<string>.Create();
-end;
-
-class destructor TProjectOptions.Destroy;
-begin
-  RemoveFileCommand.Free();
-  AddFileCommand.Free();
 end;
 
 { TEntityOptions }

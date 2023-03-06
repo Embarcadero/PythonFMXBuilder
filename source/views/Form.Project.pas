@@ -93,8 +93,8 @@ implementation
 
 uses
   System.IOUtils,
-  Container.Images,
-  Builder.Architecture, Builder.PythonVersion;
+  Builder.Types,
+  Container.Images;
 
 {$R *.fmx}
 
@@ -102,8 +102,8 @@ uses
 
 procedure TProjectForm.FormUpdate;
 const
-  PY_VER: array[cp38..cp310] of integer = (0, 1, 2);
-  ARCH: array[arm..aarch64] of integer = (0, 1);
+  PY_VER: array[TPythonVersion.cp38..TPythonVersion.cp311] of integer = (0, 1, 2, 3);
+  ARCH: array[TArchitecture.arm..TArchitecture.aarch64] of integer = (0, 1);
 begin
   with Model as TProjectModel do begin
     edtAppName.Text := ApplicationName;
@@ -142,8 +142,9 @@ end;
 
 procedure TProjectForm.ModelUpdate;
 const
-  PY_VER: array[0..2] of TPythonVersion = (cp38, cp39, cp310);
-  ARCH: array[0..1] of TArchitecture = (arm, aarch64);
+  PY_VER: array[0..3] of TPythonVersion = (
+    TPythonVersion.cp38, TPythonVersion.cp39, TPythonVersion.cp310, TPythonVersion.cp311);
+  ARCH: array[0..1] of TArchitecture = (TArchitecture.arm, TArchitecture.aarch64);
 var
   LInt: integer;
 begin

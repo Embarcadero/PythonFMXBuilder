@@ -317,6 +317,7 @@ begin
 
   actSetToMain.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
+    and Assigned(FProjectModel)
     and not FProjectServices.IsMainScriptFile(FProjectModel,
       GetItemFilePath(tvProjectFiles.Selected));
 end;
@@ -329,17 +330,22 @@ begin
     try
       if GetProjectServices().AddScriptFile(FProjectModel, odtvProjectFiles.FileName) then
       begin
-        //Add as the deafult script file if none
-        if FProjectModel.Files.MainFile.IsEmpty() then
-          GetProjectServices().SetMainScriptFile(FProjectModel, odtvProjectFiles.FileName);
         //Creates the tree item
         var LItem := BuildNode(FRoot,
           GetNodeTypeByFileName(odtvProjectFiles.FileName),
           odtvProjectFiles.FileName);
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
+
+        //Add as the deafult script file if none
+        if NodeIsType(LItem, TNodeType.ntModule) then
+          if FProjectModel.Files.MainFile.IsEmpty() then
+            GetProjectServices().SetMainScriptFile(FProjectModel, odtvProjectFiles.FileName);
+
         SaveChanges();
         tvProjectFiles.Selected := LItem;
-        BroadcastOpenFile(odtvProjectFiles.FileName);
+
+        if NodeIsType(LItem, TNodeType.ntModule) then
+          BroadcastOpenFile(odtvProjectFiles.FileName);
       end;
     finally
       LStream.Free();

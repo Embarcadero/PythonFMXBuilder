@@ -24,9 +24,6 @@ type
     property ModelName: string read FModelName write FModelName;
   end;
 
-  EModelValidationError = class(Exception)
-  end;
-
 implementation
 
 { TModel }

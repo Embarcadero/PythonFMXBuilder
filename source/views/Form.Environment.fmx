@@ -117,7 +117,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Width = 435.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = 'adb.exe location'
+          TextPrompt = 'adb(.exe) location'
         end
         object lblAdb: TLabel
           Align = Top
@@ -151,7 +151,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Width = 435.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = 'aapt.exe location'
+          TextPrompt = 'aapt(.exe) location'
         end
         object lblAapt: TLabel
           Align = Top
@@ -219,7 +219,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Width = 435.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = 'zipalign.exe location'
+          TextPrompt = 'zipalign(.exe) location'
         end
         object lblZipAlign: TLabel
           Align = Top
@@ -300,7 +300,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Width = 435.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = 'keytool.exe location'
+          TextPrompt = 'keytool(.exe) location'
         end
         object lblKeyTool: TLabel
           Align = Top
@@ -334,7 +334,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Width = 435.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = 'jarsigner.exe location'
+          TextPrompt = 'jarsigner(.exe) location'
         end
         object lblJarSigner: TLabel
           Align = Top

@@ -14,7 +14,7 @@ type
     tbFrame: TToolBar;
     lbDescription: TLabel;
   private
-    FLogEvent: IDisconnectable    ;
+    FMessageEvent: IDisconnectable    ;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -34,7 +34,7 @@ const
 constructor TLogFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FLogEvent := TGlobalBuilderChain.SubscribeToEvent<TMessageEvent>(
+  FMessageEvent := TGlobalBuilderChain.SubscribeToEvent<TMessageEvent>(
     procedure(const AEventNotification: TMessageEvent)
     begin
       var LClear := AEventNotification.Body.Clear;
@@ -62,7 +62,7 @@ end;
 
 destructor TLogFrame.Destroy;
 begin
-  FLogEvent.Disconnect();
+  FMessageEvent.Disconnect();
   inherited;
 end;
 

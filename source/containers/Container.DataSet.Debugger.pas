@@ -158,6 +158,7 @@ end;
 procedure TDebuggerDataSetContainer.DataModuleDestroy(Sender: TObject);
 begin
   FSetupDebuggerDone.Disconnect();
+  FSetupDebugger.Disconnect();
   FDebugSessionStopped.Disconnect();
   FDebugSessionStarted.Disconnect();
 end;
@@ -171,7 +172,7 @@ begin
       var LMessage := 'has stopped due to a %s instruction.';
       if AEventNotification.Body.AllThreadStopped then
         LMessage := 'All threads '
-          + LMessage
+      + LMessage
       else
         LMessage := 'Thread '
           + AEventNotification.Body.ThreadId.ToString()
@@ -179,23 +180,23 @@ begin
           + LMessage;
 
       case AEventNotification.Body.Reason of
-        TStoppedEventReason.Step                  :
+        TStoppedEventReason.Step:
           LMessage := Format(LMessage, ['step']);
-        TStoppedEventReason.Breakpoint            :
+        TStoppedEventReason.Breakpoint:
           LMessage := Format(LMessage, ['breakpoint']);
-        TStoppedEventReason.Exception             :
+        TStoppedEventReason.Exception:
           LMessage := Format(LMessage, ['exception']);
-        TStoppedEventReason.Pause                 :
+        TStoppedEventReason.Pause:
           LMessage := Format(LMessage, ['pause']);
-        TStoppedEventReason.Entry                 :
+        TStoppedEventReason.Entry:
           LMessage := Format(LMessage, ['entry']);
-        TStoppedEventReason.Goto                  :
+        TStoppedEventReason.Goto:
           LMessage := Format(LMessage, ['goto']);
-        TStoppedEventReason.FunctionBreakpoint    :
+        TStoppedEventReason.FunctionBreakpoint:
           LMessage := Format(LMessage, ['function breakpoint']);
-        TStoppedEventReason.DataBreakpoint        :
+        TStoppedEventReason.DataBreakpoint:
           LMessage := Format(LMessage, ['data breakpoint']);
-        TStoppedEventReason.InstructionBreakpoint :
+        TStoppedEventReason.InstructionBreakpoint:
           LMessage := Format(LMessage, ['instruction breakpoint']);
       end;
 
@@ -419,7 +420,10 @@ begin
           fdmtBreakpoint.Next();
         end;
       except
-        LSetBreakpoints.Free();
+        on E: Exception do begin
+          LSetBreakpoints.Free();
+          raise;
+        end;
       end;
 
       try

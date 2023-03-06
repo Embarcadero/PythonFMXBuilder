@@ -17,12 +17,12 @@ begin
     TCommandInterpreter.Interpret(TOptionsRegistry.Parse());
   except
     on E: ECliException do begin
-      Writeln(E.Message);
       ExitCode := E.Code;
+      raise;
     end;
     on E: Exception do begin
-      Writeln(E.Message);
       ExitCode := 1;
+      raise;
     end;
   end;
 end.

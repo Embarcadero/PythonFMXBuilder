@@ -7,10 +7,8 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
-  FMX.Objects, Form.Base, Builder.Chain, Builder.Services,
-  Builder.Storage.Factory, Builder.Storage.Default,
-  Builder.Model.Project, Builder.Model.Environment, Builder.Model, Frame.Loading, FMX.Menus,
-  Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
+  FMX.Objects, FMX.Menus, Form.Base, Builder.Chain, Builder.Services,
+  Frame.Loading, Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
   Frame.Editor.Control, FMX.TreeView, Frame.Device, Frame.LeftMenu,
   Frame.EntityButtons, Frame.BuildButtons, Frame.DebugButtons, Frame.LeftPanel,
   Frame.BottomPanel, Frame.SaveButtons;
@@ -35,10 +33,10 @@ type
     frmEntityButtons: TEntityButtonsFrame;
     frmBuildButtons: TBuildButtonsFrame;
     mmMenu: TMainMenu;
-    miFile: TMenuItem;
+    miFiles: TMenuItem;
     miProject: TMenuItem;
     miTools: TMenuItem;
-    MenuItem1: TMenuItem;
+    miBuildProject: TMenuItem;
     miUpdateEnvironment: TMenuItem;
     miBuild: TMenuItem;
     miDeploy: TMenuItem;
@@ -61,10 +59,16 @@ type
     lnBuildSeparator: TLine;
     frmSaveButtons: TSaveButtonsFrame;
     lnSaveStateSeparator: TLine;
+    miApp: TMenuItem;
+    miFileHideApp: TMenuItem;
+    miFileHideAppOthers: TMenuItem;
+    miFileExit: TMenuItem;
+    miAppSeparator: TMenuItem;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCreate(Sender: TObject);
   private
     const
       ANI_OPS = [
@@ -93,11 +97,14 @@ var
 implementation
 
 uses
-  System.IOUtils, System.Threading, System.SyncObjs, FMX.DialogService,
-  Container.Images, Container.Menu.Actions,
-  Form.Factory, Form.Slider,
-  Builder.Services.Factory,
-  Builder.Services.ADB;
+  System.IOUtils,
+  System.Threading,
+  System.SyncObjs,
+  System.Zip,
+  FMX.DialogService,
+  Container.Images,
+  Container.Menu.Actions,
+  Builder.Services.Factory;
 
 {$R *.fmx}
 
@@ -201,6 +208,12 @@ begin
   CanClose := (FBackgroundOperationCount = 0);
   if not CanClose then
     ShowMessage('Wait for background operations to complete and try again.');
+end;
+
+procedure TMainForm.FormCreate(Sender: TObject);
+begin
+  inherited;
+  miApp.Visible := (TOSVersion.Platform = TOSVersion.TPlatform.pfMacOS);
 end;
 
 procedure TMainForm.AboutClick(Sender: TObject);

@@ -9,7 +9,6 @@ object PyMainForm: TPyMainForm
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
-  OnCreate = FormCreate
   DesignerMasterStyle = 3
   object StyleBook1: TStyleBook
     Styles = <
@@ -38089,7 +38088,6 @@ object PyMainForm: TPyMainForm
     Distributions = <>
     Scanner.AutoScan = True
     Scanner.ScanRule = srFileName
-    Scanner.EmbeddablesPath = '$(DEPLOY_PATH)'
     Scanner.DeleteEmbeddable = True
     Left = 224
     Top = 200
@@ -38100,7 +38098,9 @@ object PyMainForm: TPyMainForm
   end
   object PyEnvironmentAddOnEnsurePip1: TPyEnvironmentAddOnEnsurePip
     Environment = PyEmbeddedEnvironment1
+    Verbose = False
+    Upgrade = False
     Left = 224
-    Top = 264
+    Top = 256
   end
 end

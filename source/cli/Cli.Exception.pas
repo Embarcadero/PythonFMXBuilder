@@ -31,6 +31,16 @@ type
     constructor Create();
   end;
 
+  ERunProcessFailed = class(ECliException)
+  public
+    constructor Create();
+  end;
+
+  EStopProcessFailed = class(ECliException)
+  public
+    constructor Create();
+  end;
+
   ENoDevicesAttached = class(ECliException)
   public
     constructor Create();
@@ -79,36 +89,44 @@ type
   end;
 
 resourcestring
-  E_STR_BUILD_PROCESS_FAILED = 'Build process has failed.';
-  E_STR_DEPLOY_PROCESS_FAILED = 'Deploy process has failed.';
-  E_STR_NO_DEVICES_ATTACHED = 'No devices attached.';
-  E_STR_DEVICE_NOT_ATTACHED = 'Device %s not attached.';
-  E_STR_INVALID_SDK_BASE_PATH = 'Invalid SDK base path.';
-  E_STR_INVALID_JDK_BASE_PATH = 'Invalid JDK base path.';
-  E_STR_PROJECT_NOT_FOUND = 'Project %s not found.';
-  E_STR_INVALID_PYTHON_VERSION = 'Invalid Python version.';
-  E_STR_INVALID_ARCHITECTURE = 'Invalid architecture.';
-  E_STR_ENVIRONMENT_SETTINGS_EMPTY = 'The Environment Settings are empty.';
-  E_STR_ENVIRONMENT_SETTINGS_INVALID_ARGS = 'The Environment Settings has invalid arguments: %s';
-  E_STR_PROJECT_SETTINGS_EMPTY = 'The Project Settings are empty.';
-  E_STR_PROJECT_SETTINGS_INVALID_ARGS = 'The Project Settings has invalid arguments: %s';
-  E_STR_REMOVE_PROJECT_FAILURE = 'Remove project failed.';
+  E_STR_BUILD_PROCESS_FAILED                 = 'Build process has failed.';
+  E_STR_DEPLOY_PROCESS_FAILED                = 'Deploy process has failed.';
+  E_STR_RUN_PROCESS_FAILED                   = 'Run process has failed.';
+  E_STR_STOP_PROCESS_FAILED                  = 'Stop process has failed.';
+  E_STR_NO_DEVICES_ATTACHED                  = 'No devices attached.';
+  E_STR_DEVICE_NOT_ATTACHED                  = 'Device %s not attached.';
+  E_STR_INVALID_SDK_BASE_PATH                = 'Invalid SDK base path.';
+  E_STR_INVALID_JDK_BASE_PATH                = 'Invalid JDK base path.';
+  E_STR_PROJECT_NOT_FOUND                    = 'Project %s not found.';
+  E_STR_INVALID_PYTHON_VERSION               = 'Invalid Python version.';
+  E_STR_INVALID_ARCHITECTURE                 = 'Invalid architecture.';
+  E_STR_ENVIRONMENT_SETTINGS_EMPTY           = 'The Environment Settings are empty.';
+  E_STR_ENVIRONMENT_SETTINGS_INVALID_ARGS    = 'The Environment Settings has invalid arguments: %s';
+  E_STR_PROJECT_SETTINGS_EMPTY               = 'The Project Settings are empty.';
+  E_STR_PROJECT_SETTINGS_INVALID_ARGS        = 'The Project Settings has invalid arguments: %s';
+  E_STR_REMOVE_PROJECT_FAILURE               = 'Remove project failed.';
 
 const
-  E_CODE_BUILD_PROCESS_FAILED = 101;
-  E_CODE_DEPLOY_PROCESS_FAILED = 102;
-  E_CODE_NO_DEVICES_ATTACHED = 103;
-  E_CODE_DEVICE_NOT_ATTACHED = 104;
-  E_CODE_INVALID_SDK_BASE_PATH = 105;
-  E_CODE_INVALID_JDK_BASE_PATH = 106;
-  E_CODE_PROJECT_NOT_FOUND = 107;
-  E_CODE_INVALID_PYTHON_VERSION = 108;
-  E_CODE_INVALID_ARCHITECTURE  = 109;
-  E_CODE_ENVIRONMENT_SETTINGS_EMPTY = 110;
-  E_CODE_ENVIRONMENT_SETTINGS_INVALID_ARGS = 111;
-  E_CODE_PROJECT_SETTINGS_EMPTY = 113;
-  E_CODE_PROJECT_SETTINGS_INVALID_ARGS = 114;
-  E_CODE_PROJECT_REMOVE_FAILURE = 115;
+  //Build actions
+  E_CODE_BUILD_PROCESS_FAILED                = 101;
+  E_CODE_DEPLOY_PROCESS_FAILED               = 102;
+  E_CODE_RUN_PROCESS_FAILED                  = 103;
+  E_CODE_STOP_PROCESS_FAILED                 = 104;
+  //Environment settings and actions
+  E_CODE_ENVIRONMENT_SETTINGS_EMPTY          = 201;
+  E_CODE_ENVIRONMENT_SETTINGS_INVALID_ARGS   = 202;
+  E_CODE_INVALID_SDK_BASE_PATH               = 203;
+  E_CODE_INVALID_JDK_BASE_PATH               = 204;
+  //Project settings and actions
+  E_CODE_PROJECT_SETTINGS_EMPTY              = 301;
+  E_CODE_PROJECT_SETTINGS_INVALID_ARGS       = 302;
+  E_CODE_INVALID_PYTHON_VERSION              = 303;
+  E_CODE_INVALID_ARCHITECTURE                = 304;
+  E_CODE_PROJECT_NOT_FOUND                   = 305;
+  E_CODE_PROJECT_REMOVE_FAILURE              = 306;
+  //Miscellaneous
+  E_CODE_NO_DEVICES_ATTACHED                 = 401;
+  E_CODE_DEVICE_NOT_ATTACHED                 = 402;
 
 implementation
 
@@ -139,6 +157,20 @@ end;
 constructor EDeployProcessFailed.Create;
 begin
   inherited Create(E_STR_DEPLOY_PROCESS_FAILED, E_CODE_DEPLOY_PROCESS_FAILED);
+end;
+
+{ ERunProcessFailed }
+
+constructor ERunProcessFailed.Create;
+begin
+  inherited Create(E_STR_RUN_PROCESS_FAILED, E_CODE_STOP_PROCESS_FAILED);
+end;
+
+{ EStopProcessFailed }
+
+constructor EStopProcessFailed.Create;
+begin
+  inherited Create(E_STR_STOP_PROCESS_FAILED, E_CODE_STOP_PROCESS_FAILED);
 end;
 
 { ENoDevicesAttached }

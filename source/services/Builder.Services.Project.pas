@@ -39,6 +39,13 @@ type
     procedure RemoveScriptFile(const AModel: TProjectModel;
       const AFilePath: string);
     function GetScriptFiles(const AModel: TProjectModel): TArray<string>;
+
+    function AddDependency(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemoveDependency(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetDependencies(const AModel: TProjectModel): TArray<string>;
+    procedure ClearDependencies(const AModel: TProjectModel);
   end;
 
 implementation
@@ -63,6 +70,12 @@ end;
 function TProjectService.GetBasePath: string;
 begin
   Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'files');
+end;
+
+function TProjectService.GetDependencies(
+  const AModel: TProjectModel): TArray<string>;
+begin
+  Result := AModel.Files.Dependencies.ToArray();
 end;
 
 function TProjectService.GetProjectFilesPath(const AProjectName: string): string;
@@ -104,6 +117,11 @@ procedure TProjectService.CheckActiveProject;
 begin
   if not Assigned(GetActiveProject()) then
     raise Exception.Create('Open/Create a project before continue.');
+end;
+
+procedure TProjectService.ClearDependencies(const AModel: TProjectModel);
+begin
+  AModel.Files.Dependencies.Clear();
 end;
 
 function TProjectService.CreateProject(const AProjectName: string;
@@ -152,6 +170,24 @@ begin
     raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectName]);
   Result := FActiveProject;
   TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(Result));
+end;
+
+function TProjectService.AddDependency(const AModel: TProjectModel;
+  const AFilePath: string): boolean;
+begin
+  //We are not accepting duplicated file names
+  for var LFile in AModel.Files.Dependencies do begin
+    if TPath.GetFileName(LFile) = TPath.GetFileName(AFilePath) then
+      Exit(false);
+  end;
+
+  //We are only accepting zip files
+  if TPath.GetExtension(AFilePath) <> '.zip' then
+    Exit(false);
+
+  //Should we copy this file to a local dir?
+  AModel.Files.Dependencies.Add(AFilePath);
+  Result := true;
 end;
 
 function TProjectService.AddMainScriptFile(const AModel: TProjectModel): string;
@@ -214,6 +250,12 @@ begin
   //Should we copy this file to a local dir?
   AModel.Files.Files.Add(AFilePath);
   Result := true;
+end;
+
+procedure TProjectService.RemoveDependency(const AModel: TProjectModel;
+  const AFilePath: string);
+begin
+  AModel.Files.Dependencies.Remove(AFilePath);
 end;
 
 function TProjectService.RemoveProject(const AProjectName: string): boolean;

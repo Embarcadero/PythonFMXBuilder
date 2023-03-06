@@ -3,9 +3,17 @@ unit Container.Menu.Actions;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Actions, FMX.ActnList, FMX.Forms,
-  Form.Slider, Form.Project.Create, Form.SelectProject,
+  System.SysUtils,
+  System.Classes,
+  System.Actions,
+  FMX.StdActns,
+  FMX.ActnList,
+  FMX.Forms,
+  Form.Slider,
+  Form.Project.Create,
+  Form.SelectProject,
   Builder.Chain,
+  Builder.Types,
   Builder.Model.Project,
   Builder.Model.Environment,
   Builder.Services,
@@ -35,6 +43,9 @@ type
     actContinue: TAction;
     actSaveState: TAction;
     actSaveAllState: TAction;
+    actFileExit: TFileExit;
+    actFileHideApp: TFileHideApp;
+    actFileHideAppOthers: TFileHideAppOthers;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
@@ -92,7 +103,10 @@ implementation
 {$R *.dfm}
 
 uses
-  System.Threading, System.UITypes, System.SyncObjs, System.Net.Socket,
+  System.Threading,
+  System.UITypes,
+  System.SyncObjs,
+  System.Net.Socket,
   System.DateUtils,
   FMX.DialogService,
   Container.Images,
@@ -139,28 +153,52 @@ end;
 procedure TMenuActionsContainer.actBuildCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  FBuilder.BuildActiveProjectAsync();
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.BuildActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actBuildCurrentProjectExecute(Sender: TObject);
 begin
-  FBuilder.BuildActiveProject();
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.Run(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.BuildActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actDebugCurrentProjectAsyncExecute(Sender: TObject);
 begin
-  FBuilder.DebugActiveProjectAsync(FDebugger);
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
+    AProxy.BuildActiveProject();
+    AProxy.DeployActiveProject();
+    AProxy.DebugActiveProject(FDebugger);
+  end);
 end;
 
 procedure TMenuActionsContainer.actDeployCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  FBuilder.DeployActiveProjectAsync();
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.BuildActiveProject();
+    AProxy.DeployActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actDeployCurrentProjectExecute(Sender: TObject);
 begin
-  FBuilder.DeployActiveProject();
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.Run(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.BuildActiveProject();
+    AProxy.DeployActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actlMenuUpdate(Action: TBasicAction;
@@ -218,12 +256,24 @@ end;
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  FBuilder.RunActiveProjectAsync();
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.BuildActiveProject();
+    AProxy.DeployActiveProject();
+    AProxy.RunActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectExecute(Sender: TObject);
 begin
-  FBuilder.RunActiveProject();
+  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilder.Run(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.BuildActiveProject();
+    AProxy.DeployActiveProject();
+    AProxy.RunActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actContinueExecute(Sender: TObject);

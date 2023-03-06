@@ -3,33 +3,52 @@ unit Builder.Services;
 interface
 
 uses
-  System.Classes, System.IOUtils, System.SysUtils,
-  Builder.Architecture, Builder.PythonVersion,
-  Builder.Model.Project, Builder.Model.Environment;
+  System.Classes,
+  System.IOUtils,
+  System.SysUtils,
+  System.Types,
+  Builder.Types,
+  Builder.Model.Project,
+  Builder.Model.Environment;
 
 type
+  IRunner<T> = interface
+    ['{8C84D954-BD52-4B33-A6C0-C006B16A9248}']
+    procedure Run(const AProxy: TProc<T>);
+    function RunAsync(const AProxy: TProc<T>;
+      const AAsyncCallback: TAsyncCallback = nil): IAsyncResult;
+  end;
+
   IAdbServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
-    procedure ListDevices(const AAdbPath: string; const AStrings: TStrings);
+    procedure ListDevices(const AStrings: TStrings);
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
     procedure CheckActiveDevice();
 
-    function BuildApk(const AAppBasePath, AProjectName: string;
-      const AEnvironmentModel: TEnvironmentModel; const AResult: TStrings): boolean;
-    function InstallApk(const AAdbPath, AApkPath, ADevice: string;
-      const AResult: TStrings): boolean;
-    function UnInstallApk(const AAdbPath, APkgName, ADevice: string;
-      const AResult: TStrings): boolean;
-    function IsAppInstalled(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
-    function IsAppRunning(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): boolean;
-    function GetAppInstallationPath(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings): string;
-    procedure RunApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
-    procedure StartDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
-    procedure StopDebugSession(const AAdbPath: string; const APort: integer; const AResult: TStrings);
-    procedure DebugApp(const AAdbPath, APkgName, ADevice, AHost: string;
-      const APort: integer; const AResult: TStrings);
-    procedure ForceStopApp(const AAdbPath, APkgName, ADevice: string; const AResult: TStrings);
+    //Exec subprocess
+    procedure RunSubprocess(const ACmd: string; const AArgs, AEnvVars: TArray<string>);
+    //File helpers
+    function SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean;
+    procedure RemoveFile(const ARemoteFilePath: string);
+    function ExtractZip(const ARemoteFilePath, ARemoteDir: string): boolean;
+    //Directory helpers
+    function CreateDirectory(const ARemotePath: string): boolean;
+    procedure DeleteDirectory(const ARemoteDir: string);
+    function DirectoryExists(const ARemoteDir: string): boolean;
+
+    function BuildApk(const AAppBasePath, AProjectName: string): boolean;
+    function InstallApk(const AApkPath: string): boolean;
+    function UnInstallApk(const APkgName: string): boolean;
+    function IsAppInstalled(const APkgName: string): boolean;
+    function IsAppRunning(const APkgName: string): boolean;
+    function GetAppInstallationPath(const APkgName: string): string;
+    procedure RunApp(const APkgName: string);
+    procedure StartDebugSession(const APort: integer);
+    procedure StopDebugSession(const APort: integer);
+    procedure DebugApp(const APkgName, AHost: string;
+      const APort: integer);
+    procedure ForceStopApp(const APkgName: string);
 
     property ActiveDevice: string read GetActiveDevice write SetActiveDevice;
   end;
@@ -57,6 +76,13 @@ type
     procedure RemoveScriptFile(const AModel: TProjectModel;
       const AFilePath: string);
     function GetScriptFiles(const AModel: TProjectModel): TArray<string>;
+
+    function AddDependency(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemoveDependency(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetDependencies(const AModel: TProjectModel): TArray<string>;
+    procedure ClearDependencies(const AModel: TProjectModel);
   end;
 
   IAppServices = interface
@@ -68,12 +94,13 @@ type
     //App defs. file (used by the Android app)
     procedure CreateAppDefs(const AModel: TProjectModel);
     //assets/internal dataset
-    procedure CopyScriptFiles(const AModel: TProjectModel);
-    function AddScriptFile(const AModel: TProjectModel; const AFileName: string;
+    function AddFile(const AModel: TProjectModel; const AFileName: string;
       const AStream: TStream): string;
-    procedure RemoveScriptFile(const AModel: TProjectModel; const AFilePath: string);
-    function GetScriptFiles(const AModel: TProjectModel;
+    procedure RemoveFile(const AModel: TProjectModel; const AFilePath: string);
+    function GetFiles(const AModel: TProjectModel;
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
+    procedure CopyScripts(const AModel: TProjectModel);
+    procedure CopyDependencies(const AModel: TProjectModel);
     //Send the user icons to the deployable folder
     procedure CopyIcons(const AModel: TProjectModel);
     procedure BuildProject(const AModel: TProjectModel);
@@ -94,15 +121,6 @@ type
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
   end;
 
-  {$SCOPEDENUMS ON}
-  TDebuggerConnectionStatus = (
-    OutOfWork,
-    Connecting, //We are ordering a conenction to the debugger
-    Started, //We are conected to the debugger - Debugger has confirmed
-    Disconnecting, //We ordered to disconnect from the debugger
-    Stopped //We are disconnected from the debugger - Debugger has confirmed
-  );
-  {$SCOPEDENUMS OFF}
   IDebugServices = interface
     ['{568CC96C-4A33-4CA1-8972-1F2C7280B0EE}']
     function GetConnectionStatus(): TDebuggerConnectionStatus;
@@ -128,20 +146,32 @@ type
     property IsDebugging: boolean read GetIsDebugging;
   end;
 
-  IBuildServices = interface
+  IBuilderTasks = interface
+    ['{84F93F2A-AD66-46C7-B93D-FA9F70076212}']
+    procedure BuildActiveProject();
+    procedure DeployActiveProject(const AUninstall: boolean = true);
+    procedure RunActiveProject(const ARunMode: TRunMode = TRunMode.RunNormalMode);
+    procedure DebugActiveProject(const ADebugger: IDebugServices);
+    procedure StopActiveProject();
+  end;
+
+  IBuildServices = interface(IRunner<IBuilderTasks>)
     ['{8BA3AEDE-8E35-42AE-9014-DCBFD0AA197C}']
     function GetIsBuilding(): boolean;
-    //Active project build operations
-    procedure BuildActiveProject();
-    procedure BuildActiveProjectAsync();
-    procedure DeployActiveProject();
-    procedure DeployActiveProjectAsync();
-    procedure RunActiveProject();
-    procedure RunActiveProjectAsync();
-    procedure DebugActiveProject(const ADebugger: IDebugServices);
-    procedure DebugActiveProjectAsync(const ADebugger: IDebugServices);
-
     property IsBuilding: boolean read GetIsBuilding;
+  end;
+
+  IUnboundPythonServices = interface
+    ['{114EE2AC-1DC0-4B24-9BBA-3E0D172A8422}']
+    procedure Make(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture);
+    procedure Remove(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture);
+    function Exists(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture): boolean;
+    procedure Run(const APythonVersion: TPythonVersion;
+      const AArchitecture: TArchitecture; const ADebugger: TDebugger;
+      const ARunMode: TRunMode);
   end;
 
 implementation

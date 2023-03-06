@@ -8,6 +8,7 @@ uses
   System.Threading,
   System.SyncObjs,
   Builder.Chain,
+  Builder.Types,
   Builder.Services,
   Builder.Model.Project,
   Builder.Model.Environment,
@@ -53,8 +54,8 @@ type
     procedure StopSession();
 
     function AskForFrozenDebuggerAction(): TDebuggerConnectionFrozenAction;
-    function AskForFrozenDebuggerActionButReconnectBefore(): TDebuggerConnectionFrozenAction;
-    function AskForFrozenDebuggerActionButWaitForRunningApp(): TDebuggerConnectionFrozenAction;
+    function AskForFrozenDebuggerButReconnectBeforeAction(): TDebuggerConnectionFrozenAction;
+    function AskForFrozenDebuggerButWaitForRunningAppAction(): TDebuggerConnectionFrozenAction;
     procedure CheckForGhostDebugger();
 
     procedure MonitorFrozenDebugger(const ATriggerStatus,
@@ -310,6 +311,7 @@ begin
   var LContinue := TContinueRequest.Create();
   try
     LContinue.Arguments.SingleThread := false;
+
     FDebugger.SendRequest<TContinueResponse>(
       LContinue,
       procedure(const AArg: TContinueResponse)
@@ -465,7 +467,7 @@ begin
   Result := LResult;
 end;
 
-function TDebugService.AskForFrozenDebuggerActionButReconnectBefore: TDebuggerConnectionFrozenAction;
+function TDebugService.AskForFrozenDebuggerButReconnectBeforeAction: TDebuggerConnectionFrozenAction;
 begin
   //Maybe we only lost connection. Let's reconnect.
   if (FConnectionStatus = TDebuggerConnectionStatus.Connecting) then
@@ -477,7 +479,7 @@ begin
   Result := TDebuggerConnectionFrozenAction.TryAgain
 end;
 
-function TDebugService.AskForFrozenDebuggerActionButWaitForRunningApp: TDebuggerConnectionFrozenAction;
+function TDebugService.AskForFrozenDebuggerButWaitForRunningAppAction: TDebuggerConnectionFrozenAction;
 begin
   TSpinWait.SpinUntil(
     function(): boolean
@@ -491,7 +493,7 @@ begin
   if not IsAppRunning() then
     Exit(TDebuggerConnectionFrozenAction.ForceDisconnection);
 
-  Result := AskForFrozenDebuggerActionButReconnectBefore();
+  Result := AskForFrozenDebuggerButReconnectBeforeAction();
 end;
 
 procedure TDebugService.MonitorFrozenDebugger(
@@ -536,7 +538,7 @@ begin
               TDebuggerConnectionStatus.Connecting,
               TDebuggerConnectionStatus.Started,
               1,
-              AskForFrozenDebuggerActionButWaitForRunningApp);
+              AskForFrozenDebuggerButWaitForRunningAppAction);
 
             MonitorFrozenDebugger(
               TDebuggerConnectionStatus.Disconnecting,

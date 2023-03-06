@@ -184,5 +184,17 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actSaveAllStateExecute
       ImageIndex = 22
     end
+    object actFileExit: TFileExit
+      Category = 'File'
+      Hint = 'Quit|Quits the application'
+    end
+    object actFileHideApp: TFileHideApp
+      Category = 'File'
+      Hint = 'Hide|Hide current application'
+    end
+    object actFileHideAppOthers: TFileHideAppOthers
+      Category = 'File'
+      Hint = 'Hide Others|Hide all other applications'
+    end
   end
 end

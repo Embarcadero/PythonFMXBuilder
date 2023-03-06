@@ -3,7 +3,7 @@ unit Frame.Editor.TabItem;
 interface
 
 uses
-  System.Rtti, FMX.TabControl, FMX.Controls, System.Classes, System.Types,
+  System.Rtti, System.Classes, System.Types, FMX.Types, FMX.Controls, FMX.TabControl,
   Builder.Chain;
 
 type
@@ -24,40 +24,49 @@ type
     property ShowActiveLine: boolean read GetShowActiveLine write SetShowActiveLine;
   end;
 
-  TCustomEditorTabItem = class(FMX.TabControl.TTabItem)
+  TControlClass = class of TControl;
+
+  TEditorTabItem = class(TTabItem)
   private
-    class var FDefaultTabItemClass: TTabItemClass;
+    class var FDefaultEditorClass: TControlClass;
   private
     FFilePath: string;
     FCanClose: boolean;
     FSaveState: IDisconnectable;
+    FEditor: TControl;
     function GetCloseControl(): TControl;
     procedure OnCloseTab(Sender: TObject);
-    procedure SetCanClose(const Value: boolean);
+    procedure CreateEditor();
   protected
     procedure ApplyStyle; override;
     procedure SetText(const Value: string); override;
     function GetData: TValue; override;
     procedure SetData(const Value: TValue); override;
 
-    function GetTextEditor(): ITextEditor; virtual; abstract;
+    function GetTextEditor(): ITextEditor;
     procedure DoClose(); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
 
     property TextEditor: ITextEditor read GetTextEditor;
-    property CanClose: boolean read FCanClose write SetCanClose;
-    class property DefaultTabItemClass: TTabItemClass read FDefaultTabItemClass write FDefaultTabItemClass;
+    property CanClose: boolean read FCanClose write FCanClose;
+
+    class property DefaultEditorClass: TControlClass
+      read FDefaultEditorClass write FDefaultEditorClass;
   end;
 
 implementation
 
-{ TCustomEditorTabItem }
+uses
+  System.SysUtils;
 
-constructor TCustomEditorTabItem.Create(AOwner: TComponent);
+{ TEditorTabItem }
+
+constructor TEditorTabItem.Create(AOwner: TComponent);
 begin
   inherited;
+  CreateEditor();
   FSaveState := TGlobalBuilderChain.SubscribeToEvent<TSaveStateEvent>(
     procedure(const AEventNotification: TSaveStateEvent)
     begin
@@ -69,50 +78,45 @@ begin
     end);
 end;
 
-destructor TCustomEditorTabItem.Destroy;
+procedure TEditorTabItem.CreateEditor;
+begin
+  FEditor := DefaultEditorClass.Create(Self);
+  FEditor.Parent := Self;
+  FEditor.Align := TAlignLayout.Client;
+end;
+
+destructor TEditorTabItem.Destroy;
 begin
   FSaveState.Disconnect();
   inherited;
 end;
 
-procedure TCustomEditorTabItem.ApplyStyle;
+procedure TEditorTabItem.ApplyStyle;
 begin
   inherited;
-  if Assigned(ResourceLink) then begin
-    var LControl := GetCloseControl();
-    if Assigned(LControl) then
-      LControl.OnClick := OnCloseTab;
+  var LControl := GetCloseControl();
+  if Assigned(LControl) then begin
+    LControl.OnClick := OnCloseTab;
+    LControl.Visible := FCanClose;
   end;
 end;
 
-procedure TCustomEditorTabItem.DoClose;
-begin
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TCloseFileEvent.Create(FFilePath));
-end;
-
-function TCustomEditorTabItem.GetCloseControl: TControl;
-begin
-  Result := (ResourceLink.FindStyleResource('close') as TControl);
-end;
-
-function TCustomEditorTabItem.GetData: TValue;
+function TEditorTabItem.GetData: TValue;
 begin
   Result := FFilePath;
 end;
 
-procedure TCustomEditorTabItem.SetCanClose(const Value: boolean);
+function TEditorTabItem.GetTextEditor: ITextEditor;
 begin
-  FCanClose := Value;
-  GetCloseControl().Visible := Value;
+  Result := FEditor as ITextEditor;
 end;
 
-procedure TCustomEditorTabItem.SetData(const Value: TValue);
+procedure TEditorTabItem.SetData(const Value: TValue);
 begin
   FFilePath := Value.AsString();
 end;
 
-procedure TCustomEditorTabItem.SetText(const Value: string);
+procedure TEditorTabItem.SetText(const Value: string);
 const
   CLOSE_BTN_WIDTH = 30;
 var
@@ -121,9 +125,33 @@ begin
   inherited;
   CalcTextObjectSize(0, LSize);
   Self.Width := LSize.cx + CLOSE_BTN_WIDTH;
+  Self.Height := 120;
 end;
 
-procedure TCustomEditorTabItem.OnCloseTab(Sender: TObject);
+procedure TEditorTabItem.DoClose;
+begin
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TCloseFileEvent.Create(FFilePath));
+end;
+
+function TEditorTabItem.GetCloseControl: TControl;
+begin
+  var LItemStyle: TFMXObject := nil;
+  if Assigned(ResourceLink) then
+    case TabControl.EffectiveTabPosition of
+      TTabPosition.Top:
+        LItemStyle := ResourceLink.FindStyleResource('top');
+      TTabPosition.Bottom:
+        LItemStyle := ResourceLink.FindStyleResource('bottom');
+    end;
+
+  if Assigned(LItemStyle) then
+    Result := (LItemStyle.FindStyleResource('close') as TControl)
+  else
+    Result := nil;
+end;
+
+procedure TEditorTabItem.OnCloseTab(Sender: TObject);
 begin
   DoClose();
 end;

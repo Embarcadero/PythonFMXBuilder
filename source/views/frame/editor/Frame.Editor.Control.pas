@@ -112,43 +112,41 @@ begin
   if LFilePath.IsEmpty() then
     LFilePath := AItem.Data.AsString();  
 
-  TCustomEditorTabItem(AItem).TextEditor.LoadFromFile(LFilePath);
+  TEditorTabItem(AItem).TextEditor.LoadFromFile(LFilePath);
 end;
 
 function TEditorControlFrame.DoCreateTab(const AText: string;
   const ACanClose: boolean): TTabItem;
 begin
-  Result := tbScripts.Add(TCustomEditorTabItem.DefaultTabItemClass);
+  Result := tbScripts.Add(TEditorTabItem);
   Result.AutoSize := false;
-  Result.StyleLookup := 'tabitemclosebutton';
-  Result.Text := AText;  
+  TEditorTabItem(Result).CanClose := ACanClose;
+  Result.Text := AText;
   Result.Height := 26;
-  TCustomEditorTabItem(Result).CanClose := ACanClose;
+  Result.StyleLookup := 'tabitemclosebutton';
 end;
 
 procedure TEditorControlFrame.dsActiveSourceDataChange(Sender: TObject;
   Field: TField);
 begin
-  var LActiveTab := TCustomEditorTabItem(tbScripts.ActiveTab);
+  var LActiveTab := TEditorTabItem(tbScripts.ActiveTab);
   if Assigned(LActiveTab) then
     LActiveTab.TextEditor.ShowActiveLine := false;
 
-  var LDatS := (Sender as TDataSource).DataSet;
-
-  if LDatS.IsEmpty() then
+  if DebuggerDataSetContainer.fdmtActiveSource.IsEmpty() then
     Exit();
 
-  var LFilePath := LDatS.FieldByName('active_source_local_file_path').AsString;
+  var LFilePath := DebuggerDataSetContainer.fdmtActiveSourceactive_source_local_file_path.AsString;
   { TODO : Let's create an open file dialog here and ask users for file path }
   if not TFile.Exists(LFilePath) then
     Exit;
 
   var LTextEditor := OpenEditor(LFilePath);
 
-  if LDatS.FieldByName('active_source_line').AsInteger > 0 then begin
-    LTextEditor.ActiveLine := LDatS.FieldByName('active_source_line').AsInteger - 1;
+  if DebuggerDataSetContainer.fdmtActiveSourceactive_source_line.AsInteger > 0 then begin
+    LTextEditor.ActiveLine := DebuggerDataSetContainer.fdmtActiveSourceactive_source_line.AsInteger - 1;
   end;
-  LTextEditor.ShowActiveLine := LDatS.FieldByName('active_source_line_indicator').AsBoolean;
+  LTextEditor.ShowActiveLine := DebuggerDataSetContainer.fdmtActiveSourceactive_source_line_indicator.AsBoolean;
 end;
 
 function TEditorControlFrame.GetEditorTab(const AFilePath: string): TTabItem;
@@ -167,17 +165,17 @@ begin
   var LItem := GetEditorTab(AFilePath);
   if Assigned(LItem) then begin
     tbScripts.ActiveTab := LItem;
-    Result := TCustomEditorTabItem(LItem).TextEditor;
+    Result := TEditorTabItem(LItem).TextEditor;
     Exit;
   end;
-  
+
   LItem := DoCreateTab(TPath.GetFileName(AFilePath));
   LItem.Data := AFilePath;
   LoadEditorFile(LItem);
 
   tbScripts.ActiveTab := LItem;
 
-  Result := TCustomEditorTabItem(LItem).TextEditor;
+  Result := TEditorTabItem(LItem).TextEditor;
 end;
 
 procedure TEditorControlFrame.CloseEditor(const AFilePath: string);

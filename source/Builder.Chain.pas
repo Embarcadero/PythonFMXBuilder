@@ -19,6 +19,7 @@ type
   );
 
   TBuilderEvent = (
+    Internal,
     &Message,
     OpenProject,
     CloseProject,
@@ -39,7 +40,8 @@ type
     BuildProject,
     DeployProject,
     RunProject,
-    DebugProject);
+    DebugProject,
+    StopProject);
 
   TDebuggerConnectionFrozenAction = (
     ForceDisconnection,
@@ -126,7 +128,7 @@ type
     FSuccess: boolean;
     FMessage: string;
   public
-    class function GeTChainRequestType(): TBuilderRequest;
+    class function GetChainRequestType(): TBuilderRequest;
   public
     constructor Create(); override;
 
@@ -161,7 +163,7 @@ type
   private
     FEventType: TBuilderEvent;
   public
-    class function GeTChainEventType(): TBuilderEvent;
+    class function GetChainEventType(): TBuilderEvent;
   public
     constructor Create(); override;
   end;
@@ -177,21 +179,27 @@ type
   end;
 
   {|| EVENTS ||}
-
+  {$SCOPEDENUMS ON}
+  TMessageLevel = (Descriptive, Explanatory);
+  {$SCOPEDENUMS OFF}
   TMessageEventBody = class
   private
     FMessage: string;
+    FLevel: TMessageLevel;
     FClear: boolean;
   public
     property Message: string read FMessage write FMessage;
+    property Level: TMessageLevel read FLevel write FLevel;
     property Clear: boolean read FClear write FClear;
   end;
 
   [EventType(TBuilderEvent.Message)]
   TMessageEvent = class(TChainEvent<TMessageEventBody>)
   public
+    constructor Create(const AMessage: string; const ALevel: TMessageLevel; const AClear: boolean); reintroduce; overload;
     constructor Create(const AMessage: string; const AClear: boolean); reintroduce; overload;
     constructor Create(const AMessage: string); reintroduce; overload;
+    constructor Create(const AMessage: string; const ALevel: TMessageLevel); reintroduce; overload;
     constructor Create(const AClear: boolean); reintroduce; overload;
   end;
 
@@ -384,7 +392,6 @@ type
     constructor Create(const AAction: TDebuggerConnectionFrozenAction); reintroduce;
   end;
 
-
   {|| Builder Chain ||}
 
   TBuilderChain = class
@@ -408,17 +415,22 @@ type
       RequestType: TClass;
       Notification: TChainReverseRequestNotification;
     end;
+    [EventType(TBuilderEvent.Internal)]
+    TFlushEvent = class(TChainEvent);
   private
     FBroadcasting: boolean;
     FBroadcastTask: System.Classes.TThread;
     FEventQueue: TThreadedQueue<TQueuedEventInfo>;
     FEventSubscribers: TThreadList<TChainEventNotification>;
     FRequestHandlers: TThreadList<TRequestHandlerInfo>;
+    FFlushing: boolean;
     procedure StartBroadcasting();
     procedure StopBroadcasting();
-
+    //Broadcaster
     function InternalBroadcastEvent(const AEvent: TChainEvent;
-      const AOwned: boolean = true; const ACompletitionCallback: TProc = nil): boolean;
+      const AOwned: boolean = true; const ACompletitionCallback: TProc = nil;
+      APredicate: TPredicate<TChainEvent> = nil): boolean;
+    function DefaultBroadcastEventPredicate(AEvent: TChainEvent): boolean;
   public
     constructor Create();
     destructor Destroy(); override;
@@ -433,15 +445,26 @@ type
       const AResolve: TChainResolve<T>; const AReject: TChainReject;
       const AOwned: boolean = true);
 
+    /// <summary>
+    ///   Blocking broadcaster.
+    /// </summary>
     function BroadcastEvent(const AEvent: TChainEvent;
       const AOwned: boolean = true): boolean;
-    procedure BroadcastEventAsync(const AEvent: TChainEvent;
-      const AOwned: boolean = true; const ARejectedCallback: TProc = nil);
+    /// <summary>
+    ///   Non-blocking broadcaster.
+    /// </summary>
+    function BroadcastEventAsync(const AEvent: TChainEvent;
+      const AOwned: boolean = true): boolean;
 
     function SubscribeToEvent(
       const AEventNotification: TChainEventNotification): IDisconnectable; overload;
     function SubscribeToEvent<T: TChainEvent>(
       const AEventNotification: TChainEventNotification<T>): IDisconnectable; overload;
+
+    /// <summary>
+    ///   Wait for all events queued before this request to broadcast.
+    /// </summary>
+    procedure Flush();
   end;
 
   TGlobalBuilderChain = class(TBuilderChain)
@@ -461,13 +484,15 @@ type
       const AResolve: TChainResolve<T>; const AReject: TChainReject;
       const AOwned: boolean = true);
 
-    class procedure BroadcastEvent(const AEvent: TChainEvent;
-      const AOwned: boolean = true); reintroduce;
-    class procedure BroadcastEventAsync(const AEvent: TChainEvent;
-      const AOwned: boolean = true; const ARejectedCallback: TProc = nil); reintroduce;
+    class function BroadcastEvent(const AEvent: TChainEvent;
+      const AOwned: boolean = true): boolean;
+    class function BroadcastEventAsync(const AEvent: TChainEvent;
+      const AOwned: boolean = true): boolean;
 
     class function SubscribeToEvent<T: TChainEvent>(
-      const AEventNotification: TChainEventNotification<T>): IDisconnectable; reintroduce;
+      const AEventNotification: TChainEventNotification<T>): IDisconnectable;
+
+    class procedure Flush();
 
     class property Instance: TBuilderChain read FInstance;
   end;
@@ -565,10 +590,10 @@ end;
 constructor TChainResponse.Create;
 begin
   inherited;
-  FRequestType := GeTChainRequestType();
+  FRequestType := GetChainRequestType();
 end;
 
-class function TChainResponse.GeTChainRequestType: TBuilderRequest;
+class function TChainResponse.GetChainRequestType: TBuilderRequest;
 var
   LRttiCtx: TRttiContext;
 begin
@@ -603,10 +628,10 @@ end;
 constructor TChainEvent.Create;
 begin
   inherited;
-  FEventType := GeTChainEventType();
+  FEventType := GetChainEventType();
 end;
 
-class function TChainEvent.GeTChainEventType: TBuilderEvent;
+class function TChainEvent.GetChainEventType: TBuilderEvent;
 var
   LRttiCtx: TRttiContext;
 begin
@@ -638,11 +663,18 @@ end;
 
 { TMessageEvent }
 
-constructor TMessageEvent.Create(const AMessage: string; const AClear: boolean);
+constructor TMessageEvent.Create(const AMessage: string;
+  const ALevel: TMessageLevel; const AClear: boolean);
 begin
   inherited Create();
   FBody.Message := AMessage;
+  FBody.Level := ALevel;
   FBody.Clear := AClear;
+end;
+
+constructor TMessageEvent.Create(const AMessage: string; const AClear: boolean);
+begin
+  Create(AMessage, TMessageLevel.Descriptive, AClear);
 end;
 
 constructor TMessageEvent.Create(const AMessage: string);
@@ -655,10 +687,17 @@ begin
   Create(String.Empty, AClear);
 end;
 
+constructor TMessageEvent.Create(const AMessage: string;
+  const ALevel: TMessageLevel);
+begin
+  Create(AMessage, ALevel, false);
+end;
+
 { TBuilderChain }
 
 constructor TBuilderChain.Create;
 begin
+  FFlushing := false;
   FBroadcasting := true;
   FEventQueue := TThreadedQueue<TQueuedEventInfo>.Create();
   FRequestHandlers := TThreadList<TRequestHandlerInfo>.Create();
@@ -795,12 +834,23 @@ begin
   FBroadcastTask.Free();
 end;
 
+function TBuilderChain.DefaultBroadcastEventPredicate(
+  AEvent: TChainEvent): boolean;
+begin
+  Result := FBroadcasting
+    and (AEvent.GetChainEventType() <> TBuilderEvent.Internal)
+end;
+
 function TBuilderChain.InternalBroadcastEvent(const AEvent: TChainEvent;
-  const AOwned: boolean; const ACompletitionCallback: TProc):boolean;
+  const AOwned: boolean; const ACompletitionCallback: TProc;
+  APredicate: TPredicate<TChainEvent>): boolean;
 var
   LQueuedEventInfo: TQueuedEventInfo;
 begin
-  if not FBroadcasting then
+  if not Assigned(APredicate) then
+    APredicate := DefaultBroadcastEventPredicate;
+
+  if not APredicate(AEvent) then
     Exit(false);
 
   LQueuedEventInfo := Default(TQueuedEventInfo);
@@ -832,16 +882,10 @@ begin
       end);
 end;
 
-procedure TBuilderChain.BroadcastEventAsync(const AEvent: TChainEvent;
-  const AOwned: boolean; const ARejectedCallback: TProc);
+function TBuilderChain.BroadcastEventAsync(const AEvent: TChainEvent;
+  const AOwned: boolean): boolean;
 begin
-  TTask.Run(
-    procedure()
-    begin
-      if not InternalBroadcastEvent(AEvent) then
-        if Assigned(ARejectedCallback) then
-          ARejectedCallback();
-    end);
+  Result := InternalBroadcastEvent(AEvent);
 end;
 
 function TBuilderChain.SubscribeToEvent(
@@ -868,6 +912,33 @@ begin
         and (LRttiType.AsInstance.MetaclassType = AEvent.ClassType)) then
           AEventNotification(AEvent as TChainEvent);
     end);
+end;
+
+procedure TBuilderChain.Flush;
+var
+  LFlushed: boolean;
+begin
+  if not FBroadcasting then
+    Exit();
+
+  FFlushing := true;
+  try
+    LFlushed := false;
+    if not InternalBroadcastEvent(TFlushEvent.Create(), true,
+      procedure() begin
+        LFlushed := true;
+      end,
+      function(AEvent: TChainEvent): boolean begin
+        Result := FBroadcasting;
+      end) then
+        Exit;
+
+    TSpinWait.SpinUntil(function(): boolean begin
+      Result := LFlushed or FEventQueue.ShutDown;
+    end);
+  finally
+    FFlushing := false;
+  end;
 end;
 
 { TBuilderChain.TDisconnectable }
@@ -903,17 +974,16 @@ begin
   FInstance.Free();
 end;
 
-class procedure TGlobalBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
-      const AOwned: boolean);
+class function TGlobalBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
+  const AOwned: boolean): boolean;
 begin
-  TGlobalBuilderChain.Instance.BroadcastEvent(AEvent, AOwned);
+  Result := TGlobalBuilderChain.Instance.BroadcastEvent(AEvent, AOwned);
 end;
 
-class procedure TGlobalBuilderChain.BroadcastEventAsync(
-  const AEvent: TChainEvent; const AOwned: boolean;
-  const ARejectedCallback: TProc);
+class function TGlobalBuilderChain.BroadcastEventAsync(
+  const AEvent: TChainEvent; const AOwned: boolean): boolean;
 begin
-  TGlobalBuilderChain.Instance.BroadcastEventAsync(AEvent, AOwned, ARejectedCallback);
+  Result := TGlobalBuilderChain.Instance.BroadcastEventAsync(AEvent, AOwned);
 end;
 
 class procedure TGlobalBuilderChain.SendRequest<T>(const ARequest: TChainRequest;
@@ -944,6 +1014,11 @@ class function TGlobalBuilderChain.SubscribeToReverseRequest<T>(
 begin
   Result := TGlobalBuilderChain.Instance.SubscribeToReverseRequest<T>(
     AReverseRequestNotification);
+end;
+
+class procedure TGlobalBuilderChain.Flush;
+begin
+  TGlobalBuilderChain.Instance.Flush();
 end;
 
 { TOpenProjectEvent }

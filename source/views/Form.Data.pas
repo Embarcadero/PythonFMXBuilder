@@ -69,7 +69,10 @@ var
 implementation
 
 uses
-  Container.Images, Builder.Storage, Builder.Storage.Default;
+  Container.Images,
+  Builder.Exception,
+  Builder.Storage,
+  Builder.Storage.Default;
 
 {$R *.fmx}
 

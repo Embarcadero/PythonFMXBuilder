@@ -13,6 +13,7 @@ type
     class function CreateApp(): IAppServices;
     class function CreateDebug(): IDebugServices;
     class function CreateBuild(): IBuildServices;
+    class function CreateUnboundPy(): IUnboundPythonServices;
   end;
 
 implementation
@@ -22,7 +23,8 @@ uses
   Builder.Services.Project,
   Builder.Services.App,
   Builder.Services.Debug,
-  Builder.Services.Build;
+  Builder.Services.Build,
+  Builder.Services.UnboundPython;
 
 { TServiceSimpleFactory }
 
@@ -34,6 +36,11 @@ end;
 class function TServiceSimpleFactory.CreateProject: IProjectServices;
 begin
   Result := TProjectService.Create();
+end;
+
+class function TServiceSimpleFactory.CreateUnboundPy: IUnboundPythonServices;
+begin
+  Result := TUnboundPythonServices.Create();
 end;
 
 class function TServiceSimpleFactory.CreateApp: IAppServices;

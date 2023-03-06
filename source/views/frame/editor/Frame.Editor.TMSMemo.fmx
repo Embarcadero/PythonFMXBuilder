@@ -1,14 +1,14 @@
 object TMSMemoEditorFrame: TTMSMemoEditorFrame
-  Size.Width = 1174.000000000000000000
-  Size.Height = 733.000000000000000000
+  Size.Width = 1062.000000000000000000
+  Size.Height = 556.000000000000000000
   Size.PlatformDefault = False
   object mmEditor: TTMSFMXMemo
     Align = Client
     Cursor = crIBeam
     DisableFocusEffect = False
     TabOrder = 1
-    Size.Width = 1174.000000000000000000
-    Size.Height = 733.000000000000000000
+    Size.Width = 1062.000000000000000000
+    Size.Height = 556.000000000000000000
     Size.PlatformDefault = False
     ActiveLineSettings.ShowActiveLine = False
     ActiveLineSettings.ShowActiveLineIndicator = False
