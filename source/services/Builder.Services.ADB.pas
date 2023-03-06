@@ -19,6 +19,8 @@ type
     FEnvironmentStorage: IStorage<TEnvironmentModel>;
     FEnvironmentModel: TEnvironmentModel;
 
+    procedure CheckEnvironmentModel();
+
     function ExecCmd(const ACmd: string; const AArgs, AEnv: TArray<string>; out AOutput: string): integer; overload;
     function ExecCmd(const ACmd: string; const AArgs, AEnv: TArray<string>): integer; overload;
     procedure ExecCmd(const ACmd: string; const AArgs: TArray<string>; ACmdResult: TStrings); overload;
@@ -80,8 +82,6 @@ constructor TADBService.Create;
 begin
   inherited;
   FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  if not FEnvironmentStorage.LoadModel(FEnvironmentModel) then
-    raise EEmptySettings.Create('The Environment Settings are empty.');
 end;
 
 destructor TADBService.Destroy;
@@ -104,6 +104,15 @@ procedure TADBService.CheckActiveDevice;
 begin
   if GetActiveDevice().IsEmpty() then
     raise ENoActiveDevice.Create('No device selected.');
+end;
+
+procedure TADBService.CheckEnvironmentModel;
+begin
+  if Assigned(FEnvironmentModel) then
+    Exit;
+
+  if not FEnvironmentStorage.LoadModel(FEnvironmentModel) then
+    raise EEmptySettings.Create('The Environment Settings are empty.');
 end;
 
 procedure TADBService.EnumAssets(const AAssetsBasePath: string;
@@ -210,6 +219,7 @@ function TADBService.CreateDirectory(const ARemoteDir: string): boolean;
 var
   LOutput: string;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -226,6 +236,7 @@ end;
 
 function TADBService.SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean;
 begin
+  CheckEnvironmentModel();
   Result := ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -240,6 +251,7 @@ function TADBService.ExtractZip(const ARemoteFilePath,
 var
   LOutput: string;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -272,6 +284,7 @@ end;
 
 procedure TADBService.ForceStopApp(const APkgName: string);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -284,6 +297,7 @@ end;
 
 function TADBService.GetAppInstallationPath(const APkgName: string): string;
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -299,6 +313,7 @@ end;
 
 function TADBService.BuildApk(const AAppBasePath, AProjectName: string): boolean;
 begin
+  CheckEnvironmentModel();
   var LAppBinPath := TPath.Combine(AAppBasePath, 'bin');
   if TDirectory.Exists(LAppBinPath) then
     TDirectory.Delete(LAppBinPath, true);
@@ -428,6 +443,7 @@ function TADBService.InstallApk(const AApkPath: string): boolean;
 var
   LOutput: string;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -444,6 +460,7 @@ function TADBService.IsAppInstalled(const APkgName: string): boolean;
 var
   LOutput: string;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -466,6 +483,7 @@ var
   LOutput: string;
   LPid: integer;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -483,6 +501,7 @@ function TADBService.UnInstallApk(const APkgName: string): boolean;
 var
   LOutput: string;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -497,6 +516,7 @@ end;
 
 procedure TADBService.ListDevices(const AStrings: TStrings);
 begin
+  CheckEnvironmentModel();
   if not TFile.Exists(FEnvironmentModel.AdbLocation) then
     Exit;
 
@@ -515,6 +535,7 @@ end;
 
 procedure TADBService.RemoveFile(const ARemoteFilePath: string);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -526,6 +547,7 @@ end;
 
 procedure TADBService.RunApp(const APkgName: string);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -573,6 +595,7 @@ end;
 procedure TADBService.DebugApp(const APkgName, AHost: string;
   const APort: integer);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -588,6 +611,7 @@ end;
 
 procedure TADBService.DeleteDirectory(const ARemoteDir: string);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -601,6 +625,7 @@ function TADBService.DirectoryExists(const ARemoteDir: string): boolean;
 var
   LOutput: string;
 begin
+  CheckEnvironmentModel();
   if ExecCmd(FEnvironmentModel.AdbLocation, [
     '-s',
     GetActiveDevice(),
@@ -615,6 +640,7 @@ end;
 
 procedure TADBService.StartDebugSession(const APort: integer);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     'forward',
     'tcp:' + APort.ToString(),
@@ -623,6 +649,7 @@ end;
 
 procedure TADBService.StopDebugSession(const APort: integer);
 begin
+  CheckEnvironmentModel();
   ExecCmd(FEnvironmentModel.AdbLocation, [
     'forward',
     '--remove',

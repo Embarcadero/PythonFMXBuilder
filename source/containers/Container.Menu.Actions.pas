@@ -77,7 +77,6 @@ type
     //Services
     FProjectServices: IProjectServices;
     FAppServices: IAppServices;
-    FAdbServices: IAdbServices;
     //Storages
     FEnvironmentStorage: IStorage<TEnvironmentModel>;
     FProjectStorage: IStorage<TProjectModel>;
@@ -120,7 +119,6 @@ begin
   inherited;
   FProjectServices := TServiceSimpleFactory.CreateProject();
   FAppServices := TServiceSimpleFactory.CreateApp();
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
   FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
   FProjectStorage := TDefaultStorage<TProjectModel>.Make();
   FBuilder := TServiceSimpleFactory.CreateBuild();
