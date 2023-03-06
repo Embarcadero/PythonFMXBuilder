@@ -72,3 +72,8 @@ modules/
 
 # Exceptions
 !source/views/frame/debug
+
+
+
+# other
+*.ksign
