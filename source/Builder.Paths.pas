@@ -10,6 +10,7 @@ type
   public
     //Python embeddable
     class function GetPythonFolder(): string; static;
+    class function GetDistributionFolder(): string; static;
     class function GetPythonZipFile(const APythonVersion: TPythonVersion;
       const AArchitecture: TArchitecture): string; static;
     class function GetPythonInterpreterFiles(const APythonVersion: TPythonVersion;
@@ -126,40 +127,37 @@ class function TBuilderPaths.GetPythonInterpreterFiles(
   const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture): TArray<string>;
 begin
-  var LPath := TBuilderPaths.GetPythonFolder();
+  var LPath := TBuilderPaths.GetDistributionFolder();
+
+  // Discover Python distrib version number
+  var LVersionNumber := String.Empty;
+  case APythonVersion of
+    TPythonVersion.cp38 : LVersionNumber := '3.8';
+    TPythonVersion.cp39 : LVersionNumber := '3.9';
+    TPythonVersion.cp310: LVersionNumber := '3.10';
+    TPythonVersion.cp311: LVersionNumber := '3.11';
+  end;
+
+  // Look for the Python version directory
+  LPath := TPath.Combine(LPath, LVersionNumber);
+
+  // Look for the arch
   case AArchitecture of
     TArchitecture.arm: LPath := TPath.Combine(LPath, 'arm');
-    TArchitecture.aarch64: LPath := TPath.Combine(LPath, 'aarch64');
+    TArchitecture.aarch64: LPath := TPath.Combine(LPath, 'arm64');
   end;
 
-  case APythonVersion of
-    TPythonVersion.cp38: LPath := TPath.Combine(LPath, 'python3.8');
-    TPythonVersion.cp39: LPath := TPath.Combine(LPath, 'python3.9');
-    TPythonVersion.cp310: LPath := TPath.Combine(LPath, 'python3.10');
-  end;
-
-  var LFiles := TDirectory.GetFiles(LPath, '*.so', TSearchOption.soTopDirectoryOnly);
-  if (Length(LFiles) = 0) then
+  // Look for the Python interpreter
+  var LFileName := TPath.Combine(LPath, 'libpython' + LVersionNumber + '.so');
+  if not TFile.Exists(LFileName) then
     raise Exception.CreateFmt('Python interpreter not found at %s', [LPath]);
+  Result := Result + [LFileName];
 
-  Result := Result + [TPath.Combine(LPath, LFiles[Low(LFiles)])];
-
-  LFiles := TDirectory.GetFiles(LPath, 'python*', TSearchOption.soTopDirectoryOnly,
-    function(const Path: string; const SearchRec: TSearchRec): boolean
-    begin
-      var LPythonExecutableName := String.Empty;
-      case APythonVersion of
-        TPythonVersion.cp38: LPythonExecutableName := 'python3.8';
-        TPythonVersion.cp39: LPythonExecutableName := 'python3.9';
-        TPythonVersion.cp310: LPythonExecutableName := 'python3.10';
-      end;
-      Result := SearchRec.Name = LPythonExecutableName;
-    end);
-
-  if (Length(LFiles) = 0) then
+  // Look for the Python executable
+  LFileName := TPath.Combine(LPath, 'libpythonlauncher' + LVersionNumber + '.so');
+  if not TFile.Exists(LFileName) then
     raise Exception.CreateFmt('Python executable not found at %s', [LPath]);
-
-  Result := Result + [TPath.Combine(LPath, LFiles[Low(LFiles)])];
+  Result := Result + [LFileName];
 end;
 
 class function TBuilderPaths.GetPythonDependenciesFolder: string;
@@ -176,19 +174,24 @@ class function TBuilderPaths.GetPythonZipFile(
   const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture): string;
 begin
-  Result := TBuilderPaths.GetPythonFolder();
-  case AArchitecture of
-    TArchitecture.arm: Result := TPath.Combine(Result, 'arm');
-    TArchitecture.aarch64: Result := TPath.Combine(Result, 'aarch64');
-  end;
+  Result := TBuilderPaths.GetDistributionFolder();
 
+  var LPythonVer := String.Empty;
   case APythonVersion of
-    TPythonVersion.cp38: Result := TPath.Combine(Result, 'python3.8');
-    TPythonVersion.cp39: Result := TPath.Combine(Result, 'python3.9');
-    TPythonVersion.cp310: Result := TPath.Combine(Result, 'python3.10');
+    TPythonVersion.cp38 : LPythonVer := '3.8';
+    TPythonVersion.cp39 : LPythonVer := '3.9';
+    TPythonVersion.cp310: LPythonVer := '3.10';
+    TPythonVersion.cp311: LPythonVer := '3.11';
   end;
 
-  var LFiles := TDirectory.GetFiles(Result, '*.zip', TSearchOption.soTopDirectoryOnly);
+  var LArch := String.Empty;
+  case AArchitecture of
+    TArchitecture.arm: LArch := 'arm';
+    TArchitecture.aarch64: LArch := 'arm64';
+  end;
+
+  var LSearchPattern := Format('python3-android-%s*-%s.zip', [LPythonVer, LArch]);
+  var LFiles := TDirectory.GetFiles(Result, LSearchPattern, TSearchOption.soTopDirectoryOnly);
   if (Length(LFiles) = 0) then
     raise Exception.CreateFmt('Python distribution not found at %s', [Result]);
 
@@ -203,6 +206,11 @@ end;
 class function TBuilderPaths.GetDebugpyScriptPath: string;
 begin
   Result := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'debugpy.py');
+end;
+
+class function TBuilderPaths.GetDistributionFolder: string;
+begin
+  Result := TPath.Combine(TBuilderPaths.GetPythonFolder(), 'distributions');
 end;
 
 class function TBuilderPaths.GetRpycPackagePath: string;
@@ -241,6 +249,7 @@ begin
     TPythonVersion.cp38 : Result := Result + '/python3.8';
     TPythonVersion.cp39 : Result := Result + '/python3.9';
     TPythonVersion.cp310: Result := Result + '/python3.10';
+    TPythonVersion.cp311: Result := Result + '/python3.11';
   end;
 end;
 

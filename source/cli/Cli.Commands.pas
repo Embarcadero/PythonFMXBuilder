@@ -351,10 +351,11 @@ begin
   LOption := LCmd.RegisterOption<string>(
     'python_version',
     String.Empty,
-    Format('Python version (%s, %s and %s).', [
+    Format('Python version (%s, %s, %s and %s).', [
       TPythonVersion.cp38.AsString(),
       TPythonVersion.cp39.AsString(),
-      TPythonVersion.cp310.AsString()]),
+      TPythonVersion.cp310.AsString(),
+      TPythonVersion.cp311.AsString()]),
     procedure(const AValue: string) begin
       TUnboundPyOptions.PythonVersionCommand := AValue;
     end);

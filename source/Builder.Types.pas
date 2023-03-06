@@ -7,7 +7,8 @@ type
   TPythonVersion = (
     cp38,
     cp39,
-    cp310);
+    cp310,
+    cp311);
 
   TArchitecture = (
     arm,
@@ -67,6 +68,7 @@ begin
     TPythonVersion.cp38 : Result := 'cp38';
     TPythonVersion.cp39 : Result := 'cp39';
     TPythonVersion.cp310: Result := 'cp310';
+    TPythonVersion.cp311: Result := 'cp311';
     else
       raise EInvalidPythonVersion.Create('Invalid Python version.');
   end;
@@ -80,6 +82,8 @@ begin
     Result := TPythonVersion.cp39
   else if AValue = 'cp310' then
     Result := TPythonVersion.cp310
+  else if AValue = 'cp311' then
+    Result := TPythonVersion.cp311
   else
     raise EInvalidPythonVersion.Create('Invalid Python version.');
 end;

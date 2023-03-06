@@ -37,7 +37,8 @@ uses
   PyEnvironment.Embeddable, PythonEngine, FMX.PythonGUIInputOutput, WrapDelphi,
   System.Actions, FMX.ActnList, FMX.Objects, FMX.StdCtrls, FMX.ScrollBox,
   FMX.Memo, FMX.Controls, FMX.Types, FMX.Controls.Presentation, Dependencies,
-  FMX.Platform, WrapDelphiFmx;
+  FMX.Platform, WrapDelphiFmx, PyEnvironment.AddOn,
+  PyEnvironment.AddOn.EnsurePip;
 
 type
   TPyMainForm = class(TForm)
@@ -59,6 +60,7 @@ type
     PyEmbeddedEnvironment1: TPyEmbeddedEnvironment;
     loEditor: TLayout;
     NotificationCenter1: TNotificationCenter;
+    PyEnvironmentAddOnEnsurePip1: TPyEnvironmentAddOnEnsurePip;
     procedure actRunExecute(Sender: TObject);
   private
     const
