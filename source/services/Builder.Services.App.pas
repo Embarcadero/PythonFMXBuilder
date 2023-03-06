@@ -107,7 +107,7 @@ begin
     .Replace('android:versionCode="1"', Format('android:versionCode="%s"', [AModel.VersionCode.ToString()]))
     .Replace('android:versionName="1.0.0"', Format('android:versionName="%s"', [AModel.VersionName]))
     //android:exported="true" requires this piece of code added to your main activity
-    .Replace('android:label="PyApp"', 'android:label="PyApp"' + ' ' + 'android:exported="true"')
+    //.Replace('android:label="PyApp"', 'android:label="PyApp"' + ' ' + 'android:exported="true"')
     .Replace('android:label="PyApp"', Format('android:label="%s"', [AModel.ApplicationName]));
 
 
