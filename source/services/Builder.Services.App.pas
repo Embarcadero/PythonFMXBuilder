@@ -5,6 +5,7 @@ interface
 uses
   System.Classes,
   System.IOUtils,
+  System.JSON,
   Builder.Types,
   Builder.Services,
   Builder.Model.Project,
@@ -27,6 +28,7 @@ type
     procedure CopyScripts(const AModel: TProjectModel);
     procedure CopyDependencies(const AModel: TProjectModel);
     procedure CopyDebugger(const AModel: TProjectModel);
+    procedure TryCopyDebugger(const AModel: TProjectModel);
     //App deployables
     function AddFile(const AModel: TProjectModel; const AFileName: string;
       const AStream: TStream): string;
@@ -35,6 +37,7 @@ type
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //App defs. file (used by the Android app)
     procedure CreateAppDefs(const AModel: TProjectModel);
+    procedure TryAddAppDefsDebug(const AModel: TProjectModel; const AJSONArray: TJSONArray);
     //App basic info
     procedure UpdateManifest(const AModel: TProjectModel);
     //Project builder
@@ -57,8 +60,8 @@ implementation
 
 uses
   System.SysUtils,
-  System.JSON,
   Builder.Paths,
+  Builder.Exception,
   Builder.Services.Factory;
 
 { TAppService }
@@ -74,7 +77,7 @@ function TAppService.InstallApk(const AProjectModel: TProjectModel;
 begin
   var LApkPath := TBuilderPaths.GetApkPath(AProjectModel.ProjectName);
   if not TFile.Exists(LApkPath) then
-    raise Exception.CreateFmt('Apk file %s not found at: %s', [
+    raise EApkFileNotFound.CreateFmt('Apk file %s not found at: %s', [
       AProjectModel.ProjectName, LApkPath]);
 
   Result := FAdbServices.InstallApk(LApkPath);
@@ -193,6 +196,29 @@ begin
   TFile.Delete(AFilePath);
 end;
 
+procedure TAppService.TryAddAppDefsDebug(const AModel: TProjectModel;
+  const AJSONArray: TJSONArray);
+begin
+  if AModel.BuildConfiguration = TBuildConfiguration.release then
+    Exit;
+
+  var LDebugger := String.Empty;
+  case AModel.Debugger of
+    TDebugger.DebugPy: LDebugger := 'debugpy.zip';
+    TDebugger.Rpyc: LDebugger := 'rpyc.zip';
+  end;
+
+  if not LDebugger.IsEmpty() then begin
+    var LJSONDependency := TJSONObject.Create();
+    try
+      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LDebugger));
+      LJSONDependency.AddPair('file_name', LDebugger);
+    finally
+      AJSONArray.Add(LJSONDependency);
+    end;
+  end;
+end;
+
 function TAppService.GetFiles(
   const AModel: TProjectModel; const AFilter: TDirectory.TFilterPredicate): TArray<string>;
 begin
@@ -217,8 +243,8 @@ begin
   CopyScripts(AModel);
   //Save aditional dependencies to the APP files
   CopyDependencies(AModel);
-  //Save debugger files
-  CopyDebugger(AModel);
+  //Save debugger files if build conf. in debug mode
+  TryCopyDebugger(AModel);
   //Update the manifest with the custom APP settings
   UpdateManifest(AModel);
   //Creates the app_defs file - it defines which file is the main script and more
@@ -254,7 +280,7 @@ begin
 
   var LPreBuiltFolder := TBuilderPaths.GetPreBuiltFolder(AModel.Architecture);
   if not TDirectory.Exists(LPreBuiltFolder) then
-    raise Exception.CreateFmt('Pre-built folder not found at: %s', [LPreBuiltFolder]);
+    raise EPreBuiltFolderNotFound.CreateFmt('Pre-built folder not found at: %s', [LPreBuiltFolder]);
 
   //Copy the app image to the target app path
   TDirectory.Copy(LPreBuiltFolder, LAppPath);
@@ -271,7 +297,7 @@ begin
 
   var LPythonZipFile := TBuilderPaths.GetPythonZipFile(AModel.PythonVersion, AModel.Architecture);
   if not TFile.Exists(LPythonZipFile) then
-    raise Exception.CreateFmt('Python zip file not found at: %s', [LPythonZipFile]);
+    raise EPythonZipFileNotFound.CreateFmt('Python zip file not found at: %s', [LPythonZipFile]);
 
   //Copy python zip to the target app python's path
   var LAppPythonPath := TPath.Combine(LAppAssetsInternalFolder, ExtractFileName(LPythonZipFile));
@@ -395,6 +421,12 @@ begin
   end;
 end;
 
+procedure TAppService.TryCopyDebugger(const AModel: TProjectModel);
+begin
+  if (AModel.BuildConfiguration = TBuildConfiguration.debug) then
+    CopyDebugger(AModel);
+end;
+
 procedure TAppService.CopyDependencies(const AModel: TProjectModel);
 begin
   for var LScript in AModel.Files.Dependencies do begin
@@ -434,21 +466,7 @@ begin
         end;
       end;
 
-      var LDebugger := String.Empty;
-      case AModel.Debugger of
-        TDebugger.DebugPy: LDebugger := 'debugpy.zip';
-        TDebugger.Rpyc: LDebugger := 'rpyc.zip';
-      end;
-
-      if not LDebugger.IsEmpty() then begin
-        var LJSONDependency := TJSONObject.Create();
-        try
-          LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LDebugger));
-          LJSONDependency.AddPair('file_name', LDebugger);
-        finally
-          LDependencies.Add(LJSONDependency);
-        end;
-      end;
+      TryAddAppDefsDebug(AModel, LDependencies);
     finally
       LJSON.AddPair('dependencies', LDependencies);
     end;

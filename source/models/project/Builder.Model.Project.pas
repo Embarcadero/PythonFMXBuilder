@@ -29,6 +29,8 @@ type
     FPythonVersion: TPythonVersion;
     [JSONName('architecture')]
     FArchitecture: TArchitecture;
+    [JSONName('build_configuration')]
+    FBuildConfiguration: TBuildConfiguration;
     [JSONName('icons')]
     FIcons: TProjectIconModel;
     [JSONName('files')]
@@ -53,6 +55,7 @@ type
     property VersionName: string read FVersionName write FVersionName;
     property PythonVersion: TPythonVersion read FPythonVersion write FPythonVersion;
     property Architecture: TArchitecture read FArchitecture write FArchitecture;
+    property BuildConfiguration: TBuildConfiguration read FBuildConfiguration write FBuildConfiguration;
     property Icons: TProjectIconModel read FIcons write FIcons;
     property Files: TProjectFilesModel read FFiles write FFiles;
     property Debugger: TDebugger read FDebugger write FDebugger;
@@ -82,6 +85,7 @@ begin
   FVersionName := '1.0.0';
   FPythonVersion := TPythonVersion.cp39;
   FArchitecture := TArchitecture.aarch64;
+  FBuildConfiguration := TBuildConfiguration.debug;
 end;
 
 constructor TProjectModel.Create(const AProjectName: string);
