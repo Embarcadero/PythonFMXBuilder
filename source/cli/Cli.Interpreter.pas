@@ -217,10 +217,12 @@ begin
         TRunOptions.DeviceCommand);
 
       FBuildServices.Run(procedure(AProxy: IBuilderTasks) begin
-        var LRunMode := TRunMode.RunNormalMode;
         if TRunOptions.DebugModeCommand then
-          LRunMode := TRunMode.RunDebugMode;
-        AProxy.RunActiveProject(LRunMode);
+          FProjectServices.GetActiveProject().BuildConfiguration := TBuildConfiguration.Debug
+        else
+          FProjectServices.GetActiveProject().BuildConfiguration := TBuildConfiguration.Release;
+
+        AProxy.RunActiveProject();
       end);
 
       TGlobalBuilderChain.Flush();
@@ -493,14 +495,16 @@ procedure TCommandInterpreter.DoUnboundPyCommand;
 var
   LPythonVersion: TPythonVersion;
   LArchitecture: TArchitecture;
-  LRunMode: TRunMode;
+  LBuildConfiguration: TBuildConfiguration;
 begin
   FAdbServices.ActiveDevice := GetSetDeviceOrAutoDetect(
     TUnboundPyOptions.DeviceCommand);
 
   LPythonVersion := TPythonVersion.FromString(TUnboundPyOptions.PythonVersionCommand.AsString());
   LArchitecture := TArchitecture.FromString(TUnboundPyOptions.ArchitectureCommand.AsString());
-  LRunMode := TRunMode.FromString(TUnboundPyOptions.RunModeCommand.AsString());
+  LBuildConfiguration := TBuildConfiguration.Release;
+  if TUnboundPyOptions.DebugModeCommand then
+    LBuildConfiguration := TBuildConfiguration.Debug;
 
   if TUnboundPyOptions.CleanCommand then
     FUnboundPyServices.Remove(LPythonVersion, LArchitecture);
@@ -510,7 +514,7 @@ begin
 
   FUnboundPyServices.Run(LPythonVersion, LArchitecture,
     TDebugger.FromString(TGlobalOptions.DebuggerCommand),
-    LRunMode);
+    LBuildConfiguration);
 end;
 
 procedure TCommandInterpreter.PrintUsage(const ACommand: string);

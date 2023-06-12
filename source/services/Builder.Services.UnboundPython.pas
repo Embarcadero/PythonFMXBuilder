@@ -27,7 +27,7 @@ type
       const AArchitecture: TArchitecture): boolean;
     procedure Run(const APythonVersion: TPythonVersion;
       const AArchitecture: TArchitecture; const ADebugger: TDebugger;
-      const ARunMode: TRunMode);
+      const ABuildConfiguration: TBuildConfiguration);
   end;
 
 implementation
@@ -89,13 +89,13 @@ end;
 
 procedure TUnboundPythonServices.Run(const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture; const ADebugger: TDebugger;
-  const ARunMode: TRunMode);
+  const ABuildConfiguration: TBuildConfiguration);
 var
   LArgs: TArray<string>;
   LRemotePythonHome: string;
 begin
   LArgs := [];
-  if (ARunMode = TRunMode.RunDebugMode) then begin
+  if (ABuildConfiguration = TBuildConfiguration.Debug) then
     case ADebugger of
       TDebugger.DebugPy: begin
         FAdbServices.SendFile(
@@ -126,7 +126,6 @@ begin
           TBuilderUnboundPaths.GetRpycPackagePath()];
       end;
     end;
-  end;
 
   FAdbServices.StartDebugSession(FEnvironmentModel.RemoteDebuggerPort);
   try

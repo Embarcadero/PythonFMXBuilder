@@ -372,12 +372,12 @@ begin
     end);
   LOption.Required := true;
 
-  LOption := LCmd.RegisterOption<string>(
-    'mode',
-    'm',
-    'Set the run mode to debug or normal. When set to debug, the debugger API will be deployed.',
-    procedure(const AValue: string) begin
-      TUnboundPyOptions.RunModeCommand := AValue;
+  LOption := LCmd.RegisterOption<boolean>(
+    'debug',
+    'dbg',
+    'Set the run mode to debug. When set to debug, the debugger API is deployed within your app.',
+    procedure(const AValue: boolean) begin
+      TUnboundPyOptions.DebugModeCommand := true;
     end);
   LOption.Required := false;
 

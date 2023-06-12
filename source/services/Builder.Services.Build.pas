@@ -43,13 +43,13 @@ type
     procedure EndBuild();
     procedure DoBuildProject();
     procedure DoDeployProject(const AUninstall: boolean);
-    procedure DoRunProject(const ARunMode: TRunMode);
+    procedure DoRunProject();
     procedure DoStopProject();
     procedure DoDebugProject(const ADebugger: IDebugServices);
     //IBuilderTasks
     procedure BuildActiveProject();
     procedure DeployActiveProject(const AUninstall: boolean = true);
-    procedure RunActiveProject(const ARunMode: TRunMode = TRunMode.RunNormalMode);
+    procedure RunActiveProject();
     procedure DebugActiveProject(const ADebugger: IDebugServices);
     procedure StopActiveProject();
   protected type
@@ -208,7 +208,7 @@ begin
     TMessageEvent.Create('Deployment process finished.'));
 end;
 
-procedure TBuildService.DoRunProject(const ARunMode: TRunMode);
+procedure TBuildService.DoRunProject();
 begin
   TGlobalBuilderChain.BroadcastEventAsync(
     TMessageEvent.Create('Launch process has started.'));
@@ -216,11 +216,11 @@ begin
   FAdbServices.ForceStopApp(FProjectModel.PackageName);
 
   //Launch app on device
-  case ARunMode of
-    TRunMode.RunNormalMode: begin
+  case FProjectModel.BuildConfiguration of
+    TBuildConfiguration.Release: begin
       FAdbServices.RunApp(FProjectModel.PackageName);
     end;
-    TRunMode.RunDebugMode: begin
+    TBuildConfiguration.Debug: begin
       FAdbServices.StartDebugSession(FEnvironmentModel.RemoteDebuggerPort);
       try
         FAdbServices.DebugApp(
@@ -288,15 +288,15 @@ begin
     DoDeployProject(AUninstall);
 end;
 
-procedure TBuildService.RunActiveProject(const ARunMode: TRunMode);
+procedure TBuildService.RunActiveProject();
 begin
   FAdbServices.CheckActiveDevice();
   if FAsync then begin
     DoRunAsync(TAsyncOperation.DebugProject, procedure() begin
-      DoRunProject(ARunMode);
+      DoRunProject();
     end);
   end else
-    DoRunProject(ARunMode);
+    DoRunProject();
 end;
 
 procedure TBuildService.DebugActiveProject(const ADebugger: IDebugServices);
