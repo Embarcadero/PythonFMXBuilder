@@ -150,7 +150,7 @@ type
     ['{84F93F2A-AD66-46C7-B93D-FA9F70076212}']
     procedure BuildActiveProject();
     procedure DeployActiveProject(const AUninstall: boolean = true);
-    procedure RunActiveProject(const ARunMode: TRunMode = TRunMode.RunNormalMode);
+    procedure RunActiveProject();
     procedure DebugActiveProject(const ADebugger: IDebugServices);
     procedure StopActiveProject();
   end;
@@ -171,7 +171,7 @@ type
       const AArchitecture: TArchitecture): boolean;
     procedure Run(const APythonVersion: TPythonVersion;
       const AArchitecture: TArchitecture; const ADebugger: TDebugger;
-      const ARunMode: TRunMode);
+      const ABuildConfiguration: TBuildConfiguration);
   end;
 
 implementation

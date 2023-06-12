@@ -133,7 +133,7 @@ type
       CleanCommand: boolean;
       PythonVersionCommand: TValue;
       ArchitectureCommand: TValue;
-      RunModeCommand: TValue;
+      DebugModeCommand: boolean;
   end;
 
   TEntityOptionsHelper = class

@@ -15,19 +15,14 @@ type
     aarch64);
 
   TBuildConfiguration = (
-    release,
-    debug
+    Release, //It launches the application, but it doesn't initialize the debugger and don't even send the debugging dependencies
+    Debug //It launches the application and initialize the debugger - it sets the Python interpreter to interactive mode
   );
 
   TDebugger = (
     None,
     DebugPy,
     Rpyc);
-
-  TRunMode = (
-    RunNormalMode, //It launches the application, but it doesn't initialize the debugger
-    RunDebugMode //It launches the application and initialize the debugger - it sets the Python interpreter to interactive mode
-  );
 
   TDebuggerConnectionStatus = (
     OutOfWork, //We are tension-free
@@ -61,12 +56,6 @@ type
   public
     function AsString(): string;
     class function FromString(const AValue: string): TDebugger; static;
-  end;
-
-  TRunModeHelper = record helper for TRunMode
-  public
-    function AsString(): string;
-    class function FromString(const AValue: string): TRunMode; static;
   end;
 
 implementation
@@ -163,35 +152,13 @@ begin
     Result := TDebugger.None;
 end;
 
-{ TRunModeHelper }
-
-function TRunModeHelper.AsString: string;
-begin
-  case Self of
-    TRunMode.RunNormalMode: Result := 'normal';
-    TRunMode.RunDebugMode : Result := 'debug';
-    else
-      raise EInvalidRunMode.Create('Invalid run mode.');
-  end;
-end;
-
-class function TRunModeHelper.FromString(const AValue: string): TRunMode;
-begin
-  if AValue = 'normal' then
-    Result := TRunMode.RunNormalMode
-  else if AValue = 'debug' then
-    Result := TRunMode.RunDebugMode
-  else
-    raise EInvalidRunMode.Create('Invalid run mode.');
-end;
-
 { TBuildConfigurationHelper }
 
 function TBuildConfigurationHelper.AsString: string;
 begin
   case Self of
-    TBuildConfiguration.release: Result := 'release';
-    TBuildConfiguration.debug: Result := 'debug';
+    TBuildConfiguration.Release: Result := 'release';
+    TBuildConfiguration.Debug: Result := 'debug';
     else
       raise EInvalidBuildConfiguration.Create('Invalid build configuration.');
   end;
@@ -201,9 +168,9 @@ class function TBuildConfigurationHelper.FromString(
   const AValue: string): TBuildConfiguration;
 begin
 if AValue = 'release' then
-    Result := TBuildConfiguration.release
+    Result := TBuildConfiguration.Release
   else if AValue = 'debug' then
-    Result := TBuildConfiguration.debug
+    Result := TBuildConfiguration.Debug
   else
     raise EInvalidRunMode.Create('Invalid build configuration.');
 end;
@@ -211,8 +178,8 @@ end;
 function TBuildConfigurationHelper.ToBuildConfiguration: string;
 begin
   case Self of
-    TBuildConfiguration.release: Result := 'Release';
-    TBuildConfiguration.debug: Result := 'Debug';
+    TBuildConfiguration.Release: Result := 'Release';
+    TBuildConfiguration.Debug: Result := 'Debug';
     else
       raise EInvalidRunMode.Create('Invalid build configuration.');
   end;
