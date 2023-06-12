@@ -6,25 +6,61 @@ uses
   System.SysUtils;
 
 type
-  EProjectNotFound = class(Exception);
+  EBuilderError = class(Exception);
 
-  EInvalidArchitecture = class(Exception);
+  EProjectNotFound = class(EBuilderError);
 
-  EInvalidPythonVersion = class(Exception);
+  EInvalidArchitecture = class(EBuilderError);
 
-  EInvalidEnvironment = class(Exception);
+  EInvalidPythonVersion = class(EBuilderError);
 
-  EInvalidRunMode = class(Exception);
+  EInvalidEnvironment = class(EBuilderError);
 
-  EEmptySettings = class(Exception);
+  EInvalidRunMode = class(EBuilderError);
 
-  EModelValidationError = class(Exception);
+  EInvalidBuildConfiguration = class(EBuilderError);
 
-  EBuildFailed = class(Exception);
+  EEmptySettings = class(EBuilderError);
 
-  EInstallFailed = class(Exception);
+  EModelValidationError = class(EBuilderError);
 
-  ENoActiveDevice = class(Exception);
+  EBuildFailed = class(EBuilderError);
+
+  EInstallFailed = class(EBuilderError);
+
+  ENoActiveDevice = class(EBuilderError);
+
+  EApkFileNotFound = class(EBuilderError);
+
+  EPreBuiltFolderNotFound = class(EBuilderError);
+
+  EPythonZipFileNotFound = class(EBuilderError);
+
+  EMustOpenOrCreateProject = class(EBuilderError);
+
+  EUnableToSaveEntity = class(EBuilderError);
+
+  ERequestTypeAttributeNotFound = class(EBuilderError);
+
+  EEventTypeAttributeNotFound = class(EBuilderError);
+
+  EDebuggerError = class(EBuilderError);
+
+  EDebuggerStillConnected = class(EDebuggerError);
+
+  EDebuggerIsBusy = class(EDebuggerError);
+
+  EDebuggerNotStarted = class(EDebuggerError);
+
+  EDebuggerNotConnected = class(EDebuggerError);
+
+  EFailedToInitializeDebugger = class(EDebuggerError);
+
+  EPythonInterpreterNotFound = class(EBuilderError);
+
+  EPythonExecutableNotFound = class(EBuilderError);
+
+  EPythonDistributionNotFound = class(EBuilderError);
 
 implementation
 

@@ -107,6 +107,7 @@ implementation
 
 uses
   System.DateUtils, System.Net.Socket, System.IOUtils,
+  Builder.Exception,
   Builder.Storage.Default,
   Builder.Storage.Environment,
   Builder.Services.Factory;
@@ -221,7 +222,7 @@ end;
 procedure TDebugService.StopSession;
 begin
   if (FConnectionStatus <> TDebuggerConnectionStatus.Disconnecting) then
-    raise Exception.Create('Debugger is still connected.');
+    raise EDebuggerStillConnected.Create('Debugger is still connected.');
 
   FConnectionStatus := TDebuggerConnectionStatus.Stopped;
   TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create(FDebugger));
@@ -272,7 +273,7 @@ end;
 procedure TDebugService.Start(const AHost: string; const APort: integer; const ATimeOut: Int64);
 begin
   if not (FConnectionStatus in [TDebuggerConnectionStatus.OutOfWork, TDebuggerConnectionStatus.Stopped]) then
-    raise Exception.Create('Debugger is busy');
+    raise EDebuggerIsBusy.Create('Debugger is busy');
 
   FProjectModule := FProjectServices.GetActiveProject();
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
@@ -284,7 +285,7 @@ end;
 procedure TDebugService.Stop;
 begin
   if (FConnectionStatus <> TDebuggerConnectionStatus.Started) then
-    raise Exception.Create('Debugger is not started.');
+    raise EDebuggerNotStarted.Create('Debugger is not started.');
 
   FConnectionStatus := TDebuggerConnectionStatus.Disconnecting;
 
@@ -575,7 +576,7 @@ begin
     procedure(const AEvent: TInitializedEvent)
     begin
       if (FConnectionStatus <> TDebuggerConnectionStatus.Connecting) then
-        raise Exception.Create('Debugger is not connected.');
+        raise EDebuggerNotConnected.Create('Debugger is not connected.');
       //The debugger has confirmed we're down
       FConnectionStatus := TDebuggerConnectionStatus.Started;
       FStopped := false;
@@ -638,7 +639,7 @@ begin
       end,
       procedure(const AArg: TResponseMessage)
       begin
-        raise Exception.Create(
+        raise EFailedToInitializeDebugger.Create(
           'Failed initializing the debugger.'
           + sLineBreak
           + sLineBreak

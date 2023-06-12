@@ -116,7 +116,7 @@ end;
 procedure TProjectService.CheckActiveProject;
 begin
   if not Assigned(GetActiveProject()) then
-    raise Exception.Create('Open/Create a project before continue.');
+    raise EMustOpenOrCreateProject.Create('Open/Create a project before continue.');
 end;
 
 procedure TProjectService.ClearDependencies(const AModel: TProjectModel);
