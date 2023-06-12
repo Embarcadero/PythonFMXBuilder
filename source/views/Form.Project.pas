@@ -21,19 +21,12 @@ type
     edtVersionCode: TEdit;
     lbiVersionName: TListBoxItem;
     edtVersionName: TEdit;
-    ListBoxGroupHeader3: TListBoxGroupHeader;
-    lbiPythonVersion: TListBoxItem;
-    cbPythonVersion: TComboBox;
-    ListBoxGroupHeader4: TListBoxGroupHeader;
-    lbiArchitecture: TListBoxItem;
-    cbArchitecture: TComboBox;
     ListBoxGroupHeader5: TListBoxGroupHeader;
     lbiApplicationName: TListBoxItem;
     edtAppName: TEdit;
     lblVersionCode: TLabel;
     lblVersionName: TLabel;
     lblPackageName: TLabel;
-    lblPythonVersion: TLabel;
     lbghAppIcons: TListBoxGroupHeader;
     lbiDrawableSmall: TListBoxItem;
     edtDrawableSmall: TEdit;
@@ -101,17 +94,12 @@ uses
 { TProjectForm }
 
 procedure TProjectForm.FormUpdate;
-const
-  PY_VER: array[TPythonVersion.cp38..TPythonVersion.cp311] of integer = (0, 1, 2, 3);
-  ARCH: array[TArchitecture.arm..TArchitecture.aarch64] of integer = (0, 1);
 begin
   with Model as TProjectModel do begin
     edtAppName.Text := ApplicationName;
     edtPackageName.Text := PackageName;
     edtVersionCode.Text := VersionCode.ToString();
     edtVersionName.Text := VersionName;
-    cbPythonVersion.ItemIndex := PY_VER[PythonVersion];
-    cbArchitecture.ItemIndex := ARCH[Architecture];
 
     with Files do begin
       cbMainFile.Clear();
@@ -156,8 +144,6 @@ begin
     else
       VersionCode := 0;
     VersionName := edtVersionName.Text;
-    PythonVersion := PY_VER[cbPythonVersion.ItemIndex];
-    Architecture := ARCH[cbArchitecture.ItemIndex];
 
     with Files do begin
       if Assigned(cbMainFile.Selected) then
