@@ -216,25 +216,7 @@ begin
   FAdbServices.ForceStopApp(FProjectModel.PackageName);
 
   //Launch app on device
-  case FProjectModel.BuildConfiguration of
-    TBuildConfiguration.Release: begin
-      FAdbServices.RunApp(FProjectModel.PackageName);
-    end;
-    TBuildConfiguration.Debug: begin
-      FAdbServices.StartDebugSession(FEnvironmentModel.RemoteDebuggerPort);
-      try
-        FAdbServices.DebugApp(
-          FProjectModel.PackageName,
-          FEnvironmentModel.RemoteDebuggerHost,
-          FEnvironmentModel.RemoteDebuggerPort);
-      except
-        on E: Exception do begin
-          FAdbServices.StopDebugSession(FEnvironmentModel.RemoteDebuggerPort);
-          raise;
-        end;
-      end;
-    end;
-  end;
+  FAdbServices.RunApp(FProjectModel.PackageName);
 
   TGlobalBuilderChain.BroadcastEventAsync(
     TMessageEvent.Create('Launch process finished.'));

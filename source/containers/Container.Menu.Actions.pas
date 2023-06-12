@@ -256,7 +256,7 @@ procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
-    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
     AProxy.RunActiveProject();
