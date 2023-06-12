@@ -145,8 +145,17 @@ procedure TBuildService.BeginBuild(const AAsync: boolean);
 begin
   FBuilding := true;
   FAsync := AAsync;
-  FProjectServices.CheckActiveProject();
-  UpdateModels();
+  try
+    FProjectServices.CheckActiveProject();
+    UpdateModels();
+  except
+    on E: exception do begin
+      FBuilding := false;
+      TGlobalBuilderChain.BroadcastEventAsync(
+        TAsyncExceptionEvent.Create());
+      Abort;
+    end;
+  end;
 end;
 
 procedure TBuildService.EndBuild;
@@ -208,8 +217,9 @@ begin
 
   //Launch app on device
   case ARunMode of
-    TRunMode.RunNormalMode:
+    TRunMode.RunNormalMode: begin
       FAdbServices.RunApp(FProjectModel.PackageName);
+    end;
     TRunMode.RunDebugMode: begin
       FAdbServices.StartDebugSession(FEnvironmentModel.RemoteDebuggerPort);
       try

@@ -14,6 +14,11 @@ type
     arm,
     aarch64);
 
+  TBuildConfiguration = (
+    release,
+    debug
+  );
+
   TDebugger = (
     None,
     DebugPy,
@@ -35,12 +40,21 @@ type
 
   TArchitectureHelper = record helper for TArchitecture
     function AsString(): string;
+    function ToTargetPlatform(): string;
     class function FromString(const AValue: string): TArchitecture; static;
   end;
 
   TPythonVersionHelper = record helper for TPythonVersion
     function AsString(): string;
+    function ToTargetPython(): string;
     class function FromString(const AValue: string): TPythonVersion; static;
+  end;
+
+  TBuildConfigurationHelper = record helper for TBuildConfiguration
+  public
+    function AsString(): string;
+    function ToBuildConfiguration(): string;
+    class function FromString(const AValue: string): TBuildConfiguration; static;
   end;
 
   TDebuggerHelper = record helper for TDebugger
@@ -87,6 +101,16 @@ begin
   else
     raise EInvalidPythonVersion.Create('Invalid Python version.');
 end;
+function TPythonVersionHelper.ToTargetPython: string;
+begin
+  case Self of
+    TPythonVersion.cp38: Result := 'Python 3.8';
+    TPythonVersion.cp39: Result := 'Python 3.9';
+    TPythonVersion.cp310: Result := 'Python 3.10';
+    TPythonVersion.cp311: Result := 'Python 3.11';
+  end;
+end;
+
 { TArchitectureHelper }
 function TArchitectureHelper.AsString: string;
 begin
@@ -106,6 +130,16 @@ begin
     Result := TArchitecture.aarch64
   else
     raise EInvalidArchitecture.Create('Invalid architecture.');
+end;
+
+function TArchitectureHelper.ToTargetPlatform: string;
+begin
+  case Self of
+    TArchitecture.arm: Result := 'Android 32-bit';
+    TArchitecture.aarch64: Result := 'Android 64-bit';
+    else
+      raise EInvalidArchitecture.Create('Invalid architecture.');
+  end;
 end;
 
 { TDebuggerHelper }
@@ -136,6 +170,8 @@ begin
   case Self of
     TRunMode.RunNormalMode: Result := 'normal';
     TRunMode.RunDebugMode : Result := 'debug';
+    else
+      raise EInvalidRunMode.Create('Invalid run mode.');
   end;
 end;
 
@@ -147,6 +183,39 @@ begin
     Result := TRunMode.RunDebugMode
   else
     raise EInvalidRunMode.Create('Invalid run mode.');
+end;
+
+{ TBuildConfigurationHelper }
+
+function TBuildConfigurationHelper.AsString: string;
+begin
+  case Self of
+    TBuildConfiguration.release: Result := 'release';
+    TBuildConfiguration.debug: Result := 'debug';
+    else
+      raise EInvalidBuildConfiguration.Create('Invalid build configuration.');
+  end;
+end;
+
+class function TBuildConfigurationHelper.FromString(
+  const AValue: string): TBuildConfiguration;
+begin
+if AValue = 'release' then
+    Result := TBuildConfiguration.release
+  else if AValue = 'debug' then
+    Result := TBuildConfiguration.debug
+  else
+    raise EInvalidRunMode.Create('Invalid build configuration.');
+end;
+
+function TBuildConfigurationHelper.ToBuildConfiguration: string;
+begin
+  case Self of
+    TBuildConfiguration.release: Result := 'Release';
+    TBuildConfiguration.debug: Result := 'Debug';
+    else
+      raise EInvalidRunMode.Create('Invalid build configuration.');
+  end;
 end;
 
 end.

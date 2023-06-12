@@ -2,6 +2,8 @@ object ProjectFilesFrame: TProjectFilesFrame
   Size.Width = 254.000000000000000000
   Size.Height = 440.000000000000000000
   Size.PlatformDefault = False
+  ParentShowHint = False
+  ShowHint = True
   object tvProjectFiles: TTreeView
     Align = Client
     PopupMenu = pmtvProjectFiles
@@ -10,6 +12,8 @@ object ProjectFilesFrame: TProjectFilesFrame
     Size.PlatformDefault = False
     StyleLookup = 'treeviewstyle'
     TabOrder = 0
+    ParentShowHint = False
+    ShowHint = True
     ItemHeight = 26.000000000000000000
     Images = ImageContainer.images
     Sorted = True
@@ -35,6 +39,19 @@ object ProjectFilesFrame: TProjectFilesFrame
       Enabled = True
       ImageIndex = -1
     end
+    object miSeparator: TMenuItem
+      Text = '-'
+    end
+    object miAddBundle: TMenuItem
+      Action = actAddBundle
+      Enabled = True
+      ImageIndex = -1
+    end
+    object miRemoveBundle: TMenuItem
+      Action = actRemoveBundle
+      Enabled = True
+      ImageIndex = -1
+    end
   end
   object odtvProjectFiles: TOpenDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
@@ -47,20 +64,33 @@ object ProjectFilesFrame: TProjectFilesFrame
     Left = 40
     Top = 72
     object actAddFile: TAction
+      Category = 'modules'
       Text = 'Add file'
       ImageIndex = 6
       OnExecute = actAddFileExecute
       ImageIndex = 6
     end
     object actRemoveFile: TAction
+      Category = 'modules'
       Text = 'Remove file'
       ImageIndex = 7
       OnExecute = actRemoveFileExecute
       ImageIndex = 7
     end
     object actSetToMain: TAction
+      Category = 'modules'
       Text = 'Set to main'
       OnExecute = actSetToMainExecute
+    end
+    object actAddBundle: TAction
+      Category = 'bundles'
+      Text = 'Add bundle'
+      OnExecute = actAddBundleExecute
+    end
+    object actRemoveBundle: TAction
+      Category = 'bundles'
+      Text = 'Remove bundle'
+      OnExecute = actRemoveBundleExecute
     end
   end
 end
