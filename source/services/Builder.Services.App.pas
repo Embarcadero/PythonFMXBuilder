@@ -37,6 +37,7 @@ type
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //App defs. file (used by the Android app)
     procedure CreateAppDefs(const AModel: TProjectModel);
+    procedure AddAppDefsModules(const AModel: TProjectModel; const AJSONArray: TJSONArray);
     procedure TryAddAppDefsDebug(const AModel: TProjectModel; const AJSONArray: TJSONArray);
     //App basic info
     procedure UpdateManifest(const AModel: TProjectModel);
@@ -112,7 +113,6 @@ begin
     //android:exported="true" requires this piece of code added to your main activity
     //.Replace('android:label="PyApp"', 'android:label="PyApp"' + ' ' + 'android:exported="true"')
     .Replace('android:label="PyApp"', Format('android:label="%s"', [AModel.ApplicationName]));
-
 
   TFile.WriteAllText(LManifestPath, LText);
 end;
@@ -194,29 +194,6 @@ begin
   RemoveAssetsInternalFileToDeployInfo(AModel.ProjectName, TPath.GetFileName(AFilePath));
   //Physically delete file
   TFile.Delete(AFilePath);
-end;
-
-procedure TAppService.TryAddAppDefsDebug(const AModel: TProjectModel;
-  const AJSONArray: TJSONArray);
-begin
-  if AModel.BuildConfiguration = TBuildConfiguration.release then
-    Exit;
-
-  var LDebugger := String.Empty;
-  case AModel.Debugger of
-    TDebugger.DebugPy: LDebugger := 'debugpy.zip';
-    TDebugger.Rpyc: LDebugger := 'rpyc.zip';
-  end;
-
-  if not LDebugger.IsEmpty() then begin
-    var LJSONDependency := TJSONObject.Create();
-    try
-      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LDebugger));
-      LJSONDependency.AddPair('file_name', LDebugger);
-    finally
-      AJSONArray.Add(LJSONDependency);
-    end;
-  end;
 end;
 
 function TAppService.GetFiles(
@@ -451,21 +428,14 @@ begin
 
   var LJSON := TJSONObject.Create();
   try
+    LJSON.AddPair('python_version', AModel.PythonVersion.AsString());
+    LJSON.AddPair('python_distribution', TPath.GetFileName(
+      TBuilderPaths.GetPythonZipFile(AModel.PythonVersion, AModel.Architecture)));
     LJSON.AddPair('main_file', AModel.Files.MainFile);
 
     var LDependencies := TJSONArray.Create();
     try
-      for var LDependency in AModel.Files.Dependencies do begin
-        var LJSONDependency := TJSONObject.Create();
-        try
-          var LFileName := TPath.GetFileName(LDependency);
-          LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LFileName));
-          LJSONDependency.AddPair('file_name', LFileName);
-        finally
-          LDependencies.Add(LJSONDependency);
-        end;
-      end;
-
+      AddAppDefsModules(AModel, LDependencies);
       TryAddAppDefsDebug(AModel, LDependencies);
     finally
       LJSON.AddPair('dependencies', LDependencies);
@@ -477,6 +447,44 @@ begin
   end;
 
   AddAssetsInternalFileToDeployInfo(AModel.ProjectName, APP_DEFS_FILE_NAME);
+end;
+
+procedure TAppService.AddAppDefsModules(const AModel: TProjectModel;
+  const AJSONArray: TJSONArray);
+begin
+  for var LDependency in AModel.Files.Dependencies do begin
+    var LJSONDependency := TJSONObject.Create();
+    try
+      var LFileName := TPath.GetFileName(LDependency);
+      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LFileName));
+      LJSONDependency.AddPair('file_name', LFileName);
+    finally
+      AJSONArray.Add(LJSONDependency);
+    end;
+  end;
+end;
+
+procedure TAppService.TryAddAppDefsDebug(const AModel: TProjectModel;
+  const AJSONArray: TJSONArray);
+begin
+  if AModel.BuildConfiguration = TBuildConfiguration.release then
+    Exit;
+
+  var LDebugger := String.Empty;
+  case AModel.Debugger of
+    TDebugger.DebugPy: LDebugger := 'debugpy.zip';
+    TDebugger.Rpyc: LDebugger := 'rpyc.zip';
+  end;
+
+  if not LDebugger.IsEmpty() then begin
+    var LJSONDependency := TJSONObject.Create();
+    try
+      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LDebugger));
+      LJSONDependency.AddPair('file_name', LDebugger);
+    finally
+      AJSONArray.Add(LJSONDependency);
+    end;
+  end;
 end;
 
 end.
