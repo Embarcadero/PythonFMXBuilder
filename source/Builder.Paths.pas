@@ -57,8 +57,8 @@ const
 implementation
 
 uses
-  System.SysUtils,
-  System.IOUtils;
+  System.SysUtils, System.IOUtils,
+  Builder.Exception;
 
 { TBuilderPaths }
 
@@ -150,13 +150,13 @@ begin
   // Look for the Python interpreter
   var LFileName := TPath.Combine(LPath, 'libpython' + LVersionNumber + '.so');
   if not TFile.Exists(LFileName) then
-    raise Exception.CreateFmt('Python interpreter not found at %s', [LPath]);
+    raise EPythonExecutableNotFound.CreateFmt('Python interpreter not found at %s', [LPath]);
   Result := Result + [LFileName];
 
   // Look for the Python executable
   LFileName := TPath.Combine(LPath, 'libpythonlauncher' + LVersionNumber + '.so');
   if not TFile.Exists(LFileName) then
-    raise Exception.CreateFmt('Python executable not found at %s', [LPath]);
+    raise EPythonInterpreterNotFound.CreateFmt('Python executable not found at %s', [LPath]);
   Result := Result + [LFileName];
 end;
 
@@ -193,7 +193,7 @@ begin
   var LSearchPattern := Format('python3-android-%s*-%s.zip', [LPythonVer, LArch]);
   var LFiles := TDirectory.GetFiles(Result, LSearchPattern, TSearchOption.soTopDirectoryOnly);
   if (Length(LFiles) = 0) then
-    raise Exception.CreateFmt('Python distribution not found at %s', [Result]);
+    raise EPythonDistributionNotFound.CreateFmt('Python distribution not found at %s', [Result]);
 
   Result := TPath.Combine(Result, LFiles[Low(LFiles)]);
 end;

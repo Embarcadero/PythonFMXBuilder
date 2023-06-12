@@ -500,7 +500,8 @@ type
 implementation
 
 uses
-  System.Rtti;
+  System.Rtti,
+  Builder.Exception;
 
 { RequestTypeAttribute }
 
@@ -568,7 +569,7 @@ begin
     LRttiType := LRttiType.BaseType;
   end;
 
-  raise Exception.Create('Request type attribute not found.');
+  raise ERequestTypeAttributeNotFound.Create('Request type attribute not found.');
 end;
 
 { TChainRequest<TArguments> }
@@ -606,7 +607,7 @@ begin
     LRttiType := LRttiType.BaseType;
   end;
 
-  raise Exception.Create('Request type attribute not found.');
+  raise ERequestTypeAttributeNotFound.Create('Request type attribute not found.');
 end;
 
 { TChainResponse<TBody> }
@@ -644,7 +645,7 @@ begin
     LRttiType := LRttiType.BaseType;
   end;
 
-  raise Exception.Create('Event type attribute not found.');
+  raise EEventTypeAttributeNotFound.Create('Event type attribute not found.');
 end;
 
 { TChainEvent<TBody> }

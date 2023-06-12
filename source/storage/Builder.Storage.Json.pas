@@ -42,7 +42,8 @@ type
 implementation
 
 uses
-  System.SysUtils, System.IOUtils, System.JSON, System.Rtti;
+  System.SysUtils, System.IOUtils, System.JSON, System.Rtti,
+  Builder.Exception;
 
 { TJsonStorage<Model> }
 
@@ -193,7 +194,7 @@ begin
 
       TFile.WriteAllText(LEntityPath, LJsonValue.ToJSON(), TEncoding.UTF8);
     end else
-      raise Exception.CreateFmt('Unable to save %s', [LEntity]);
+      raise EUnableToSaveEntity.CreateFmt('Unable to save %s', [LEntity]);
   finally
     LJsonValue.Free();
   end;
