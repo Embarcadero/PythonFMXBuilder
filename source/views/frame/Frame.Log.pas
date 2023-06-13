@@ -43,6 +43,9 @@ begin
       TThread.Queue(TThread.Current,
         procedure()
         begin
+          if Application.Terminated then
+            Exit;
+
           if LClear then
             mmLog.Lines.Clear();
 
