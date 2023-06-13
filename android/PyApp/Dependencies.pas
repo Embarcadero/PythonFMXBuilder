@@ -12,6 +12,7 @@ type
   IInstallDependency = interface
     ['{9E41532B-7EAE-4956-B228-3BD09EBF6BAD}']
     function CanHandle(AFilePath: string): boolean;
+    function CanDelete(AFilePath: string): boolean;
     function IsInstalled(const AModuleName, AFilePath: string): boolean;
     function Install(const AModuleName, AFilePath: string): boolean;
   end;
@@ -26,6 +27,7 @@ type
   private
     FStrategies: TList<IInstallDependency>;
     function CanHandle(AFilePath: string): boolean;
+    function CanDelete(AFilePath: string): boolean;
     function IsInstalled(const AModuleName, AFilePath: string): boolean;
     function Install(const AModuleName, AFilePath: string): boolean;
   public
@@ -41,7 +43,8 @@ uses
   PyTools.ExecCmd, PyTools.ExecCmd.Args,
   Dependencies.PipWheel,
   Dependencies.Setup,
-  Dependencies.ZipImports;
+  Dependencies.ZipImports,
+  Dependencies.ZipPackage;
 
 { TBaseInstallDependency }
 
@@ -80,6 +83,7 @@ begin
   FStrategies.Add(TPipWheelInstallStrategy.Create());
   FStrategies.Add(TSetupInstallStrategy.Create());
   FStrategies.Add(TZipImportsInstallStrategy.Create());
+  FStrategies.Add(TZipPackageInstallStrategy.Create());
 end;
 
 destructor TInstallDependency.Destroy;
@@ -88,12 +92,21 @@ begin
   inherited;
 end;
 
+function TInstallDependency.CanDelete(AFilePath: string): boolean;
+begin
+  for var LStrategy in FStrategies do
+    if LStrategy.CanHandle(AFilePath) then
+      Exit(LStrategy.CanDelete(AFilePath));
+
+  Result := true;
+end;
+
 function TInstallDependency.CanHandle(AFilePath: string): boolean;
 begin
   for var LStrategy in FStrategies do
     if LStrategy.CanHandle(AFilePath) then
       Exit(true);
-  
+
   Result := false;
 end;
 

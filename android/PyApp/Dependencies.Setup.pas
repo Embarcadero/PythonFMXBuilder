@@ -10,6 +10,7 @@ type
   TSetupInstallStrategy = class(TBaseInstallDependency, IInstallDependency)
   public
     function CanHandle(AFilePath: string): boolean;
+    function CanDelete(AFilePath: string): boolean;
     function IsInstalled(const AModuleName, AFilePath: string): boolean;
     function Install(const AModuleName, AFilePath: string): boolean;
   end;
@@ -22,9 +23,14 @@ uses
 
 { TSetupInstallStrategy }
 
+function TSetupInstallStrategy.CanDelete(AFilePath: string): boolean;
+begin
+  Result := true;
+end;
+
 function TSetupInstallStrategy.CanHandle(AFilePath: string): boolean;
 begin
-  if not (TPath.GetExtension(AFilePath) = '.zip') and TZipFile.IsValid(AFilePath) then
+  if not ((TPath.GetExtension(AFilePath) = '.zip') and TZipFile.IsValid(AFilePath)) then
     Exit(false);
 
   var LZipFile := TZipFile.Create();
