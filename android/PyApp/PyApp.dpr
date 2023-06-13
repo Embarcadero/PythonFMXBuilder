@@ -1,14 +1,16 @@
 program PyApp;
+
 uses
   System.StartUpCopy,
   FMX.Forms,
   MainForm in 'MainForm.pas' {PyMainForm},
   Dependencies.Setup in 'Dependencies.Setup.pas',
-  Dependencies.Pip in 'Dependencies.Pip.pas',
+  Dependencies.PipWheel in 'Dependencies.PipWheel.pas',
   Dependencies in 'Dependencies.pas',
-  Dependencies.SysPath in 'Dependencies.SysPath.pas';
+  Dependencies.ZipImports in 'Dependencies.ZipImports.pas';
 
 {$R *.res}
+
 begin
   Application.Initialize;
   Application.CreateForm(TPyMainForm, PyMainForm);

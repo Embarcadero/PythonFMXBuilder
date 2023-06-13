@@ -114,7 +114,7 @@ uses
   AndroidApi.JniBridge, AndroidApi.Jni.App, AndroidApi.Jni.GraphicsContentViewText,
   FMX.Helpers.Android, Androidapi.JNI.JavaTypes, Androidapi.Helpers, Androidapi.Log,
   FMX.Surfaces, FMX.Platform.Android, FMX.DialogService,
-  VarPyth, Dependencies.SysPath;
+  VarPyth;
 
 {$R *.fmx}
 
@@ -213,7 +213,7 @@ procedure TPyMainForm.Initialize;
 begin
   Log('TPyMainForm.Initialize', []);
   FAppDefs := GetAppDefs();
-  FInstaller :=  TSysPathInstallStrategy.Create(GetDependencies());
+  FInstaller :=  TInstallDependency.Create();
   DisableComponents();
   ReadArgs();
   ConfigureEngine();
