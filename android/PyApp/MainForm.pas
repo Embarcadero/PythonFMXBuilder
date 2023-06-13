@@ -323,7 +323,7 @@ begin
     if not FInstaller.IsInstalled(LModuleName, LFilePath) then
       if not FInstaller.Install(LModuleName, LFilePath) then
         RaiseGeneralFailure(Format('Failed to install %s.', [LFileName]))
-      else if TFile.Exists(LFilePath)  then
+      else if TFile.Exists(LFilePath) and FInstaller.CanDelete(LFilePath) then
         TFile.Delete(LFilePath);
   end;
 end;

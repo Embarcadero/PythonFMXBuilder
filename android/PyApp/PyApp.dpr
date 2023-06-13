@@ -7,7 +7,8 @@ uses
   Dependencies.Setup in 'Dependencies.Setup.pas',
   Dependencies.PipWheel in 'Dependencies.PipWheel.pas',
   Dependencies in 'Dependencies.pas',
-  Dependencies.ZipImports in 'Dependencies.ZipImports.pas';
+  Dependencies.ZipImports in 'Dependencies.ZipImports.pas',
+  Dependencies.ZipPackage in 'Dependencies.ZipPackage.pas';
 
 {$R *.res}
 

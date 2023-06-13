@@ -11,6 +11,7 @@ type
   TPipWheelInstallStrategy = class(TBaseInstallDependency, IInstallDependency)
   public
     function CanHandle(AFilePath: string): boolean;
+    function CanDelete(AFilePath: string): boolean;
     function IsInstalled(const AModuleName, AFilePath: string): boolean;
     function Install(const AModuleName, AFilePath: string): boolean;
   end;
@@ -22,6 +23,11 @@ uses
   PyTools.ExecCmd;
 
 { TPipWheelInstallStrategy }
+
+function TPipWheelInstallStrategy.CanDelete(AFilePath: string): boolean;
+begin
+  Result := true;
+end;
 
 function TPipWheelInstallStrategy.CanHandle(AFilePath: string): boolean;
 begin
