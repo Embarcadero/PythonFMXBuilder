@@ -62,6 +62,7 @@ type
     FDebugSessionStopped: IDisconnectable;
     FSetupDebugger: IDisconnectable;
     FSetupDebuggerDone: IDisconnectable;
+    FDebugAction: IDisconnectable;
     //Debugger events
     FContinuedEvent: IUnsubscribable;
     FExitedEvent: IUnsubscribable;
@@ -103,6 +104,8 @@ type
     procedure AddBreakpoint(const ASourceName: string; const ALine: integer);
     procedure RemoveBreakpoint(const ASourceName: string; const ALine: integer);
     procedure ClearBreakpoints(const ASourceName: string);
+    //Clear active source line and indicator values
+    procedure ClearSourceLineAndIndicator();
   end;
 
 var
@@ -152,6 +155,25 @@ begin
     procedure(const AEventNotification: TSetupDebuggerDoneEvent)
     begin
       SetupDebuggerDone(AEventNotification.Body.Debugger);
+    end);
+
+  FDebugAction := TGlobalBuilderChain.SubscribeToEvent<TDebugActionEvent>(
+    procedure(const AEventNotification: TDebugActionEvent)
+    const
+      DANGLE_INDICATOR_STATES = [
+        TDebugAction.Stop,
+        TDebugAction.StepIn,
+        TDebugAction.StepOver,
+        TDebugAction.StepOut,
+        TDebugAction.Continue];
+    begin
+      if not (AEventNotification.Body.Action in DANGLE_INDICATOR_STATES) then
+        Exit;
+
+      if fdmtActiveSource.IsEmpty then
+        Exit;
+
+      ClearSourceLineAndIndicator();
     end);
 end;
 
@@ -238,14 +260,7 @@ begin
           'Thread %d continued.', [
           AEventNotification.Body.ThreadId]));
 
-      System.Classes.TThread.Synchronize(System.Classes.TThread.Current,
-        procedure()
-        begin
-          fdmtActiveSource.Edit();
-          fdmtActiveSourceactive_source_line.AsInteger := 0;
-          fdmtActiveSourceactive_source_line_indicator.AsBoolean := false;
-          fdmtActiveSource.Post();
-        end);
+      ClearSourceLineAndIndicator();
     end);
 
   FBreakpointEvent := ABaseProtocolClient.SubscribeToEvent<TBreakpointEvent>(
@@ -824,6 +839,18 @@ begin
       finally
         fdmtBreakpoint.Filtered := false;
       end;
+    end);
+end;
+
+procedure TDebuggerDataSetContainer.ClearSourceLineAndIndicator;
+begin
+  System.Classes.TThread.Synchronize(System.Classes.TThread.Current,
+    procedure()
+    begin
+      fdmtActiveSource.Edit();
+      fdmtActiveSourceactive_source_line.AsInteger := 0;
+      fdmtActiveSourceactive_source_line_indicator.AsBoolean := false;
+      fdmtActiveSource.Post();
     end);
 end;
 
