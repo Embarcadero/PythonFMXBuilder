@@ -272,6 +272,8 @@ end;
 
 procedure TDebugService.Start(const AHost: string; const APort: integer; const ATimeOut: Int64);
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Start));
+
   if not (FConnectionStatus in [TDebuggerConnectionStatus.OutOfWork, TDebuggerConnectionStatus.Stopped]) then
     raise EDebuggerIsBusy.Create('Debugger is busy');
 
@@ -284,6 +286,8 @@ end;
 
 procedure TDebugService.Stop;
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Stop));
+
   if (FConnectionStatus <> TDebuggerConnectionStatus.Started) then
     raise EDebuggerNotStarted.Create('Debugger is not started.');
 
@@ -309,6 +313,8 @@ end;
 
 procedure TDebugService.Continue;
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Continue));
+
   var LContinue := TContinueRequest.Create();
   try
     LContinue.Arguments.SingleThread := false;
@@ -331,6 +337,8 @@ end;
 
 procedure TDebugService.Pause;
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Pause));
+
   var LPause := TPauseRequest.Create();
   try
     FDebugger.SendRequest<TPauseResponse>(
@@ -351,6 +359,8 @@ end;
 
 procedure TDebugService.StepIn;
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepIn));
+
   var LStepIn := TStepInRequest.Create();
   try
     if FCurrentStoppedThreadId = 0 then
@@ -379,6 +389,8 @@ end;
 
 procedure TDebugService.StepOver;
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepOver));
+
   var LNext := TNextRequest.Create();
   try
     if FCurrentStoppedThreadId = 0 then
@@ -408,6 +420,8 @@ end;
 
 procedure TDebugService.StepOut;
 begin
+  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepOut));
+
   var LStepOut := TStepOutRequest.Create();
   try
     if FCurrentStoppedThreadId = 0 then
