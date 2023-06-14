@@ -25,10 +25,12 @@ type
     CloseProject,
     OpenFile,
     CloseFile,
+    //Debugger events
     DebugSessionStarted,
     DebugSessionStopped,
     SetupDebugger,
     SetupDebuggerDone,
+    DebugAction,
     //App can keep track of async ops for thread safety
     AsyncOperationStarted,
     AsyncOperationEnded,
@@ -358,6 +360,27 @@ type
     constructor Create(const ADebugger: TBaseProtocolClient); reintroduce;
   end;
 
+  {|||| Debug Actions ||||}
+
+  {$SCOPEDENUMS ON}
+  TDebugAction = (Start, Stop, Pause, StepIn, StepOver, StepOut, Continue);
+  {$SCOPEDENUMS OFF}
+
+  TDebugActionEventBody = class
+  private
+    FAction: TDebugAction;
+  public
+    property Action: TDebugAction read FAction write FAction;
+  end;
+
+  [EventType(TBuilderEvent.DebugAction)]
+  TDebugActionEvent = class(TChainEvent<TDebugActionEventBody>)
+  public
+    constructor Create(const ADebugAction: TDebugAction); reintroduce;
+  end;
+
+  {|||| ------------- ||||}
+
   {$SCOPEDENUMS ON}
   TSaveState = (Save, SaveAll);
   {$SCOPEDENUMS OFF}
@@ -427,8 +450,9 @@ type
     procedure StartBroadcasting();
     procedure StopBroadcasting();
     //Broadcaster
+    procedure NotifyListeners(const AEventInfo: TQueuedEventInfo);
     function InternalBroadcastEvent(const AEvent: TChainEvent;
-      const AOwned: boolean = true; const ACompletitionCallback: TProc = nil;
+      const AAsync, AOwned: boolean; const ACompletitionCallback: TProc = nil;
       APredicate: TPredicate<TChainEvent> = nil): boolean;
     function DefaultBroadcastEventPredicate(AEvent: TChainEvent): boolean;
   public
@@ -698,6 +722,7 @@ end;
 
 constructor TBuilderChain.Create;
 begin
+  inherited Create();
   FFlushing := false;
   FBroadcasting := true;
   FEventQueue := TThreadedQueue<TQueuedEventInfo>.Create();
@@ -712,6 +737,7 @@ begin
   FEventSubscribers.Free();
   FRequestHandlers.Free();
   FEventQueue.Free();
+  inherited;
 end;
 
 function TBuilderChain.SubscribeToReverseRequest<T>(
@@ -728,6 +754,35 @@ begin
     begin
       FRequestHandlers.Remove(LRequestHandlerInfo);
     end);
+end;
+
+procedure TBuilderChain.NotifyListeners(const AEventInfo: TQueuedEventInfo);
+var
+  LSubscribers: TArray<TChainEventNotification>;
+begin
+  try
+    var LList := FEventSubscribers.LockList();
+    try
+      LSubscribers := LList.ToArray();
+    finally
+      FEventSubscribers.UnlockList();
+    end;
+
+    for var LSubscriber in LSubscribers do begin
+      try
+        LSubscriber(AEventInfo.Event);
+      except
+        //
+      end;
+    end;
+
+    if Assigned(AEventInfo.Callback) then
+      AEventInfo.Callback();
+  finally
+    if AEventInfo.Owned then begin
+      AEventInfo.Event.Free();
+    end;
+  end;
 end;
 
 procedure TBuilderChain.SendRequest<T>(const ARequest: TChainRequest;
@@ -786,7 +841,6 @@ begin
     procedure()
     var
       LCurrent: TQueuedEventInfo;
-      LSubscribers: TArray<TChainEventNotification>;
     begin
       try
         while FBroadcasting do begin
@@ -796,28 +850,7 @@ begin
           if FEventQueue.ShutDown then
             Break;
 
-          try
-            var LList := FEventSubscribers.LockList();
-            try
-              LSubscribers := LList.ToArray();
-            finally
-              FEventSubscribers.UnlockList();
-            end;
-
-            for var LSubscriber in LSubscribers do begin
-              try
-                LSubscriber(LCurrent.Event);
-              except
-                //
-              end;
-            end;
-
-            if Assigned(LCurrent.Callback) then
-              LCurrent.Callback();
-          finally
-            if LCurrent.Owned then
-              LCurrent.Event.Free();
-          end;
+          NotifyListeners(LCurrent);
         end;
       finally
         System.Classes.TThread.RemoveQueuedEvents(System.Classes.TThread.Current);
@@ -840,10 +873,11 @@ function TBuilderChain.DefaultBroadcastEventPredicate(
 begin
   Result := FBroadcasting
     and (AEvent.GetChainEventType() <> TBuilderEvent.Internal)
+    and not FFlushing;
 end;
 
 function TBuilderChain.InternalBroadcastEvent(const AEvent: TChainEvent;
-  const AOwned: boolean; const ACompletitionCallback: TProc;
+  const AAsync, AOwned: boolean; const ACompletitionCallback: TProc;
   APredicate: TPredicate<TChainEvent>): boolean;
 var
   LQueuedEventInfo: TQueuedEventInfo;
@@ -859,34 +893,24 @@ begin
   LQueuedEventInfo.Owned := AOwned;
   LQueuedEventInfo.Callback := ACompletitionCallback;
 
-  Result := (FEventQueue.PushItem(LQueuedEventInfo) = TWaitResult.wrSignaled)
-    and not FEventQueue.ShutDown;
+  if not AAsync then begin
+    NotifyListeners(LQueuedEventInfo);
+    Result := true;
+  end else
+    Result := (FEventQueue.PushItem(LQueuedEventInfo) = TWaitResult.wrSignaled)
+      and not FEventQueue.ShutDown;
 end;
 
 function TBuilderChain.BroadcastEvent(const AEvent: TChainEvent;
   const AOwned: boolean): boolean;
-var
-  LDone: boolean;
 begin
-  LDone := false;
-  Result := InternalBroadcastEvent(AEvent, AOwned,
-    procedure()
-    begin
-      LDone := true;
-    end);
-
-  if Result then
-    TSpinWait.SpinUntil(
-      function(): boolean
-      begin
-        Result := LDone or FEventQueue.ShutDown;
-      end);
+  Result := InternalBroadcastEvent(AEvent, false, AOwned);
 end;
 
 function TBuilderChain.BroadcastEventAsync(const AEvent: TChainEvent;
   const AOwned: boolean): boolean;
 begin
-  Result := InternalBroadcastEvent(AEvent);
+  Result := InternalBroadcastEvent(AEvent, true, AOwned);
 end;
 
 function TBuilderChain.SubscribeToEvent(
@@ -922,10 +946,11 @@ begin
   if not FBroadcasting then
     Exit();
 
+  //Flushing prevents new pushes to que event queue
   FFlushing := true;
   try
     LFlushed := false;
-    if not InternalBroadcastEvent(TFlushEvent.Create(), true,
+    if not InternalBroadcastEvent(TFlushEvent.Create(), true, true,
       procedure() begin
         LFlushed := true;
       end,
@@ -934,6 +959,7 @@ begin
       end) then
         Exit;
 
+    //Once we reach out this message, it's guaranteed we have an empty queue.
     TSpinWait.SpinUntil(function(): boolean begin
       Result := LFlushed or FEventQueue.ShutDown;
     end);
@@ -1154,6 +1180,15 @@ constructor TSaveStateEvent.Create(const ASaveState: TSaveState);
 begin
   inherited Create();
   Body.SaveState := ASaveState;
+end;
+
+{ TDebugActionEvent }
+
+constructor TDebugActionEvent.Create(
+  const ADebugAction: TDebugAction);
+begin
+  inherited Create();
+  Body.Action := ADebugAction;
 end;
 
 end.
