@@ -14,7 +14,8 @@ type
   TNodeType = (
     ntProject, ntModule,
     ntBuildConfiguration, ntTargetPlatform, ntTargetPython,
-    ntBundle,
+    ntPackage,
+    ntOtherFile,
     ntSource,
     ntOther);
 
@@ -32,15 +33,15 @@ type
     miSeparator: TMenuItem;
     miAddBundle: TMenuItem;
     miRemoveBundle: TMenuItem;
-    actAddBundle: TAction;
-    actRemoveBundle: TAction;
+    actAddPackage: TAction;
+    actRemovePackage: TAction;
     procedure actAddFileExecute(Sender: TObject);
     procedure actRemoveFileExecute(Sender: TObject);
     procedure altvProjectFilesUpdate(Action: TBasicAction;
       var Handled: Boolean);
     procedure actSetToMainExecute(Sender: TObject);
-    procedure actAddBundleExecute(Sender: TObject);
-    procedure actRemoveBundleExecute(Sender: TObject);
+    procedure actAddPackageExecute(Sender: TObject);
+    procedure actRemovePackageExecute(Sender: TObject);
   private
     [weak]
     FProjectModel: TProjectModel;
@@ -66,7 +67,8 @@ type
     procedure AddTargetPlatformNodes(const ARoot: TTreeViewItem);
     procedure AddTargetPythonNodes(const ARoot: TTreeViewItem);
     procedure AddSourceNodes(const ARoot: TTreeViewItem);
-    procedure AddBundleNodes(const ARoot: TTreeViewItem);
+    procedure AddPackageNodes(const ARoot: TTreeViewItem);
+    procedure AddBundleOtherFiles(const ARoot: TTreeViewItem);
     //Node events
     procedure OnTreeViewItemDblClickModule(Sender: TObject);
     procedure OnTreeViewItemDblClickBuildConfigurationItem(Sender: TObject);
@@ -309,7 +311,7 @@ begin
     ntProject: AItem.ImageIndex := PROJECT_ICON_INDEX;
     ntModule: AItem.ImageIndex := MODULE_ICON_INDEX;
     ntSource: AItem.ImageIndex := SOURCE_ICON_INDEX;
-    ntBundle: AItem.ImageIndex := BUNDLE_ICON_INDEX;
+    ntPackage: AItem.ImageIndex := PACKAGE_ICON_INDEX;
     ntBuildConfiguration: AItem.ImageIndex := BUILD_CONFIGURATION_ICON_INDEX;
     ntTargetPlatform: AItem.ImageIndex := TARGET_PLATFORMS_ICON_INDEX;
     ntTargetPython: AItem.ImageIndex := TARGET_PYTHON_ICON_INDEX;
@@ -321,8 +323,8 @@ begin
         AItem.ImageIndex := TARGET_PLATFORMS_ANDROID_ICON_INDEX
       else if ParentNodeIsType(AItem, ntTargetPython) then
         AItem.ImageIndex := TARGET_PYTHON_VER_ICON_INDEX
-      else if ParentNodeIsType(AItem, ntBundle) then
-        AItem.ImageIndex := BUNDLE_ICON_INDEX
+      else if ParentNodeIsType(AItem, ntPACKAGE) then
+        AItem.ImageIndex := PACKAGE_ICON_INDEX
       else
         AItem.ImageIndex := ANY_FILE_ICON_INDEX;
     end
@@ -577,19 +579,33 @@ begin
   end;
 end;
 
-procedure TProjectFilesFrame.AddBundleNodes(const ARoot: TTreeViewItem);
+procedure TProjectFilesFrame.AddPackageNodes(const ARoot: TTreeViewItem);
 begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LBundleNode := BuildNode(ARoot, ntBundle, String.Empty);
-  LBundleNode.Text := 'Bundles (Zip imports and/or Wheels)';
+  var LPackageNode := BuildNode(ARoot, ntPackage, String.Empty);
+  LPackageNode.Text := 'Packages (Zip imports and/or Wheels)';
 
   var LDeps := GetProjectServices().GetDependencies(FProjectModel);
-  for var LDep in LDeps do
-  begin
+  for var LDep in LDeps do begin
+    var LItem := BuildNode(LPackageNode, ntOther, LDep);
+    LItem.Text := TPath.GetFileName(LDep);
+  end;
+end;
+
+procedure TProjectFilesFrame.AddBundleOtherFiles(const ARoot: TTreeViewItem);
+begin
+  if not Assigned(ARoot) then
+    Exit;
+
+  var LBundleNode := BuildNode(ARoot, ntOtherFile, String.Empty);
+  LBundleNode.Text := 'Other files';
+
+  var LDeps := GetProjectServices().GetDependencies(FProjectModel);
+  for var LDep in LDeps do begin
     var LItem := BuildNode(LBundleNode, ntOther, LDep);
-    LItem.Text := TPath.GetFileName(LDep);  
+    LItem.Text := TPath.GetFileName(LDep);
   end;
 end;
 
@@ -612,10 +628,10 @@ begin
     and NodeIsType(FRoot, TNodeType.ntProject);
 
   actRemoveBundle.Enabled := Assigned(tvProjectFiles.Selected)
-    and ParentNodeIsType(tvProjectFiles.Selected, TNodeType.ntBundle);
+    and ParentNodeIsType(tvProjectFiles.Selected, TNodeType.ntPackage);
 end;
 
-procedure TProjectFilesFrame.actAddBundleExecute(Sender: TObject);
+procedure TProjectFilesFrame.actAddPackageExecute(Sender: TObject);
 begin
   odtvProjectFiles.Filter := 'Zip imports|*.zip|PIP wheel|*.whl'; 
   odtvProjectFiles.FilterIndex := 1;
@@ -627,8 +643,8 @@ begin
       begin
         //Creates the tree item
         var LItem := BuildNode(
-          GetNodeByNodeType(TNodeType.ntBundle),
-          TNodeType.ntBundle,
+          GetNodeByNodeType(TNodeType.ntPackage),
+          TNodeType.ntPackage,
           odtvProjectFiles.FileName);
 
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
@@ -674,19 +690,19 @@ begin
   end;
 end;
 
-procedure TProjectFilesFrame.actRemoveBundleExecute(Sender: TObject);
+procedure TProjectFilesFrame.actRemovePackageExecute(Sender: TObject);
 begin
   var LNode := tvProjectFiles.Selected;
   if not Assigned(LNode) then
     Exit;
 
   var LInfo := LNode.Data.AsType<TNodeInfo>();
-  if not ParentNodeIsType(LNode, TNodeType.ntBundle) then
+  if not ParentNodeIsType(LNode, TNodeType.ntPackage) then
     Exit;
 
   var LRemove := true;
   if not IsConsole then
-    TDialogService.MessageDialog('Do you really want to remove this bundle?',
+    TDialogService.MessageDialog('Do you really want to remove this package?',
       TMsgDlgType.mtConfirmation,
       [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
       procedure(const AResult: TModalResult) begin
@@ -746,7 +762,7 @@ begin
   AddBuildConfigurationNodes(FRoot);
   AddTargetPlatformNodes(FRoot);
   AddTargetPythonNodes(FRoot);
-  AddBundleNodes(FRoot);
+  AddPackageNodes(FRoot);
   AddSourceNodes(FRoot);
 end;
 
