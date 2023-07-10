@@ -43,12 +43,12 @@ object ProjectFilesFrame: TProjectFilesFrame
       Text = '-'
     end
     object miAddBundle: TMenuItem
-      Action = actAddBundle
+      Action = actAddPackage
       Enabled = True
       ImageIndex = -1
     end
     object miRemoveBundle: TMenuItem
-      Action = actRemoveBundle
+      Action = actRemovePackage
       Enabled = True
       ImageIndex = -1
     end
@@ -82,15 +82,15 @@ object ProjectFilesFrame: TProjectFilesFrame
       Text = 'Set to main'
       OnExecute = actSetToMainExecute
     end
-    object actAddBundle: TAction
-      Category = 'bundles'
-      Text = 'Add bundle'
-      OnExecute = actAddBundleExecute
+    object actAddPackage: TAction
+      Category = 'packages'
+      Text = 'Add package'
+      OnExecute = actAddPackageExecute
     end
-    object actRemoveBundle: TAction
-      Category = 'bundles'
-      Text = 'Remove bundle'
-      OnExecute = actRemoveBundleExecute
+    object actRemovePackage: TAction
+      Category = 'packages'
+      Text = 'Remove package'
+      OnExecute = actRemovePackageExecute
     end
   end
 end
