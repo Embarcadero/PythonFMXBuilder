@@ -24,7 +24,7 @@ type
   TDebugService = class(TInterfacedObject, IDebugServices)
   private
     //Models
-    FProjectModule: TProjectModel;
+    FProjectModel: TProjectModel;
     FEnvironmentModel: TEnvironmentModel;
     //Services
     FProjectServices: IProjectServices;
@@ -190,7 +190,7 @@ end;
 function TDebugService.IsAppRunning: boolean;
 begin
   Result := FAppServices.IsAppRunning(
-    FProjectModule, FEnvironmentModel, FAdbServices.ActiveDevice);
+    FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice);
 end;
 
 procedure TDebugService.StartSession(const AHost: string; const APort: integer;
@@ -277,7 +277,7 @@ begin
   if not (FConnectionStatus in [TDebuggerConnectionStatus.OutOfWork, TDebuggerConnectionStatus.Stopped]) then
     raise EDebuggerIsBusy.Create('Debugger is busy');
 
-  FProjectModule := FProjectServices.GetActiveProject();
+  FProjectModel := FProjectServices.GetActiveProject();
   var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
   LEnvironmentStorage.LoadModel(FEnvironmentModel);
 
