@@ -24,33 +24,46 @@ object ProjectFilesFrame: TProjectFilesFrame
     Images = ImageContainer.images
     Left = 40
     Top = 16
-    object miAddFile: TMenuItem
-      Action = actAddFile
+    object miAddModule: TMenuItem
+      Action = actAddModule
       Enabled = True
       ImageIndex = 6
     end
-    object miRemoveFile: TMenuItem
-      Action = actRemoveFile
+    object miRemoveModule: TMenuItem
+      Action = actRemoveModule
       Enabled = True
       ImageIndex = 7
     end
     object miSetToMain: TMenuItem
       Action = actSetToMain
       Enabled = True
-      ImageIndex = -1
+      ImageIndex = 5
     end
-    object miSeparator: TMenuItem
+    object miSepPackages: TMenuItem
       Text = '-'
     end
     object miAddBundle: TMenuItem
       Action = actAddPackage
       Enabled = True
-      ImageIndex = -1
+      ImageIndex = 6
     end
     object miRemoveBundle: TMenuItem
       Action = actRemovePackage
       Enabled = True
-      ImageIndex = -1
+      ImageIndex = 7
+    end
+    object miSepOtherFiles: TMenuItem
+      Text = '-'
+    end
+    object miAddOtherFile: TMenuItem
+      Action = actAddOtherFile
+      Enabled = True
+      ImageIndex = 6
+    end
+    object miRemoveOtherFile: TMenuItem
+      Action = actRemoveOtherFile
+      Enabled = True
+      ImageIndex = 7
     end
   end
   object odtvProjectFiles: TOpenDialog
@@ -63,34 +76,54 @@ object ProjectFilesFrame: TProjectFilesFrame
     OnUpdate = altvProjectFilesUpdate
     Left = 40
     Top = 72
-    object actAddFile: TAction
+    object actAddModule: TAction
       Category = 'modules'
-      Text = 'Add file'
+      Text = 'Add module'
       ImageIndex = 6
-      OnExecute = actAddFileExecute
+      OnExecute = actAddModuleExecute
       ImageIndex = 6
     end
-    object actRemoveFile: TAction
+    object actRemoveModule: TAction
       Category = 'modules'
-      Text = 'Remove file'
+      Text = 'Remove module'
       ImageIndex = 7
-      OnExecute = actRemoveFileExecute
+      OnExecute = actRemoveModuleExecute
       ImageIndex = 7
     end
     object actSetToMain: TAction
       Category = 'modules'
       Text = 'Set to main'
+      ImageIndex = 5
       OnExecute = actSetToMainExecute
+      ImageIndex = 5
     end
     object actAddPackage: TAction
       Category = 'packages'
       Text = 'Add package'
+      ImageIndex = 6
       OnExecute = actAddPackageExecute
+      ImageIndex = 6
     end
     object actRemovePackage: TAction
       Category = 'packages'
       Text = 'Remove package'
+      ImageIndex = 7
       OnExecute = actRemovePackageExecute
+      ImageIndex = 7
+    end
+    object actAddOtherFile: TAction
+      Category = 'otherfiles'
+      Text = 'Add other file'
+      ImageIndex = 6
+      OnExecute = actAddOtherFileExecute
+      ImageIndex = 6
+    end
+    object actRemoveOtherFile: TAction
+      Category = 'otherfiles'
+      Text = 'Remove other file'
+      ImageIndex = 7
+      OnExecute = actRemoveOtherFileExecute
+      ImageIndex = 7
     end
   end
 end
