@@ -25,8 +25,10 @@ type
     procedure CopyAppFiles(const AModel: TProjectModel);
     procedure CopyIcons(const AModel: TProjectModel);
     //App script files
-    procedure CopyScripts(const AModel: TProjectModel);
+    procedure CopyModules(const AModel: TProjectModel);
     procedure CopyDependencies(const AModel: TProjectModel);
+    procedure CopyPackages(const AModel: TProjectModel);
+    procedure CopyOtherFiles(const AModel: TProjectModel);
     procedure CopyDebugger(const AModel: TProjectModel);
     procedure TryCopyDebugger(const AModel: TProjectModel);
     //App deployables
@@ -214,12 +216,16 @@ procedure TAppService.BuildProject(const AModel: TProjectModel);
 begin
   //Copy Python and other APP files
   CopyAppFiles(AModel);
-  //Copy icons
+  //Copy app icons
   CopyIcons(AModel);
   //Save aditional scripts to the APP files
-  CopyScripts(AModel);
+  CopyModules(AModel);
   //Save aditional dependencies to the APP files
   CopyDependencies(AModel);
+  //Save user packages to the APP files
+  CopyPackages(AModel);
+  //Save user other files to the APP files
+  CopyOtherFiles(AModel);
   //Save debugger files if build conf. in debug mode
   TryCopyDebugger(AModel);
   //Update the manifest with the custom APP settings
@@ -347,9 +353,33 @@ begin
       TPath.Combine(LAppResPath, 'drawable-xxxhdpi' + TPath.DirectorySeparatorChar +'ic_launcher.png'), true);
 end;
 
-procedure TAppService.CopyScripts(const AModel: TProjectModel);
+procedure TAppService.CopyModules(const AModel: TProjectModel);
 begin
   for var LScript in AModel.Files.Files do begin
+    var LStream := TFileStream.Create(LScript, fmOpenRead);
+    try
+      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+    finally
+      LStream.Free();
+    end;
+  end;
+end;
+
+procedure TAppService.CopyOtherFiles(const AModel: TProjectModel);
+begin
+  for var LScript in AModel.Files.Others do begin
+    var LStream := TFileStream.Create(LScript, fmOpenRead);
+    try
+      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+    finally
+      LStream.Free();
+    end;
+  end;
+end;
+
+procedure TAppService.CopyPackages(const AModel: TProjectModel);
+begin
+  for var LScript in AModel.Files.Packages do begin
     var LStream := TFileStream.Create(LScript, fmOpenRead);
     try
       AddFile(AModel, TPath.GetFileName(LScript), LStream);
