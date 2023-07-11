@@ -516,6 +516,7 @@ end;
 
 procedure TADBService.ListDevices(const AStrings: TStrings);
 begin
+  FreeAndNil(FEnvironmentModel);
   CheckEnvironmentModel();
   if not TFile.Exists(FEnvironmentModel.AdbLocation) then
     Exit;
