@@ -104,16 +104,20 @@ function TTMSMemoEditorFrame.GetRemoteRootPath(const AFileName: string): string;
 begin
   var LProjectModel := FProjectServices.GetActiveProject();
   var LEnvironmentModel: TEnvironmentModel;
-  if FEnvironmentStorage.LoadModel(LEnvironmentModel) then begin
-    Result := LEnvironmentModel.RemoteDebuggerRoot
-      .Replace('$(package_name)', LProjectModel.PackageName, [rfIgnoreCase])
-        .Trim();
+  if FEnvironmentStorage.LoadModel(LEnvironmentModel) then
+    try
+      Result := LEnvironmentModel.RemoteDebuggerRoot
+        .Replace('$(package_name)', LProjectModel.PackageName, [rfIgnoreCase])
+          .Trim();
 
-    if not Result.EndsWith('/') then
-      Result := Result + '/';
+      if not Result.EndsWith('/') then
+        Result := Result + '/';
 
-    Result := Result + TPath.GetFileName(AFileName);
-  end else
+      Result := Result + TPath.GetFileName(AFileName);
+    finally
+      LEnvironmentModel.Free();
+    end
+  else
     Result := String.Empty;
 end;
 
@@ -176,6 +180,10 @@ begin
   //-> You should consider only the LineNo if this fix results on
   //   breakpoint line number error for you.
   var LCurLine := LineNo + mmEditor.TopLine;
+
+  //Setting a breakpoint in an empty line
+  if LCurLine >= mmEditor.Lines.Count then
+    Exit;
 
   mmEditor.BreakPoint[LCurLine] := not mmEditor.BreakPoint[LCurLine];
 
