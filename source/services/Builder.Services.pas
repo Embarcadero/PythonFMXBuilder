@@ -83,6 +83,20 @@ type
       const AFilePath: string);
     function GetDependencies(const AModel: TProjectModel): TArray<string>;
     procedure ClearDependencies(const AModel: TProjectModel);
+
+    function AddPackage(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemovePackage(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetPackages(const AModel: TProjectModel): TArray<string>;
+    procedure ClearPackages(const AModel: TProjectModel);
+
+    function AddOtherFile(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemoveOtherFile(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetOtherFiles(const AModel: TProjectModel): TArray<string>;
+    procedure ClearOtherFiles(const AModel: TProjectModel);
   end;
 
   IAppServices = interface
@@ -99,7 +113,7 @@ type
     procedure RemoveFile(const AModel: TProjectModel; const AFilePath: string);
     function GetFiles(const AModel: TProjectModel;
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
-    procedure CopyScripts(const AModel: TProjectModel);
+    procedure CopyModules(const AModel: TProjectModel);
     procedure CopyDependencies(const AModel: TProjectModel);
     //Send the user icons to the deployable folder
     procedure CopyIcons(const AModel: TProjectModel);
