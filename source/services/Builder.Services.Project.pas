@@ -46,6 +46,20 @@ type
       const AFilePath: string);
     function GetDependencies(const AModel: TProjectModel): TArray<string>;
     procedure ClearDependencies(const AModel: TProjectModel);
+
+    function AddPackage(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemovePackage(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetPackages(const AModel: TProjectModel): TArray<string>;
+    procedure ClearPackages(const AModel: TProjectModel);
+
+    function AddOtherFile(const AModel: TProjectModel;
+      const AFilePath: string): boolean;
+    procedure RemoveOtherFile(const AModel: TProjectModel;
+      const AFilePath: string);
+    function GetOtherFiles(const AModel: TProjectModel): TArray<string>;
+    procedure ClearOtherFiles(const AModel: TProjectModel);
   end;
 
 implementation
@@ -76,6 +90,18 @@ function TProjectService.GetDependencies(
   const AModel: TProjectModel): TArray<string>;
 begin
   Result := AModel.Files.Dependencies.ToArray();
+end;
+
+function TProjectService.GetOtherFiles(
+  const AModel: TProjectModel): TArray<string>;
+begin
+  Result := AModel.Files.Others.ToArray();
+end;
+
+function TProjectService.GetPackages(
+  const AModel: TProjectModel): TArray<string>;
+begin
+  Result := AModel.Files.Packages.ToArray();
 end;
 
 function TProjectService.GetProjectFilesPath(const AProjectName: string): string;
@@ -122,6 +148,16 @@ end;
 procedure TProjectService.ClearDependencies(const AModel: TProjectModel);
 begin
   AModel.Files.Dependencies.Clear();
+end;
+
+procedure TProjectService.ClearOtherFiles(const AModel: TProjectModel);
+begin
+  AModel.Files.Others.Clear();
+end;
+
+procedure TProjectService.ClearPackages(const AModel: TProjectModel);
+begin
+  AModel.Files.Packages.Clear();
 end;
 
 function TProjectService.CreateProject(const AProjectName: string;
@@ -238,6 +274,39 @@ begin
   SetMainScriptFile(AModel, LMainScriptPath);
 end;
 
+function TProjectService.AddOtherFile(const AModel: TProjectModel;
+  const AFilePath: string): boolean;
+begin
+  //We are not accepting duplicated file names
+  for var LFile in AModel.Files.Others do begin
+    if TPath.GetFileName(LFile) = TPath.GetFileName(AFilePath) then
+      Exit(false);
+  end;
+
+  //Should we copy this file to a local dir?
+  AModel.Files.Others.Add(AFilePath);
+  Result := true;
+end;
+
+function TProjectService.AddPackage(const AModel: TProjectModel;
+  const AFilePath: string): boolean;
+begin
+  //We are not accepting duplicated file names
+  for var LFile in AModel.Files.Packages do begin
+    if TPath.GetFileName(LFile) = TPath.GetFileName(AFilePath) then
+      Exit(false);
+  end;
+
+  //We are only accepting zip and/or wheel files
+  if (TPath.GetExtension(AFilePath) <> '.zip')
+    and (TPath.GetExtension(AFilePath) <> '.whl') then
+      Exit(false);
+
+  //Should we copy this file to a local dir?
+  AModel.Files.Packages.Add(AFilePath);
+  Result := true;
+end;
+
 function TProjectService.AddScriptFile(const AModel: TProjectModel;
   const AFilePath: string): boolean;
 begin
@@ -256,6 +325,18 @@ procedure TProjectService.RemoveDependency(const AModel: TProjectModel;
   const AFilePath: string);
 begin
   AModel.Files.Dependencies.Remove(AFilePath);
+end;
+
+procedure TProjectService.RemoveOtherFile(const AModel: TProjectModel;
+  const AFilePath: string);
+begin
+  AModel.Files.Others.Remove(AFilePath);
+end;
+
+procedure TProjectService.RemovePackage(const AModel: TProjectModel;
+  const AFilePath: string);
+begin
+  AModel.Files.Packages.Remove(AFilePath);
 end;
 
 function TProjectService.RemoveProject(const AProjectName: string): boolean;
