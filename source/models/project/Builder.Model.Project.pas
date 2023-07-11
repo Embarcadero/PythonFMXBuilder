@@ -11,8 +11,7 @@ uses
   Builder.Model.Project.Files;
 
 type
-  PProjectModel = ^TProjectModel;
-  [Model('project')]
+  [Model('project'), JSONOwned, JSONOwnedReflect]
   TProjectModel = class(TModel)
   private
     [JSONName('project_name')]
@@ -39,6 +38,8 @@ type
     FDebugger: TDebugger;
     function GetId(): string;
     function GetProjectName: string;
+    function GetFiles: TProjectFilesModel;
+    function GetIcons: TProjectIconModel;
   public
     constructor Create(); overload; override;
     constructor Create(const AProjectName: string); reintroduce; overload;
@@ -56,8 +57,8 @@ type
     property PythonVersion: TPythonVersion read FPythonVersion write FPythonVersion;
     property Architecture: TArchitecture read FArchitecture write FArchitecture;
     property BuildConfiguration: TBuildConfiguration read FBuildConfiguration write FBuildConfiguration;
-    property Icons: TProjectIconModel read FIcons write FIcons;
-    property Files: TProjectFilesModel read FFiles write FFiles;
+    property Icons: TProjectIconModel read GetIcons write FIcons;
+    property Files: TProjectFilesModel read GetFiles write FFiles;
     property Debugger: TDebugger read FDebugger write FDebugger;
   end;
 
@@ -71,8 +72,6 @@ uses
 constructor TProjectModel.Create;
 begin
   inherited;
-  FIcons := TProjectIconModel.Create();
-  FFiles := TProjectFilesModel.Create();
 end;
 
 constructor TProjectModel.Create(const AProjectName, AApplicationName: string);
@@ -98,6 +97,20 @@ begin
   FFiles.Free();
   FIcons.Free();
   inherited;
+end;
+
+function TProjectModel.GetFiles: TProjectFilesModel;
+begin
+  if not Assigned(FFiles) then
+    FFiles := TProjectFilesModel.Create();
+  Result := FFiles;
+end;
+
+function TProjectModel.GetIcons: TProjectIconModel;
+begin
+  if not Assigned(FIcons) then
+    FIcons := TProjectIconModel.Create();
+  Result := FIcons;
 end;
 
 function TProjectModel.GetId: string;

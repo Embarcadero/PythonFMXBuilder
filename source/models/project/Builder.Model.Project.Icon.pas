@@ -6,6 +6,7 @@ uses
   System.Classes, REST.Json.Types, Builder.Model;
 
 type
+  [JSONOwned, JSONOwnedReflect]
   TProjectIconModel = class(TModel)
   private
     [JSONName('drawable_small')]

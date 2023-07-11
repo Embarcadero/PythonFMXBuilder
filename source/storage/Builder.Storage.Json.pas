@@ -136,10 +136,15 @@ begin
     if not Assigned(LJsonObj) then
       Exit(false);
 
-    AModel := ModelType(FConverters.GetJSONUnMarshaler().CreateObject(
-      ATypeInfo^.TypeData^.ClassType, LJsonObj.AsType<TJSONObject>, AModel));
+    var LUnmarshaler := FConverters.GetJSONUnMarshaler();
+    try
+      AModel := ModelType(LUnmarshaler.CreateObject(
+        ATypeInfo^.TypeData^.ClassType, LJsonObj.AsType<TJSONObject>, AModel));
 
-    Result := Assigned(AModel);
+      Result := Assigned(AModel);
+    finally
+      LUnmarshaler.Free();
+    end;
   finally
     LJSONObj.Free();
   end;
@@ -184,19 +189,24 @@ procedure TJsonStorage<ModelType>.SaveModel(const ATypeInfo: PTypeInfo;
   const AModel: TObject; const AEntity: string);
 begin
   var LEntity := MakeEntityName(AEntity, ATypeInfo);
-  var LJsonValue := FConverters.GetJSONMarshaler().Marshal(AModel);
+  var LMarshaler := FConverters.GetJSONMarshaler();
   try
-    if Assigned(LJsonValue) then begin
-      var LEntityPath := GetModelPath(LEntity, GetModelId(LEntity, AModel));
+    var LJsonValue := LMarshaler.Marshal(AModel);
+    try
+      if Assigned(LJsonValue) then begin
+        var LEntityPath := GetModelPath(LEntity, GetModelId(LEntity, AModel));
 
-      if not TDirectory.Exists(ExtractFilePath(LEntityPath)) then
-        TDirectory.CreateDirectory(ExtractFilePath(LEntityPath));
+        if not TDirectory.Exists(ExtractFilePath(LEntityPath)) then
+          TDirectory.CreateDirectory(ExtractFilePath(LEntityPath));
 
-      TFile.WriteAllText(LEntityPath, LJsonValue.ToJSON(), TEncoding.UTF8);
-    end else
-      raise EUnableToSaveEntity.CreateFmt('Unable to save %s', [LEntity]);
+        TFile.WriteAllText(LEntityPath, LJsonValue.ToJSON(), TEncoding.UTF8);
+      end else
+        raise EUnableToSaveEntity.CreateFmt('Unable to save %s', [LEntity]);
+    finally
+      LJsonValue.Free();
+    end;
   finally
-    LJsonValue.Free();
+    LMarshaler.Free();
   end;
 end;
 

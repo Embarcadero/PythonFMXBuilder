@@ -3,7 +3,7 @@ unit Builder.Model;
 interface
 
 uses
-  System.Classes, System.SysUtils;
+  System.Classes, System.SysUtils, REST.JsonReflect;
 
 type
   TModelClass = class of TModel;
@@ -24,6 +24,11 @@ type
     property ModelName: string read FModelName write FModelName;
   end;
 
+  JSONOwnedReflectAttribute = class(JSonReflectAttribute)
+  public
+    constructor Create();
+  end;
+
 implementation
 
 { TModel }
@@ -37,7 +42,18 @@ end;
 
 constructor ModelAttribute.Create(const AModelName: string);
 begin
+  inherited Create();
   FModelName := AModelName;
+end;
+
+{ JSONOwnedReflectAttribute }
+
+constructor JSONOwnedReflectAttribute.Create;
+begin
+  inherited Create(
+    TConverterType.ctObjects,
+    TReverterType.rtObjects,
+    nil, TJSONPopulationCustomizer, false);
 end;
 
 end.
