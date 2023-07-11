@@ -7,6 +7,7 @@ uses
   Builder.Model;
 
 type
+  [JSONOwned, JSONOwnedReflect]
   TProjectFilesModel = class(TModel)
   private
     [JSONName('files')]
@@ -15,15 +16,30 @@ type
     FMainFile: string;
     [JSONName('dependencies')]
     FDependencies: TList<string>;
+    [JSONName('packages')]
+    FPackages: TList<string>;
+    [JSONName('others')]
+    FOthers: TList<string>;
+    function GetDependencies: TList<string>;
+    function GetFiles: TList<string>;
+    function GetOthers: TList<string>;
+    function GetPackages: TList<string>;
   public
     constructor Create(); override;
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
   public
-    property Files: TList<string> read FFiles write FFiles;
+    //User modules
+    property Files: TList<string> read GetFiles write FFiles;
+    //User main module
     property MainFile: string read FMainFile write FMainFile;
-    property Dependencies: TList<string> read FDependencies write FDependencies;
+    //Internal dependency
+    property Dependencies: TList<string> read GetDependencies write FDependencies;
+    //Packages as Zip Imports and/or Wheels
+    property Packages: TList<string> read GetPackages write FPackages;
+    //Other user files
+    property Others: TList<string> read GetOthers write FOthers;
   end;
 
 implementation
@@ -36,15 +52,43 @@ uses
 constructor TProjectFilesModel.Create;
 begin
   inherited;
-  FFiles := TList<string>.Create();
-  FDependencies := TList<string>.Create();
 end;
 
 destructor TProjectFilesModel.Destroy;
 begin
+  FOthers.Free();
+  FPackages.Free();
   FDependencies.Free();
   FFiles.Free();
   inherited;
+end;
+
+function TProjectFilesModel.GetDependencies: TList<string>;
+begin
+  if not Assigned(FDependencies) then
+    FDependencies := TList<string>.Create();
+  Result := FDependencies;
+end;
+
+function TProjectFilesModel.GetFiles: TList<string>;
+begin
+  if not Assigned(FFiles) then
+    FFiles := TList<string>.Create();
+  Result := FFiles;
+end;
+
+function TProjectFilesModel.GetOthers: TList<string>;
+begin
+  if not Assigned(FOthers) then
+    FOthers := TList<string>.Create();
+  Result := FOthers;
+end;
+
+function TProjectFilesModel.GetPackages: TList<string>;
+begin
+  if not Assigned(FPackages) then
+    FPackages := TList<string>.Create();
+  Result := FPackages;
 end;
 
 function TProjectFilesModel.Validate(const AErrors: TStrings): boolean;
@@ -73,6 +117,20 @@ begin
     if not TFile.Exists(LFile) then begin
       Result := false;
       AErrors.Add(Format('* Dependency %s not found.', [LFile]))
+    end;
+  end;
+
+  for var LPackage in FPackages do begin
+    if not TFile.Exists(LPackage) then begin
+      Result := false;
+      AErrors.Add(Format('* Package %s not found.', [LPackage]))
+    end;
+  end;
+
+  for var LOthers in FOthers do begin
+    if not TFile.Exists(LOthers) then begin
+      Result := false;
+      AErrors.Add(Format('* File %s not found.', [LOthers]))
     end;
   end;
 end;

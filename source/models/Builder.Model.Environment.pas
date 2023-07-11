@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Classes, REST.Json.Types, Builder.Model;
 
 type
-  [Model('environment')]
+  [Model('environment'), JSONOwned, JSONOwnedReflect]
   TEnvironmentModel = class(TModel)
   private
     [JSONName('sdk_base_path')]
