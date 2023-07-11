@@ -68,7 +68,6 @@ type
     function BuildNode(const AParent: TFmxObject; const ANodeType: TNodeType;
       const ANodeData: TValue): TTreeViewItem;
     function NodeIsType(const AItem: TTreeViewItem; const ANodeType: TNodeType): boolean;
-    function ParentNodeIsType(const AItem: TTreeViewItem; const ANodeType: TNodeType): boolean;
     //TreeView nodes
     function AddProjectNode(): TTreeViewItem;
     procedure AddBuildConfigurationNodes(const ARoot: TTreeViewItem);
@@ -377,12 +376,6 @@ function TProjectFilesFrame.NodeIsType(const AItem: TTreeViewItem;
   const ANodeType: TNodeType): boolean;
 begin
   Result := AItem.Data.AsType<TNodeInfo>().NodeType = ANodeType;
-end;
-
-function TProjectFilesFrame.ParentNodeIsType(const AItem: TTreeViewItem;
-  const ANodeType: TNodeType): boolean;
-begin
-  Result := Assigned(AItem.ParentItem()) and NodeIsType(AItem.ParentItem(), ANodeType);
 end;
 
 procedure TProjectFilesFrame.SaveChanges;
