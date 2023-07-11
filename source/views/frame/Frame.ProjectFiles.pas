@@ -12,36 +12,44 @@ uses
 
 type
   TNodeType = (
-    ntProject, ntModule,
-    ntBuildConfiguration, ntTargetPlatform, ntTargetPython,
-    ntPackage,
-    ntOtherFile,
-    ntSource,
-    ntOther);
+    ntProject,
+    ntRootModule, ntModule,
+    ntRootBuildConfiguration, ntBuildConfiguration,
+    ntRootTargetPlatform, ntTargetPlatform,
+    ntRootTargetPython, ntTargetPython,
+    ntRootPackage, ntPackage,
+    ntRootOtherFile, ntOtherFile);
 
   TProjectFilesFrame = class(TFrame)
     tvProjectFiles: TTreeView;
     pmtvProjectFiles: TPopupMenu;
-    miAddFile: TMenuItem;
-    miRemoveFile: TMenuItem;
+    miAddModule: TMenuItem;
+    miRemoveModule: TMenuItem;
     altvProjectFiles: TActionList;
-    actAddFile: TAction;
-    actRemoveFile: TAction;
+    actAddModule: TAction;
+    actRemoveModule: TAction;
     odtvProjectFiles: TOpenDialog;
     miSetToMain: TMenuItem;
     actSetToMain: TAction;
-    miSeparator: TMenuItem;
+    miSepPackages: TMenuItem;
     miAddBundle: TMenuItem;
     miRemoveBundle: TMenuItem;
     actAddPackage: TAction;
     actRemovePackage: TAction;
-    procedure actAddFileExecute(Sender: TObject);
-    procedure actRemoveFileExecute(Sender: TObject);
+    miSepOtherFiles: TMenuItem;
+    miAddOtherFile: TMenuItem;
+    miRemoveOtherFile: TMenuItem;
+    actAddOtherFile: TAction;
+    actRemoveOtherFile: TAction;
+    procedure actAddModuleExecute(Sender: TObject);
+    procedure actRemoveModuleExecute(Sender: TObject);
     procedure altvProjectFilesUpdate(Action: TBasicAction;
       var Handled: Boolean);
     procedure actSetToMainExecute(Sender: TObject);
     procedure actAddPackageExecute(Sender: TObject);
     procedure actRemovePackageExecute(Sender: TObject);
+    procedure actAddOtherFileExecute(Sender: TObject);
+    procedure actRemoveOtherFileExecute(Sender: TObject);
   private
     [weak]
     FProjectModel: TProjectModel;
@@ -66,9 +74,9 @@ type
     procedure AddBuildConfigurationNodes(const ARoot: TTreeViewItem);
     procedure AddTargetPlatformNodes(const ARoot: TTreeViewItem);
     procedure AddTargetPythonNodes(const ARoot: TTreeViewItem);
-    procedure AddSourceNodes(const ARoot: TTreeViewItem);
+    procedure AddModuleNodes(const ARoot: TTreeViewItem);
     procedure AddPackageNodes(const ARoot: TTreeViewItem);
-    procedure AddBundleOtherFiles(const ARoot: TTreeViewItem);
+    procedure AddOtherFileNodes(const ARoot: TTreeViewItem);
     //Node events
     procedure OnTreeViewItemDblClickModule(Sender: TObject);
     procedure OnTreeViewItemDblClickBuildConfigurationItem(Sender: TObject);
@@ -79,8 +87,6 @@ type
     procedure UpdateSelectedPython(const ASelected: TTreeViewItem);
     procedure UpdateSelectedBuildConfiguration(const ASelected: TTreeViewItem);
     //
-    function FileIsScriptFile(const AFileName: string): boolean;
-    function GetNodeTypeByFileName(const AFileName: string): TNodeType;
     function GetNodeByNodeType(const ANodeType: TNodeType): TTreeViewItem;
     function GetNodeData<T>(const AItem: TTreeViewItem): T;
     //Chained events
@@ -210,11 +216,6 @@ begin
   inherited;
 end;
 
-function TProjectFilesFrame.FileIsScriptFile(const AFileName: string): boolean;
-begin
-  Result := MatchStr(TPath.GetExtension(AFileName), ['.py', '.pydfm', '.pyfmx']);
-end;
-
 function TProjectFilesFrame.GetItemFilePath(const AItem: TTreeViewItem): string;
 begin
   Result := String(AItem.Data.AsType<TNodeInfo>().NodeData.AsString);
@@ -246,21 +247,21 @@ end;
 function TProjectFilesFrame.GetNodeByNodeType(
   const ANodeType: TNodeType): TTreeViewItem;
 
-function RecursivelyGetNode(const ARoot: TTreeViewItem; 
-  const ANodeType: TNodeType): TTreeViewItem;
-begin
-  if NodeIsType(ARoot, ANodeType) then
-    Exit(ARoot);
+  function RecursivelyGetNode(const ARoot: TTreeViewItem;
+    const ANodeType: TNodeType): TTreeViewItem;
+  begin
+    if NodeIsType(ARoot, ANodeType) then
+      Exit(ARoot);
     
-  for var I := 0 to ARoot.Count - 1 do
-  begin  
-    Result := RecursivelyGetNode(ARoot.Items[I], ANodeType);
-    if Assigned(Result) then
-      Exit;
-  end;
+    for var I := 0 to ARoot.Count - 1 do
+    begin
+      Result := RecursivelyGetNode(ARoot.Items[I], ANodeType);
+      if Assigned(Result) then
+        Exit;
+    end;
 
-  Result := nil;
-end;
+    Result := nil;
+  end;
   
 begin
   if not Assigned(FRoot) then
@@ -274,14 +275,6 @@ begin
   Result := AItem.Data.AsType<TNodeInfo>.NodeData.AsType<T>;
 end;
 
-function TProjectFilesFrame.GetNodeTypeByFileName(
-  const AFileName: string): TNodeType;
-begin
-  Result := TNodeType.ntOther;
-  if FileIsScriptFile(AFileName) then
-    Result := ntModule;
-end;
-
 function TProjectFilesFrame.GetProjectServices: IProjectServices;
 begin
   if not Assigned(FProjectServices) then
@@ -292,44 +285,46 @@ end;
 procedure TProjectFilesFrame.LoadEvents(const AItem: TTreeViewItem);
 begin
   case AItem.Data.AsType<TNodeInfo>().NodeType of
-    ntModule: AItem.OnDblClick := OnTreeViewItemDblClickModule;
-    ntOther:
-    begin
-      if ParentNodeIsType(AItem, ntBuildConfiguration) then
-        AItem.OnDblClick := OnTreeViewItemDblClickBuildConfigurationItem
-      else if ParentNodeIsType(AItem, ntTargetPlatform) then
-        AItem.OnDblClick := OnTreeViewItemDblClickPlatformItem
-      else if ParentNodeIsType(AItem, ntTargetPython) then
-        AItem.OnDblClick := OnTreeViewItemDblClickPythonItem;
-    end
+    ntModule:
+      AItem.OnDblClick := OnTreeViewItemDblClickModule;
+    ntBuildConfiguration:
+      AItem.OnDblClick := OnTreeViewItemDblClickBuildConfigurationItem;
+    ntTargetPlatform:
+      AItem.OnDblClick := OnTreeViewItemDblClickPlatformItem;
+    ntTargetPython:
+      AItem.OnDblClick := OnTreeViewItemDblClickPythonItem;
   end;
 end;
 
 procedure TProjectFilesFrame.LoadIcon(const AItem: TTreeViewItem);
 begin
   case AItem.Data.AsType<TNodeInfo>().NodeType of
-    ntProject: AItem.ImageIndex := PROJECT_ICON_INDEX;
-    ntModule: AItem.ImageIndex := MODULE_ICON_INDEX;
-    ntSource: AItem.ImageIndex := SOURCE_ICON_INDEX;
-    ntPackage: AItem.ImageIndex := PACKAGE_ICON_INDEX;
-    ntBuildConfiguration: AItem.ImageIndex := BUILD_CONFIGURATION_ICON_INDEX;
-    ntTargetPlatform: AItem.ImageIndex := TARGET_PLATFORMS_ICON_INDEX;
-    ntTargetPython: AItem.ImageIndex := TARGET_PYTHON_ICON_INDEX;
-    ntOther:
-    begin
-       if ParentNodeIsType(AItem, ntBuildConfiguration) then
-        AItem.ImageIndex := BUILD_CONFIGURATION_ITEM_ICON_INDEX
-      else if ParentNodeIsType(AItem, ntTargetPlatform) then
-        AItem.ImageIndex := TARGET_PLATFORMS_ANDROID_ICON_INDEX
-      else if ParentNodeIsType(AItem, ntTargetPython) then
-        AItem.ImageIndex := TARGET_PYTHON_VER_ICON_INDEX
-      else if ParentNodeIsType(AItem, ntPACKAGE) then
-        AItem.ImageIndex := PACKAGE_ICON_INDEX
-      else
-        AItem.ImageIndex := ANY_FILE_ICON_INDEX;
-    end
-    else
-      AItem.ImageIndex := ANY_FILE_ICON_INDEX;
+    ntProject:
+      AItem.ImageIndex := PROJECT_ICON_INDEX;
+    ntRootModule:
+      AItem.ImageIndex := SOURCE_ICON_INDEX;
+    ntModule:
+      AItem.ImageIndex := MODULE_ICON_INDEX;
+    ntRootPackage:
+      AItem.ImageIndex := PACKAGE_ICON_INDEX;
+    ntPackage:
+      AItem.ImageIndex := PACKAGE_ICON_INDEX;
+    ntRootBuildConfiguration:
+      AItem.ImageIndex := BUILD_CONFIGURATION_ICON_INDEX;
+    ntBuildConfiguration:
+      AItem.ImageIndex := BUILD_CONFIGURATION_ITEM_ICON_INDEX;
+    ntRootTargetPlatform:
+      AItem.ImageIndex := TARGET_PLATFORMS_ICON_INDEX;
+    ntTargetPlatform:
+      AItem.ImageIndex := TARGET_PLATFORMS_ANDROID_ICON_INDEX;
+    ntRootTargetPython:
+      AItem.ImageIndex := TARGET_PYTHON_ICON_INDEX;
+    ntTargetPython:
+      AItem.ImageIndex := TARGET_PYTHON_VER_ICON_INDEX;
+    ntRootOtherFile:
+      AItem.ImageIndex := ROOT_OTHER_FILE_ICON_INDEX;
+    ntOtherFile:
+      AItem.ImageIndex := OTHER_FILE_ICON_INDEX;
   end;
 end;
 
@@ -354,31 +349,24 @@ begin
       ntModule : begin
         //AItem.ResultingTextSettings.Font.Size := 12;
       end;
-      ntOther:
-      begin
-        //Build configuration nodes
-        if ParentNodeIsType(AItem, ntBuildConfiguration) then
-        begin
-          if not (GetNodeData<TBuildConfiguration>(AItem) = FProjectModel.BuildConfiguration) then
-            Exit;
-          RestoreChildrenTextSettings(AItem);
-          AItem.ResultingTextSettings.Font.Style := [TFontStyle.fsBold];
-        //Android architecture nodes
-        end else if ParentNodeIsType(AItem, ntTargetPlatform) then
-        begin
-          if not (GetNodeData<TArchitecture>(AItem) = FProjectModel.Architecture) then
-            Exit;
-          RestoreChildrenTextSettings(AItem);
-          AItem.ResultingTextSettings.Font.Style := [TFontStyle.fsBold];
-        //Python itens node
-        end else if ParentNodeIsType(AItem, ntTargetPython) then
-        begin
-          if not (GetNodeData<TPythonVersion>(AItem) = FProjectModel.PythonVersion) then
-            Exit;
-          RestoreChildrenTextSettings(AItem);
-          AItem.ResultingTextSettings.Font.Style := [TFontStyle.fsBold];
-        end;
-      end
+      ntBuildConfiguration: begin
+        if not (GetNodeData<TBuildConfiguration>(AItem) = FProjectModel.BuildConfiguration) then
+          Exit;
+        RestoreChildrenTextSettings(AItem);
+        AItem.ResultingTextSettings.Font.Style := [TFontStyle.fsBold];
+      end;
+      ntTargetPlatform: begin
+        if not (GetNodeData<TArchitecture>(AItem) = FProjectModel.Architecture) then
+          Exit;
+        RestoreChildrenTextSettings(AItem);
+        AItem.ResultingTextSettings.Font.Style := [TFontStyle.fsBold];
+      end;
+      ntTargetPython: begin
+        if not (GetNodeData<TPythonVersion>(AItem) = FProjectModel.PythonVersion) then
+          Exit;
+        RestoreChildrenTextSettings(AItem);
+        AItem.ResultingTextSettings.Font.Style := [TFontStyle.fsBold];
+      end;
     end;
   finally
     AItem.EndUpdate;
@@ -513,12 +501,12 @@ begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LBuildConfigurationNode := BuildNode(ARoot, ntBuildConfiguration, String.Empty);
+  var LBuildConfigurationNode := BuildNode(ARoot, ntRootBuildConfiguration, String.Empty);
   var LCurrentBuildConfiguration := FProjectModel.BuildConfiguration;
 
   for var LBuildConfiguration := Low(TBuildConfiguration) to High(TBuildConfiguration) do
   begin
-    var LNode := BuildNode(LBuildConfigurationNode, ntOther,
+    var LNode := BuildNode(LBuildConfigurationNode, ntBuildConfiguration,
       TValue.From<TBuildConfiguration>(LBuildConfiguration));
     LNode.Text := LBuildConfiguration.ToBuildConfiguration();
     if LBuildConfiguration = LCurrentBuildConfiguration then
@@ -532,12 +520,12 @@ begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LTargetPlatformsNode := BuildNode(ARoot, ntTargetPlatform, String.Empty);
+  var LTargetPlatformsNode := BuildNode(ARoot, ntRootTargetPlatform, String.Empty);
   var LCurrentArch := FProjectModel.Architecture;
 
   for var LArch := Low(TArchitecture) to High(TArchitecture) do
   begin
-    var LNode := BuildNode(LTargetPlatformsNode, ntOther,
+    var LNode := BuildNode(LTargetPlatformsNode, ntTargetPlatform,
       TValue.From<TArchitecture>(LArch));
     LNode.Text := LArch.ToTargetPlatform();
     if LArch = LCurrentArch then
@@ -550,12 +538,12 @@ begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LTargetPythonNode := BuildNode(ARoot, ntTargetPython, String.Empty);
+  var LTargetPythonNode := BuildNode(ARoot, ntRootTargetPython, String.Empty);
   var LCurrentPythonVer := FProjectModel.PythonVersion;
 
   for var LPythonVer := Low(TPythonVersion) to High(TPythonVersion) do
   begin
-    var LNode := BuildNode(LTargetPythonNode, ntOther,
+    var LNode := BuildNode(LTargetPythonNode, ntTargetPython,
       TValue.From<TPythonVersion>(LPythonVer));
     LNode.Text := LPythonVer.ToTargetPython();
     if LPythonVer = LCurrentPythonVer then
@@ -563,18 +551,18 @@ begin
   end;
 end;
 
-procedure TProjectFilesFrame.AddSourceNodes(const ARoot: TTreeViewItem);
+procedure TProjectFilesFrame.AddModuleNodes(const ARoot: TTreeViewItem);
 begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LSourceNode := BuildNode(ARoot, ntSource, String.Empty);
-  LSourceNode.Text := 'Source';
+  var LSourceNode := BuildNode(ARoot, ntRootModule, String.Empty);
+  LSourceNode.Text := 'Modules';
   LSourceNode.IsExpanded := true;
 
   var LFiles := GetProjectServices().GetScriptFiles(FProjectModel);
   for var LFile in LFiles do begin
-    var LItem := BuildNode(LSourceNode, GetNodeTypeByFileName(LFile), LFile);
+    var LItem := BuildNode(LSourceNode, ntModule, LFile);
     LItem.Text := TPath.GetFileName(LFile);
   end;
 end;
@@ -584,27 +572,27 @@ begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LPackageNode := BuildNode(ARoot, ntPackage, String.Empty);
+  var LPackageNode := BuildNode(ARoot, ntRootPackage, String.Empty);
   LPackageNode.Text := 'Packages (Zip imports and/or Wheels)';
 
-  var LDeps := GetProjectServices().GetDependencies(FProjectModel);
+  var LDeps := GetProjectServices().GetPackages(FProjectModel);
   for var LDep in LDeps do begin
-    var LItem := BuildNode(LPackageNode, ntOther, LDep);
+    var LItem := BuildNode(LPackageNode, ntPackage, LDep);
     LItem.Text := TPath.GetFileName(LDep);
   end;
 end;
 
-procedure TProjectFilesFrame.AddBundleOtherFiles(const ARoot: TTreeViewItem);
+procedure TProjectFilesFrame.AddOtherFileNodes(const ARoot: TTreeViewItem);
 begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LBundleNode := BuildNode(ARoot, ntOtherFile, String.Empty);
+  var LBundleNode := BuildNode(ARoot, ntRootOtherFile, String.Empty);
   LBundleNode.Text := 'Other files';
 
-  var LDeps := GetProjectServices().GetDependencies(FProjectModel);
+  var LDeps := GetProjectServices().GetOtherFiles(FProjectModel);
   for var LDep in LDeps do begin
-    var LItem := BuildNode(LBundleNode, ntOther, LDep);
+    var LItem := BuildNode(LBundleNode, ntOtherFile, LDep);
     LItem.Text := TPath.GetFileName(LDep);
   end;
 end;
@@ -612,38 +600,74 @@ end;
 procedure TProjectFilesFrame.altvProjectFilesUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
-  actAddFile.Enabled := Assigned(FRoot)
+  //Modules
+  actAddModule.Enabled := Assigned(FRoot)
     and NodeIsType(FRoot, TNodeType.ntProject);
 
-  actRemoveFile.Enabled := Assigned(tvProjectFiles.Selected)
+  actRemoveModule.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule);
 
+  //Main module
   actSetToMain.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
     and Assigned(FProjectModel)
     and not GetProjectServices().IsMainScriptFile(FProjectModel,
       GetItemFilePath(tvProjectFiles.Selected));
 
-  actAddBundle.Enabled := Assigned(FRoot)
+  //Packages
+  actAddPackage.Enabled := Assigned(FRoot)
     and NodeIsType(FRoot, TNodeType.ntProject);
 
-  actRemoveBundle.Enabled := Assigned(tvProjectFiles.Selected)
-    and ParentNodeIsType(tvProjectFiles.Selected, TNodeType.ntPackage);
+  actRemovePackage.Enabled := Assigned(tvProjectFiles.Selected)
+    and NodeIsType(tvProjectFiles.Selected, TNodeType.ntPackage);
+
+  //Other files
+  actAddOtherFile.Enabled := Assigned(FRoot)
+    and NodeIsType(FRoot, TNodeType.ntProject);
+
+  actRemoveOtherFile.Enabled := Assigned(tvProjectFiles.Selected)
+    and NodeIsType(tvProjectFiles.Selected, TNodeType.ntOtherFile);
 end;
 
-procedure TProjectFilesFrame.actAddPackageExecute(Sender: TObject);
+procedure TProjectFilesFrame.actAddOtherFileExecute(Sender: TObject);
 begin
-  odtvProjectFiles.Filter := 'Zip imports|*.zip|PIP wheel|*.whl'; 
+  odtvProjectFiles.Filter := '*.*';
   odtvProjectFiles.FilterIndex := 1;
   if odtvProjectFiles.Execute() then begin
     //Save file into the project
     var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
     try
-      if GetProjectServices().AddDependency(FProjectModel, odtvProjectFiles.FileName) then
+      if GetProjectServices().AddOtherFile(FProjectModel, odtvProjectFiles.FileName) then
       begin
         //Creates the tree item
         var LItem := BuildNode(
-          GetNodeByNodeType(TNodeType.ntPackage),
+          GetNodeByNodeType(TNodeType.ntRootOtherFile),
+          TNodeType.ntOtherFile,
+          odtvProjectFiles.FileName);
+
+        LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
+
+        SaveChanges();
+      end;
+    finally
+      LStream.Free();
+    end;
+  end;
+end;
+
+procedure TProjectFilesFrame.actAddPackageExecute(Sender: TObject);
+begin
+  odtvProjectFiles.Filter := 'Zip imports|*.zip|PIP wheel|*.whl';
+  odtvProjectFiles.FilterIndex := 1;
+  if odtvProjectFiles.Execute() then begin
+    //Save file into the project
+    var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
+    try
+      if GetProjectServices().AddPackage(FProjectModel, odtvProjectFiles.FileName) then
+      begin
+        //Creates the tree item
+        var LItem := BuildNode(
+          GetNodeByNodeType(TNodeType.ntRootPackage),
           TNodeType.ntPackage,
           odtvProjectFiles.FileName);
 
@@ -657,7 +681,7 @@ begin
   end;
 end;
 
-procedure TProjectFilesFrame.actAddFileExecute(Sender: TObject);
+procedure TProjectFilesFrame.actAddModuleExecute(Sender: TObject);
 begin                  
   odtvProjectFiles.Filter := 'Python module|*.py|Delphi FMX file|*.pyfmx'; 
   odtvProjectFiles.FilterIndex := 1;
@@ -668,21 +692,20 @@ begin
       if GetProjectServices().AddScriptFile(FProjectModel, odtvProjectFiles.FileName) then
       begin
         //Creates the tree item
-        var LItem := BuildNode(FRoot,
-          GetNodeTypeByFileName(odtvProjectFiles.FileName),
+        var LItem := BuildNode(
+          GetNodeByNodeType(TNodeType.ntRootModule),
+          ntModule,
           odtvProjectFiles.FileName);
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
 
         //Add as the deafult script file if none
-        if NodeIsType(LItem, TNodeType.ntModule) then
-          if FProjectModel.Files.MainFile.IsEmpty() then
-            GetProjectServices().SetMainScriptFile(FProjectModel, odtvProjectFiles.FileName);
+        if FProjectModel.Files.MainFile.IsEmpty() then
+          GetProjectServices().SetMainScriptFile(FProjectModel, odtvProjectFiles.FileName);
 
         SaveChanges();
         tvProjectFiles.Selected := LItem;
 
-        if NodeIsType(LItem, TNodeType.ntModule) then
-          BroadcastOpenFile(odtvProjectFiles.FileName);
+        BroadcastOpenFile(odtvProjectFiles.FileName);
       end;
     finally
       LStream.Free();
@@ -697,7 +720,7 @@ begin
     Exit;
 
   var LInfo := LNode.Data.AsType<TNodeInfo>();
-  if not ParentNodeIsType(LNode, TNodeType.ntPackage) then
+  if not NodeIsType(LNode, TNodeType.ntPackage) then
     Exit;
 
   var LRemove := true;
@@ -714,11 +737,11 @@ begin
 
   LNode.Free();     
 
-  GetProjectServices().RemoveDependency(FProjectModel, LInfo.NodeData.AsString);
+  GetProjectServices().RemovePackage(FProjectModel, LInfo.NodeData.AsString);
   SaveChanges();
 end;
 
-procedure TProjectFilesFrame.actRemoveFileExecute(Sender: TObject);
+procedure TProjectFilesFrame.actRemoveModuleExecute(Sender: TObject);
 begin
   var LNode := tvProjectFiles.Selected;
   if not Assigned(LNode) then
@@ -726,6 +749,35 @@ begin
 
   var LInfo := LNode.Data.AsType<TNodeInfo>();
   if not NodeIsType(LNode, TNodeType.ntModule) then
+    Exit;
+
+  var LRemove := true;
+  if not IsConsole then
+    TDialogService.MessageDialog('Do you really want to remove this module?',
+      TMsgDlgType.mtConfirmation,
+      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
+      procedure(const AResult: TModalResult) begin
+        LRemove := AResult = mrYes;
+      end);
+
+  if not LRemove then
+    Exit;
+
+  LNode.Free();
+
+  GetProjectServices().RemoveScriptFile(FProjectModel, LInfo.NodeData.AsString);
+  SaveChanges();
+  BroadcastCloseFile(LInfo.NodeData.AsString);
+end;
+
+procedure TProjectFilesFrame.actRemoveOtherFileExecute(Sender: TObject);
+begin
+  var LNode := tvProjectFiles.Selected;
+  if not Assigned(LNode) then
+    Exit;
+
+  var LInfo := LNode.Data.AsType<TNodeInfo>();
+  if not NodeIsType(LNode, TNodeType.ntOtherFile) then
     Exit;
 
   var LRemove := true;
@@ -742,9 +794,8 @@ begin
 
   LNode.Free();
 
-  GetProjectServices().RemoveScriptFile(FProjectModel, LInfo.NodeData.AsString);
+  GetProjectServices().RemoveOtherFile(FProjectModel, LInfo.NodeData.AsString);
   SaveChanges();
-  BroadcastCloseFile(LInfo.NodeData.AsString);
 end;
 
 procedure TProjectFilesFrame.actSetToMainExecute(Sender: TObject);
@@ -763,7 +814,8 @@ begin
   AddTargetPlatformNodes(FRoot);
   AddTargetPythonNodes(FRoot);
   AddPackageNodes(FRoot);
-  AddSourceNodes(FRoot);
+  AddOtherFileNodes(FRoot);
+  AddModuleNodes(FRoot);
 end;
 
 end.
