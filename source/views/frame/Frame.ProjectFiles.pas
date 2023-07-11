@@ -641,6 +641,8 @@ begin
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
 
         SaveChanges();
+
+        tvProjectFiles.Selected := LItem;
       end;
     finally
       LStream.Free();
@@ -667,6 +669,8 @@ begin
         LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
 
         SaveChanges();
+
+        tvProjectFiles.Selected := LItem;
       end;
     finally
       LStream.Free();
