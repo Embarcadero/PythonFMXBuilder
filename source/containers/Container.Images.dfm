@@ -1,7 +1,7 @@
 object ImageContainer: TImageContainer
-  Height = 344
-  Width = 518
-  PixelsPerInch = 144
+  Height = 459
+  Width = 691
+  PixelsPerInch = 192
   object images: TImageList
     Source = <
       item
@@ -1166,6 +1166,59 @@ object ImageContainer: TImageContainer
               'figuration-32.png'
           end>
         Name = 'build-configuration-release-debug'
+      end
+      item
+        MultiResBitmap.Height = 32
+        MultiResBitmap.Width = 32
+        MultiResBitmap = <
+          item
+            Width = 32
+            Height = 32
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+              F4000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              015C494441545847636018E9809140009802E56D819895CC80FA0DD47718884F
+              E3D28FCF011E404D5B81F82110FF27D30120F3E581D8138877916AC614A0866D
+              A46AC2A27E3B506C322E7398F05870072877920A0E380134E32E15CCA18D11D8
+              D20017D0AA25406C0FC4841229B1AE02A5A103401C0BC4DF903561B3201BA8A0
+              16880B80F82FB1361050C702949F00C48D403C8D90992D400587082922431E64
+              26C86C824019A8C284A02AD21580CC04998D02D0A3400F28EB0AC4A020A305F8
+              033414541E5C86198EEC002DA0E079200665BFEFB4B01D68262734140C81F475
+              743B728002F4C8AFF780F680123A18201744A0F2FE278D7C8E6CEC0F20870D9B
+              03E86037A615F88A62BA3868D401A321301A02A321301A02C821F00B5A5DD2B2
+              080655FFA02A195EE921B707D480121780F82D10831C430B00AA058580D80088
+              6F832C406F11A902C540BD18902B6901402D62504705D4E81905E01000000F20
+              2CD3BA6BBEB30000000049454E44AE426082}
+            FileName = 
+              'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\lib' +
+              'rary-32.png'
+          end>
+        Name = 'other-files'
+      end
+      item
+        MultiResBitmap.Height = 32
+        MultiResBitmap.Width = 32
+        MultiResBitmap = <
+          item
+            Width = 32
+            Height = 32
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+              F4000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              00F849444154584763601860C088C5FE44A0581499EEBA0DD4970FC4BF89D58F
+              CD012D40CDF140BC945843A0EA4C81B41310AF03E208521C816E0FC8018748B4
+              1CA4BC1088DF02F17B205E0BC4ACC498C1448C2212D4BC84868203905E0FC4EC
+              84F452DB0120FBCE03B10B105B424302AF2368E100921C412B0710ED086A3B80
+              1968B320127E00CD11A034B10C5BC2A4B603D48096BC43C3BB807C6E200E02E2
+              22F444494D0780B29E2B1E7C1928C74B285780E4C92D0708990D2A5B4066A300
+              6A8600210760951F75C068088C86C068088C86C068088C86C0680850B36B46A8
+              41120D54B010886B901552BB734AC811A096F17C428AE82A0F00C47826571726
+              FE670000000049454E44AE426082}
+            FileName = 
+              'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\fil' +
+              'e-32.png'
+          end>
+        Name = 'file'
       end>
     Destination = <
       item
@@ -1409,8 +1462,24 @@ object ImageContainer: TImageContainer
             SourceRect.Right = 32.000000000000000000
             SourceRect.Bottom = 32.000000000000000000
           end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'other-files'
+            SourceRect.Right = 32.000000000000000000
+            SourceRect.Bottom = 32.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'file'
+            SourceRect.Right = 32.000000000000000000
+            SourceRect.Bottom = 32.000000000000000000
+          end>
       end>
-    Left = 228
-    Top = 108
+    Left = 304
+    Top = 144
   end
 end
