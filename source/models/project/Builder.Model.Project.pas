@@ -148,8 +148,8 @@ begin
   Result := (AErrors.Count = 0);
 
   Result := Result
-    and FIcons.Validate(AErrors)
-      and FFiles.Validate(AErrors);
+    and GetIcons.Validate(AErrors)
+      and GetFiles.Validate(AErrors);
 end;
 
 end.
