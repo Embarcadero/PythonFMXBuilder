@@ -113,21 +113,21 @@ begin
     AErrors.Add('* Main script file not found.');
   end;
 
-  for var LFile in FDependencies do begin
+  for var LFile in GetDependencies do begin
     if not TFile.Exists(LFile) then begin
       Result := false;
       AErrors.Add(Format('* Dependency %s not found.', [LFile]))
     end;
   end;
 
-  for var LPackage in FPackages do begin
+  for var LPackage in GetPackages do begin
     if not TFile.Exists(LPackage) then begin
       Result := false;
       AErrors.Add(Format('* Package %s not found.', [LPackage]))
     end;
   end;
 
-  for var LOthers in FOthers do begin
+  for var LOthers in GetOthers do begin
     if not TFile.Exists(LOthers) then begin
       Result := false;
       AErrors.Add(Format('* File %s not found.', [LOthers]))
