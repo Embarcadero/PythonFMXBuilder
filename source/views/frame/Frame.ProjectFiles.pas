@@ -41,6 +41,9 @@ type
     miRemoveOtherFile: TMenuItem;
     actAddOtherFile: TAction;
     actRemoveOtherFile: TAction;
+    miSepOptions: TMenuItem;
+    miRevealFile: TMenuItem;
+    actRevealFile: TAction;
     procedure actAddModuleExecute(Sender: TObject);
     procedure actRemoveModuleExecute(Sender: TObject);
     procedure altvProjectFilesUpdate(Action: TBasicAction;
@@ -50,6 +53,7 @@ type
     procedure actRemovePackageExecute(Sender: TObject);
     procedure actAddOtherFileExecute(Sender: TObject);
     procedure actRemoveOtherFileExecute(Sender: TObject);
+    procedure actRevealFileExecute(Sender: TObject);
   private
     [weak]
     FProjectModel: TProjectModel;
@@ -123,6 +127,9 @@ implementation
 uses
   System.StrUtils, System.IOUtils, System.SysUtils,
   FMX.DialogService,
+  {$IFDEF MSWINDOWS}
+  ShellApi, WinAPI.Windows,
+  {$ENDIF MSWINDOWS}
   Builder.Services.Factory;
 
 type
@@ -620,6 +627,19 @@ begin
 
   actRemoveOtherFile.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntOtherFile);
+
+  //Options
+  {$IFDEF MSWINDOWS}
+  actRevealFile.Visible := Assigned(tvProjectFiles.Selected) and (
+    NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
+    or
+    NodeIsType(tvProjectFiles.Selected, TNodeType.ntPackage)
+    or
+    NodeIsType(tvProjectFiles.Selected, TNodeType.ntOtherFile)
+  );
+  {$ELSE}
+  actRevealFile.Visible := false;
+  {$ENDIF MSWINDOWS}
 end;
 
 procedure TProjectFilesFrame.actAddOtherFileExecute(Sender: TObject);
@@ -736,6 +756,21 @@ begin
 
   GetProjectServices().RemovePackage(FProjectModel, LInfo.NodeData.AsString);
   SaveChanges();
+end;
+
+procedure TProjectFilesFrame.actRevealFileExecute(Sender: TObject);
+begin
+  {$IFDEF MSWINDOWS}
+  var LFileName := GetItemFilePath(TTreeViewItem(tvProjectFiles.Selected));
+  ShellExecute(
+    0,
+    nil,
+    'explorer.exe',
+    PChar('/select,' + LFileName),
+    nil,
+    SW_NORMAL
+    );
+  {$ENDIF MSWINDOWS}
 end;
 
 procedure TProjectFilesFrame.actRemoveModuleExecute(Sender: TObject);
