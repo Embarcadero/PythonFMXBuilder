@@ -1089,10 +1089,6 @@ inherited MainForm: TMainForm
             Viewport.Width = 272.000000000000000000
             Viewport.Height = 336.000000000000000000
           end
-          inherited odtvProjectFiles: TOpenDialog [1]
-          end
-          inherited pmtvProjectFiles: TPopupMenu [2]
-          end
           inherited altvProjectFiles: TActionList
             inherited actAddModule: TAction
               ImageIndex = 6
@@ -1114,6 +1110,9 @@ inherited MainForm: TMainForm
             end
             inherited actRemoveOtherFile: TAction
               ImageIndex = 7
+            end
+            inherited actRevealFile: TAction
+              ImageIndex = 33
             end
           end
         end

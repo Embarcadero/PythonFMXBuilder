@@ -65,6 +65,14 @@ object ProjectFilesFrame: TProjectFilesFrame
       Enabled = True
       ImageIndex = 7
     end
+    object miSepOptions: TMenuItem
+      Text = '-'
+    end
+    object miRevealFile: TMenuItem
+      Action = actRevealFile
+      Enabled = True
+      ImageIndex = 33
+    end
   end
   object odtvProjectFiles: TOpenDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
@@ -124,6 +132,13 @@ object ProjectFilesFrame: TProjectFilesFrame
       ImageIndex = 7
       OnExecute = actRemoveOtherFileExecute
       ImageIndex = 7
+    end
+    object actRevealFile: TAction
+      Category = 'options'
+      Text = 'Reveal file'
+      ImageIndex = 33
+      OnExecute = actRevealFileExecute
+      ImageIndex = 33
     end
   end
 end
