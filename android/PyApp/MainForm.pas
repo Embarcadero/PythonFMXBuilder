@@ -90,8 +90,10 @@ type
     procedure IncludeAppModulesToPath();
     function GetAppDefs(): TJSONObject;
     function GetDependencies(): TJSONArray;
+    function GetPackages(): TJSONArray;
     function GetMainFilePath(): string;
     procedure InstallDependencies();
+    procedure InstallPackages();
     procedure LoadMainScript();
     procedure RunDebugScript();
     procedure RunMainScript();
@@ -213,7 +215,7 @@ procedure TPyMainForm.Initialize;
 begin
   Log('TPyMainForm.Initialize', []);
   FAppDefs := GetAppDefs();
-  FInstaller :=  TInstallDependency.Create();
+  FInstaller := TInstallDependency.Create();
   DisableComponents();
   ReadArgs();
   ConfigureEngine();
@@ -221,6 +223,7 @@ begin
   ActivatePython();
   IncludeAppModulesToPath();
   InstallDependencies();
+  InstallPackages();
   LoadMainScript();
   EnableComponents();
 end;
@@ -294,6 +297,13 @@ begin
     RaiseGeneralFailure('Dependencies not set.');
 end;
 
+function TPyMainForm.GetPackages: TJSONArray;
+begin
+  Log('TPyMainForm.GetPackages', []);
+  if not FAppDefs.TryGetValue<TJSONArray>('packages', Result) then
+    RaiseGeneralFailure('Packages not set.');
+end;
+
 function TPyMainForm.GetMainFilePath(): string;
 begin
   Log('TPyMainForm.GetMainFilePath', []);
@@ -317,6 +327,24 @@ begin
     Exit;
 
   for var LDependency in GetDependencies() do begin
+    var LModuleName := (LDependency as TJSONObject).GetValue<string>('module_name');
+    var LFileName := (LDependency as TJSONObject).GetValue<string>('file_name');
+    var LFilePath := TPath.Combine(TPath.GetDocumentsPath(), LFileName);
+    if not FInstaller.IsInstalled(LModuleName, LFilePath) then
+      if not FInstaller.Install(LModuleName, LFilePath) then
+        RaiseGeneralFailure(Format('Failed to install %s.', [LFileName]))
+      else if TFile.Exists(LFilePath) and FInstaller.CanDelete(LFilePath) then
+        TFile.Delete(LFilePath);
+  end;
+end;
+
+procedure TPyMainForm.InstallPackages;
+begin
+  Log('TPyMainForm.InstallPackages', []);
+  if not Assigned(FInstaller) then
+    Exit;
+
+  for var LDependency in GetPackages() do begin
     var LModuleName := (LDependency as TJSONObject).GetValue<string>('module_name');
     var LFileName := (LDependency as TJSONObject).GetValue<string>('file_name');
     var LFilePath := TPath.Combine(TPath.GetDocumentsPath(), LFileName);

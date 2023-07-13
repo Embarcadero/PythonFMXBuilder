@@ -39,7 +39,8 @@ type
       const AFilter: TDirectory.TFilterPredicate = nil): TArray<string>;
     //App defs. file (used by the Android app)
     procedure CreateAppDefs(const AModel: TProjectModel);
-    procedure AddAppDefsModules(const AModel: TProjectModel; const AJSONArray: TJSONArray);
+    procedure AddAppDefsDependencies(const AModel: TProjectModel; const AJSONArray: TJSONArray);
+    procedure AddAppDefsPackages(const AModel: TProjectModel; const AJSONArray: TJSONArray);
     procedure TryAddAppDefsDebug(const AModel: TProjectModel; const AJSONArray: TJSONArray);
     //App basic info
     procedure UpdateManifest(const AModel: TProjectModel);
@@ -120,6 +121,20 @@ begin
 end;
 
 { TPreBuiltCopyService }
+
+procedure TAppService.AddAppDefsPackages(const AModel: TProjectModel;
+  const AJSONArray: TJSONArray);
+begin
+  for var LPackage in AModel.Files.Packages do begin
+    var LJSONDependency := TJSONObject.Create();
+    try
+      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LPackage.Name));
+      LJSONDependency.AddPair('file_name', LPackage.Name);
+    finally
+      AJSONArray.Add(LJSONDependency);
+    end;
+  end;
+end;
 
 procedure TAppService.AddAssetsInternalFileToDeployInfo(
   const AProjectName: string; const AFileName: string);
@@ -355,10 +370,10 @@ end;
 
 procedure TAppService.CopyModules(const AModel: TProjectModel);
 begin
-  for var LScript in AModel.Files.Files do begin
-    var LStream := TFileStream.Create(LScript, fmOpenRead);
+  for var LModule in AModel.Files.Modules do begin
+    var LStream := TFileStream.Create(LModule.Path, fmOpenRead);
     try
-      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+      AddFile(AModel, LModule.Name, LStream);
     finally
       LStream.Free();
     end;
@@ -367,10 +382,10 @@ end;
 
 procedure TAppService.CopyOtherFiles(const AModel: TProjectModel);
 begin
-  for var LScript in AModel.Files.Others do begin
-    var LStream := TFileStream.Create(LScript, fmOpenRead);
+  for var LOther in AModel.Files.Others do begin
+    var LStream := TFileStream.Create(LOther.Path, fmOpenRead);
     try
-      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+      AddFile(AModel, LOther.Name, LStream);
     finally
       LStream.Free();
     end;
@@ -379,10 +394,10 @@ end;
 
 procedure TAppService.CopyPackages(const AModel: TProjectModel);
 begin
-  for var LScript in AModel.Files.Packages do begin
-    var LStream := TFileStream.Create(LScript, fmOpenRead);
+  for var LPackage in AModel.Files.Packages do begin
+    var LStream := TFileStream.Create(LPackage.Path, fmOpenRead);
     try
-      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+      AddFile(AModel, LPackage.Name, LStream);
     finally
       LStream.Free();
     end;
@@ -436,10 +451,10 @@ end;
 
 procedure TAppService.CopyDependencies(const AModel: TProjectModel);
 begin
-  for var LScript in AModel.Files.Dependencies do begin
-    var LStream := TFileStream.Create(LScript, fmOpenRead);
+  for var LDependency in AModel.Files.Dependencies do begin
+    var LStream := TFileStream.Create(LDependency.Path, fmOpenRead);
     try
-      AddFile(AModel, TPath.GetFileName(LScript), LStream);
+      AddFile(AModel, LDependency.Name, LStream);
     finally
       LStream.Free();
     end;
@@ -461,14 +476,21 @@ begin
     LJSON.AddPair('python_version', AModel.PythonVersion.AsString());
     LJSON.AddPair('python_distribution', TPath.GetFileName(
       TBuilderPaths.GetPythonZipFile(AModel.PythonVersion, AModel.Architecture)));
-    LJSON.AddPair('main_file', AModel.Files.MainFile);
+    LJSON.AddPair('main_file', AModel.Files.Main);
 
     var LDependencies := TJSONArray.Create();
     try
-      AddAppDefsModules(AModel, LDependencies);
+      AddAppDefsDependencies(AModel, LDependencies);
       TryAddAppDefsDebug(AModel, LDependencies);
     finally
       LJSON.AddPair('dependencies', LDependencies);
+    end;
+
+    var LPackages := TJSONArray.Create();
+    try
+      AddAppDefsPackages(AModel, LPackages);
+    finally
+      LJSON.AddPair('packages', LPackages);
     end;
 
     TFile.WriteAllText(LAppDefsFiles, LJSON.ToJSON(), TEncoding.UTF8);
@@ -479,15 +501,14 @@ begin
   AddAssetsInternalFileToDeployInfo(AModel.ProjectName, APP_DEFS_FILE_NAME);
 end;
 
-procedure TAppService.AddAppDefsModules(const AModel: TProjectModel;
+procedure TAppService.AddAppDefsDependencies(const AModel: TProjectModel;
   const AJSONArray: TJSONArray);
 begin
   for var LDependency in AModel.Files.Dependencies do begin
     var LJSONDependency := TJSONObject.Create();
     try
-      var LFileName := TPath.GetFileName(LDependency);
-      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LFileName));
-      LJSONDependency.AddPair('file_name', LFileName);
+      LJSONDependency.AddPair('module_name', TPath.GetFileNameWithoutExtension(LDependency.Name));
+      LJSONDependency.AddPair('file_name', LDependency.Name);
     finally
       AJSONArray.Add(LJSONDependency);
     end;

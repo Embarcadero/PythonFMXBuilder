@@ -233,13 +233,13 @@ begin
     Exit(String.Empty);
 
   //We try to find the main script
-  if TFile.Exists(AProject.Files.MainFile) then
-    Exit(AProject.Files.MainFile);
+  if TFile.Exists(AProject.Files.Main) then
+    Exit(AProject.Files.Main);
 
   //If we don't have a main script, we try to get the first existent script
-  for var LScriptFile in AProject.Files.Files do begin
-    if TFile.Exists(LScriptFile) then
-      Exit(LScriptFile);
+  for var LModule in AProject.Files.Modules do begin
+    if TFile.Exists(LModule.Path) then
+      Exit(LModule.Path);
   end;
 
   Result := String.Empty;
@@ -560,10 +560,10 @@ begin
   LSourceNode.Text := 'Modules';
   LSourceNode.IsExpanded := true;
 
-  var LFiles := GetProjectServices().GetScriptFiles(FProjectModel);
-  for var LFile in LFiles do begin
-    var LItem := BuildNode(LSourceNode, ntModule, LFile);
-    LItem.Text := TPath.GetFileName(LFile);
+  var LModules := GetProjectServices().GetModules(FProjectModel);
+  for var LModule in LModules do begin
+    var LItem := BuildNode(LSourceNode, ntModule, LModule.Path);
+    LItem.Text := LModule.Name;
   end;
 end;
 
@@ -577,8 +577,8 @@ begin
 
   var LDeps := GetProjectServices().GetPackages(FProjectModel);
   for var LDep in LDeps do begin
-    var LItem := BuildNode(LPackageNode, ntPackage, LDep);
-    LItem.Text := TPath.GetFileName(LDep);
+    var LItem := BuildNode(LPackageNode, ntPackage, LDep.Path);
+    LItem.Text := LDep.Name;
   end;
 end;
 
@@ -590,10 +590,10 @@ begin
   var LBundleNode := BuildNode(ARoot, ntRootOtherFile, String.Empty);
   LBundleNode.Text := 'Other files';
 
-  var LDeps := GetProjectServices().GetOtherFiles(FProjectModel);
-  for var LDep in LDeps do begin
-    var LItem := BuildNode(LBundleNode, ntOtherFile, LDep);
-    LItem.Text := TPath.GetFileName(LDep);
+  var LOthers := GetProjectServices().GetOtherFiles(FProjectModel);
+  for var LOther in LOthers do begin
+    var LItem := BuildNode(LBundleNode, ntOtherFile, LOther.Path);
+    LItem.Text := LOther.Name;
   end;
 end;
 
@@ -611,7 +611,7 @@ begin
   actSetToMain.Enabled := Assigned(tvProjectFiles.Selected)
     and NodeIsType(tvProjectFiles.Selected, TNodeType.ntModule)
     and Assigned(FProjectModel)
-    and not GetProjectServices().IsMainScriptFile(FProjectModel,
+    and not GetProjectServices().IsMainModule(FProjectModel,
       GetItemFilePath(tvProjectFiles.Selected));
 
   //Packages
@@ -650,15 +650,16 @@ begin
     //Save file into the project
     var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
     try
-      if GetProjectServices().AddOtherFile(FProjectModel, odtvProjectFiles.FileName) then
+      var LOther := GetProjectServices().AddOtherFile(FProjectModel, odtvProjectFiles.FileName);
+      if Assigned(LOther) then
       begin
         //Creates the tree item
         var LItem := BuildNode(
           GetNodeByNodeType(TNodeType.ntRootOtherFile),
           TNodeType.ntOtherFile,
-          odtvProjectFiles.FileName);
+          LOther.Path);
 
-        LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
+        LItem.Text := LOther.Name;
 
         SaveChanges();
 
@@ -678,15 +679,16 @@ begin
     //Save file into the project
     var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
     try
-      if GetProjectServices().AddPackage(FProjectModel, odtvProjectFiles.FileName) then
+      var LPackage := GetProjectServices().AddPackage(FProjectModel, odtvProjectFiles.FileName);
+      if Assigned(LPackage) then
       begin
         //Creates the tree item
         var LItem := BuildNode(
           GetNodeByNodeType(TNodeType.ntRootPackage),
           TNodeType.ntPackage,
-          odtvProjectFiles.FileName);
+          LPackage.Path);
 
-        LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
+        LItem.Text := LPackage.Name;
 
         SaveChanges();
 
@@ -706,18 +708,20 @@ begin
     //Save file into the project
     var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
     try
-      if GetProjectServices().AddScriptFile(FProjectModel, odtvProjectFiles.FileName) then
+      var LModule := GetProjectServices().AddModule(FProjectModel, odtvProjectFiles.FileName);
+      if Assigned(LModule) then
       begin
         //Creates the tree item
         var LItem := BuildNode(
           GetNodeByNodeType(TNodeType.ntRootModule),
           ntModule,
-          odtvProjectFiles.FileName);
-        LItem.Text := TPath.GetFileName(odtvProjectFiles.FileName);
+          LModule.Path);
+
+        LItem.Text := LModule.Name;
 
         //Add as the deafult script file if none
-        if FProjectModel.Files.MainFile.IsEmpty() then
-          GetProjectServices().SetMainScriptFile(FProjectModel, odtvProjectFiles.FileName);
+        if FProjectModel.Files.Main.IsEmpty() then
+          GetProjectServices().SetMainModule(FProjectModel, LModule.Path);
 
         SaveChanges();
         tvProjectFiles.Selected := LItem;
@@ -797,7 +801,7 @@ begin
 
   LNode.Free();
 
-  GetProjectServices().RemoveScriptFile(FProjectModel, LInfo.NodeData.AsString);
+  GetProjectServices().RemoveModule(FProjectModel, LInfo.NodeData.AsString);
   SaveChanges();
   BroadcastCloseFile(LInfo.NodeData.AsString);
 end;
@@ -832,7 +836,7 @@ end;
 
 procedure TProjectFilesFrame.actSetToMainExecute(Sender: TObject);
 begin
-  GetProjectServices().SetMainScriptFile(FProjectModel,
+  GetProjectServices().SetMainModule(FProjectModel,
     GetItemFilePath(tvProjectFiles.Selected));
   SaveChanges();
 end;
