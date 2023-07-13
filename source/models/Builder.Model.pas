@@ -24,7 +24,7 @@ type
     property ModelName: string read FModelName write FModelName;
   end;
 
-  JSONOwnedReflectAttribute = class(JSonReflectAttribute)
+  JSONOwnedReflectAttribute = class(JsonReflectAttribute)
   public
     constructor Create();
   end;

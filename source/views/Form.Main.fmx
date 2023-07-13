@@ -1463,16 +1463,22 @@ inherited MainForm: TMainForm
     object miFiles: TMenuItem
       Text = '&Files'
       object miRemoveFile: TMenuItem
+        Action = frmProjectFiles.actAddModule
+        Enabled = True
         Locked = True
         ImageIndex = 6
       end
       object miAddFile: TMenuItem
+        Action = frmProjectFiles.actRemoveModule
+        Enabled = True
         Locked = True
         ImageIndex = 7
       end
       object miSetToMain: TMenuItem
+        Action = frmProjectFiles.actSetToMain
+        Enabled = True
         Locked = True
-        Text = 'Set to main'
+        ImageIndex = 5
       end
     end
     object miProject: TMenuItem

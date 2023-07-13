@@ -9,6 +9,7 @@ uses
   System.Types,
   Builder.Types,
   Builder.Model.Project,
+  Builder.Model.Project.Files,
   Builder.Model.Environment;
 
 type
@@ -65,37 +66,41 @@ type
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
 
-    function AddMainScriptFile(const AModel: TProjectModel): string;
-    procedure SetMainScriptFile(const AModel: TProjectModel;
+    //Main module
+    function CreateMainModule(const AModel: TProjectModel): string;
+    procedure SetMainModule(const AModel: TProjectModel;
       const AFilePath: string);
-    function IsMainScriptFile(const AModel: TProjectModel;
+    function IsMainModule(const AModel: TProjectModel;
       const AFilePath: string): boolean;
 
-    function AddScriptFile(const AModel: TProjectModel;
-      const AFilePath: string): boolean;
-    procedure RemoveScriptFile(const AModel: TProjectModel;
-      const AFilePath: string);
-    function GetScriptFiles(const AModel: TProjectModel): TArray<string>;
+    //Modules
+    function AddModule(const AModel: TProjectModel;
+      const AFilePath: string): TProjectFilesModule;
+    procedure RemoveModule(const AModel: TProjectModel; const AFilePath: string);
+    function GetModules(const AModel: TProjectModel): TProjectFilesModules;
 
+    //Dependencies
     function AddDependency(const AModel: TProjectModel;
-      const AFilePath: string): boolean;
+      const AFilePath: string): TProjectFilesDependency;
     procedure RemoveDependency(const AModel: TProjectModel;
       const AFilePath: string);
-    function GetDependencies(const AModel: TProjectModel): TArray<string>;
+    function GetDependencies(const AModel: TProjectModel): TProjectFilesDependencies;
     procedure ClearDependencies(const AModel: TProjectModel);
 
+    //Packages
     function AddPackage(const AModel: TProjectModel;
-      const AFilePath: string): boolean;
+      const AFilePath: string): TProjectFilesPackage;
     procedure RemovePackage(const AModel: TProjectModel;
       const AFilePath: string);
-    function GetPackages(const AModel: TProjectModel): TArray<string>;
+    function GetPackages(const AModel: TProjectModel): TProjectFilesPackages;
     procedure ClearPackages(const AModel: TProjectModel);
 
+    //Other files
     function AddOtherFile(const AModel: TProjectModel;
-      const AFilePath: string): boolean;
+      const AFilePath: string): TProjectFilesOther;
     procedure RemoveOtherFile(const AModel: TProjectModel;
       const AFilePath: string);
-    function GetOtherFiles(const AModel: TProjectModel): TArray<string>;
+    function GetOtherFiles(const AModel: TProjectModel): TProjectFilesOthers;
     procedure ClearOtherFiles(const AModel: TProjectModel);
   end;
 

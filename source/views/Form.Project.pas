@@ -103,14 +103,14 @@ begin
 
     with Files do begin
       cbMainFile.Clear();
-      for var LFile in Files do begin
-        cbMainFile.Items.Add(TPath.GetFileName(LFile));
+      for var LFile in Modules do begin
+        cbMainFile.Items.Add(LFile.Name);
       end;
 
-      if MainFile.IsEmpty() then
+      if Main.IsEmpty() then
         cbMainFile.ItemIndex := 0
       else
-        cbMainFile.ItemIndex := cbMainFile.Items.IndexOf(MainFile);
+        cbMainFile.ItemIndex := cbMainFile.Items.IndexOf(Main);
     end;
 
     with Icons do begin
@@ -147,7 +147,7 @@ begin
 
     with Files do begin
       if Assigned(cbMainFile.Selected) then
-        MainFile := cbMainFile.Selected.Text;
+        Main := cbMainFile.Selected.Text;
     end;
 
     with Icons do begin
