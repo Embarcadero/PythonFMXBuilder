@@ -295,9 +295,10 @@
             <Form>PyMainForm</Form>
         </DCCReference>
         <DCCReference Include="Dependencies.Setup.pas"/>
-        <DCCReference Include="Dependencies.Pip.pas"/>
+        <DCCReference Include="Dependencies.PipWheel.pas"/>
         <DCCReference Include="Dependencies.pas"/>
-        <DCCReference Include="Dependencies.SysPath.pas"/>
+        <DCCReference Include="Dependencies.ZipImports.pas"/>
+        <DCCReference Include="Dependencies.ZipPackage.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
