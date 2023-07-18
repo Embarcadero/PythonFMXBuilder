@@ -8,7 +8,7 @@ uses
   FMX.Dialogs, FMX.StdCtrls, FMX.TMSBaseControl, FMX.TMSMemo, FMX.Controls.Presentation,
   Frame.Editor.TabItem, Builder.Chain, BaseProtocol, BaseProtocol.Types,
   BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client,
-  Builder.Storage, Builder.Model.Environment, Builder.Services, FMX.TabControl;
+  Builder.Model.Environment, Builder.Services, FMX.TabControl;
 
 type
   TTMSMemoEditorFrame = class(TFrame, ITextEditor)
@@ -16,8 +16,8 @@ type
     procedure mmEditorGutterClick(Sender: TObject; LineNo: Integer);
   private
     FFileName: string;
+    FEnvironmentServices: IEnvironmentServices;
     FProjectServices: IProjectServices;
-    FEnvironmentStorage: IStorage<TEnvironmentModel>;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
     FSetupDebugger: IDisconnectable;
@@ -41,8 +41,7 @@ implementation
 uses
   System.IOUtils, System.Math,
   Container.DataSet.Debugger,
-  Builder.Services.Factory,
-  Builder.Storage.Default;
+  Builder.Services.Factory;
 
 {$R *.fmx}
 
@@ -52,7 +51,7 @@ constructor TTMSMemoEditorFrame.Create(AOwner: TComponent);
 begin
   inherited;
   FProjectServices := TServiceSimpleFactory.CreateProject();
-  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
 
   mmEditor.ActiveLineSettings.ActiveLineAtCursor := false;
 
@@ -102,22 +101,18 @@ end;
 
 function TTMSMemoEditorFrame.GetRemoteRootPath(const AFileName: string): string;
 begin
-  var LProjectModel := FProjectServices.GetActiveProject();
-  var LEnvironmentModel: TEnvironmentModel;
-  if FEnvironmentStorage.LoadModel(LEnvironmentModel) then
-    try
-      Result := LEnvironmentModel.RemoteDebuggerRoot
-        .Replace('$(package_name)', LProjectModel.PackageName, [rfIgnoreCase])
-          .Trim();
+  if FEnvironmentServices.HasActiveEnvironment() then begin
+    var LProjectModel := FProjectServices.GetActiveProject();
+    var LEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
+    Result := LEnvironmentModel.RemoteDebuggerRoot
+      .Replace('$(package_name)', LProjectModel.PackageName, [rfIgnoreCase])
+        .Trim();
 
-      if not Result.EndsWith('/') then
-        Result := Result + '/';
+    if not Result.EndsWith('/') then
+      Result := Result + '/';
 
-      Result := Result + TPath.GetFileName(AFileName);
-    finally
-      LEnvironmentModel.Free();
-    end
-  else
+    Result := Result + TPath.GetFileName(AFileName);
+  end else
     Result := String.Empty;
 end;
 

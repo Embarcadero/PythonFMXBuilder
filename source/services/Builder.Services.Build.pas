@@ -11,7 +11,6 @@ uses
   Builder.Model.Project,
   Builder.Model.Environment,
   Builder.Services,
-  Builder.Storage,
   Builder.Model;
 
 type
@@ -25,11 +24,9 @@ type
     FEnvironmentModel: TEnvironmentModel;
     //Services
     FProjectServices: IProjectServices;
+    FEnvironmentServices: IEnvironmentServices;
     FAppServices: IAppServices;
     FAdbServices: IAdbServices;
-    //Storages
-    FEnvironmentStorage: IStorage<TEnvironmentModel>;
-    FProjectStorage: IStorage<TProjectModel>;
     //Events
     FDebugSessionEndedEvent: IDisconnectable;
     //Getters and setters
@@ -80,20 +77,17 @@ uses
   System.IOUtils,
   Builder.Paths,
   Builder.Exception,
-  Builder.Storage.Factory,
-  Builder.Services.Factory,
-  Builder.Storage.Default;
+  Builder.Services.Factory;
 
 { TBuildService }
 
 constructor TBuildService.Create;
 begin
   inherited;
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
   FProjectServices := TServiceSimpleFactory.CreateProject();
   FAppServices := TServiceSimpleFactory.CreateApp();
   FAdbServices := TServiceSimpleFactory.CreateAdb();
-  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  FProjectStorage := TDefaultStorage<TProjectModel>.Make();
   FDebugSessionEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
@@ -115,13 +109,11 @@ end;
 
 procedure TBuildService.UpdateModels;
 begin
-  if not FEnvironmentStorage.LoadModel(FEnvironmentModel) then
-    raise EEmptySettings.Create('The Environment Settings are empty.');
+  FEnvironmentServices.CheckActiveEnvironment();
+  FEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
 
+  FProjectServices.CheckActiveProject();
   FProjectModel := FProjectServices.GetActiveProject();
-  if not Assigned(FProjectModel)
-    or not FProjectStorage.LoadModel(FProjectModel, String.Empty, FProjectModel.Id) then
-      raise EEmptySettings.Create('The Project Settings are empty.');
 
   var LModelErrors := TStringList.Create();
   try

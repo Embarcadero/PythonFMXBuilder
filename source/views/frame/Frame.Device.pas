@@ -20,8 +20,8 @@ type
     FRunning: boolean;
     FUpdate: boolean;
     FDevices: TStrings;
+    FEnvironmentServices: IEnvironmentServices;
     FAdbServices: IAdbServices;
-    FAdbPath: string;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
     procedure LoadDevices();
@@ -39,7 +39,6 @@ type
 implementation
 
 uses
-  Builder.Storage.Factory,
   Builder.Services.Factory;
 
 {$R *.fmx}
@@ -49,10 +48,11 @@ uses
 constructor TDeviceFrame.Create(AOwner: TComponent);
 begin
   inherited;
+  FUpdate := true;
   FDevices := TStringList.Create();
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
   FAdbServices := TServiceSimpleFactory.CreateAdb();
   StartDevicesMonitor();
-  LoadDevices();
 
   FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
@@ -110,12 +110,16 @@ end;
 
 procedure TDeviceFrame.LoadDevices;
 begin
-  //Users might update environment settings while task is running
-  var LStorage := TStorageSimpleFactory.CreateEnvironment();
-  FAdbPath := LStorage.GetAdbPath();
+  FEnvironmentServices.CheckActiveEnvironment();
+  var LModel := FEnvironmentServices.GetActiveEnvironment();
+  if not Assigned(LModel) then
+    Exit;
+
+  var LAdbLocation := LModel.AdbLocation;
+
   FDevices.Clear();
   cbDevice.Clear();
-  if not FAdbPath.IsEmpty() then begin
+  if not LAdbLocation.IsEmpty() then begin
     aiDevice.Enabled := true;
     aiDevice.Visible := true;
     btnRefreshDevice.Enabled := false;
@@ -129,11 +133,17 @@ begin
   FDevicesMonitor := TThread.CreateAnonymousThread(procedure begin
     try
       while FRunning do begin
-        { TODO : Listen to devices updates }
-        //Let's listen to user's update request
-        if FUpdate and not FAdbPath.IsEmpty() then begin
+        Sleep(100);
+
+        var LModel := FEnvironmentServices.GetActiveEnvironment();
+        if not Assigned(LModel) then
+          Continue;
+
+        var LAdbLocation := LModel.AdbLocation;
+        if FUpdate and not LAdbLocation.IsEmpty() then
           try
             FAdbServices.ListDevices(FDevices);
+
             TThread.Queue(TThread.Current,
               procedure
               begin
@@ -150,8 +160,6 @@ begin
           finally
             FUpdate := false;
           end;
-        end;
-        Sleep(100);
       end;
     finally
       TThread.RemoveQueuedEvents(TThread.Current);

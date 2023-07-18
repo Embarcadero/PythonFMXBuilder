@@ -8,6 +8,7 @@ uses
 type
   TServiceSimpleFactory = class
   public
+    class function CreateEnvironment(): IEnvironmentServices;
     class function CreateAdb(): IADBServices;
     class function CreateProject(): IProjectServices;
     class function CreateApp(): IAppServices;
@@ -19,6 +20,7 @@ type
 implementation
 
 uses
+  Builder.Services.Environment,
   Builder.Services.ADB,
   Builder.Services.Project,
   Builder.Services.App,
@@ -56,6 +58,11 @@ end;
 class function TServiceSimpleFactory.CreateDebug: IDebugServices;
 begin
   Result := TDebugService.Create();
+end;
+
+class function TServiceSimpleFactory.CreateEnvironment: IEnvironmentServices;
+begin
+  Result := TEnvironmentService.Create();
 end;
 
 end.

@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
-  FMX.Objects, FMX.Menus, Form.Base, Builder.Chain, Builder.Services,
+  FMX.Objects, FMX.Menus, Form.Base, Builder.Chain,
   Frame.Loading, Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
   Frame.Editor.Control, FMX.TreeView, Frame.Device, Frame.LeftMenu,
   Frame.EntityButtons, Frame.BuildButtons, Frame.DebugButtons, Frame.LeftPanel,
@@ -78,7 +78,6 @@ type
         TAsyncOperation.RunProject,
         TAsyncOperation.DebugProject];
   private
-    FProjectServices: IProjectServices;
     FAsyncExcpetionEvent: IDisconnectable;
     FAsyncOperationStartedEvent: IDisconnectable;
     FAsyncOperationEndedEvent: IDisconnectable;
@@ -103,8 +102,7 @@ uses
   System.Zip,
   FMX.DialogService,
   Container.Images,
-  Container.Menu.Actions,
-  Builder.Services.Factory;
+  Container.Menu.Actions;
 
 {$R *.fmx}
 
@@ -114,7 +112,6 @@ begin
   FBackgroundOperationCount := 0;
   loLeftPanel.Visible := false;
   spLeftPanel.Visible := false;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
 
   FAsyncExcpetionEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncExceptionEvent>(
     procedure(const AEventNotification: TAsyncExceptionEvent)

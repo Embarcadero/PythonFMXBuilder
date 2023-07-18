@@ -28,6 +28,7 @@ type
     FEnvironmentModel: TEnvironmentModel;
     //Services
     FProjectServices: IProjectServices;
+    FEnvironmentServices: IEnvironmentServices;
     FAppServices: IAppServices;
     FAdbServices: IAdbServices;
     //DAP Debugger
@@ -108,8 +109,6 @@ implementation
 uses
   System.DateUtils, System.Net.Socket, System.IOUtils,
   Builder.Exception,
-  Builder.Storage.Default,
-  Builder.Storage.Environment,
   Builder.Services.Factory;
 
 { TDebugService }
@@ -121,6 +120,7 @@ begin
   FCurrentStoppedThreadId := 0;
   FConnectionStatus := TDebuggerConnectionStatus.OutOfWork;
   FProjectServices := TServiceSimpleFactory.CreateProject();
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
   FAppServices := TServiceSimpleFactory.CreateApp();
   FAdbServices := TServiceSimpleFactory.CreateAdb();
   TEventsRegistration.RegisterAll();
@@ -278,8 +278,7 @@ begin
     raise EDebuggerIsBusy.Create('Debugger is busy');
 
   FProjectModel := FProjectServices.GetActiveProject();
-  var LEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  LEnvironmentStorage.LoadModel(FEnvironmentModel);
+  FEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
 
   DoStart(AHost, APort, ATimeOut);
 end;

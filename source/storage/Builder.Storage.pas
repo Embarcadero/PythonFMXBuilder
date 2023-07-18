@@ -26,11 +26,6 @@ type
       const AEntity: string = ''; const AId: string = ''): boolean;
   end;
 
-  IStorageEnvironment = interface
-    ['{523D8BF9-23F6-49DD-BFA5-234B8AA5D7E8}']
-    function GetAdbPath(): string;
-  end;
-
 implementation
 
 end.

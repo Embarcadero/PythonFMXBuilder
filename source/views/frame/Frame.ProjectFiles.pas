@@ -7,8 +7,8 @@ uses
   System.Actions, FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs,
   FMX.StdCtrls, FMX.Layouts, FMX.TreeView, FMX.Menus, System.ImageList,
   FMX.ImgList, FMX.ActnList,
-  Builder.Services, Builder.Types, Builder.Chain, Builder.Model.Project,
-  Container.Images;
+  Container.Images,
+  Builder.Services, Builder.Types, Builder.Chain, Builder.Model.Project;
 
 type
   TNodeType = (

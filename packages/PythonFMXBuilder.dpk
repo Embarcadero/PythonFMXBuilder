@@ -47,8 +47,6 @@ contains
   Builder.Services in '..\source\services\Builder.Services.pas',
   Builder.Services.Project in '..\source\services\Builder.Services.Project.pas',
   Builder.Storage.Default in '..\source\storage\Builder.Storage.Default.pas',
-  Builder.Storage.Environment in '..\source\storage\Builder.Storage.Environment.pas',
-  Builder.Storage.Factory in '..\source\storage\Builder.Storage.Factory.pas',
   Builder.Storage.Json in '..\source\storage\Builder.Storage.Json.pas',
   Builder.Storage in '..\source\storage\Builder.Storage.pas',
   Builder.Exception in '..\source\Builder.Exception.pas',
@@ -57,7 +55,8 @@ contains
   Builder.Services.Build in '..\source\services\Builder.Services.Build.pas',
   Builder.Paths in '..\source\Builder.Paths.pas',
   Builder.Types in '..\source\Builder.Types.pas',
-  Builder.Services.UnboundPython in '..\source\services\Builder.Services.UnboundPython.pas';
+  Builder.Services.UnboundPython in '..\source\services\Builder.Services.UnboundPython.pas',
+  Builder.Services.Environment in '..\source\services\Builder.Services.Environment.pas';
 
 end.
 

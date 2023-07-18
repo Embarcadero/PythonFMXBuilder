@@ -7,7 +7,8 @@ uses
   System.Threading, System.Generics.Collections, FMX.Types, FMX.Controls, FMX.Forms,
   FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Objects, FMX.ListBox, FMX.Ani,
   FMX.Controls.Presentation, FMX.Edit, FMX.Layouts, FMX.ImgList, System.Actions,
-  FMX.ActnList, Form.Data, Builder.Model.Environment;
+  FMX.ActnList, Form.Data, Builder.Model.Environment,
+  Builder.Services, Builder.Services.Factory;
 
 type
   [Entity(TEnvironmentModel)]
@@ -56,9 +57,12 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure edtSdkBasePathChange(Sender: TObject);
     procedure edtJdkBasePathChange(Sender: TObject);
+    procedure actSaveExecute(Sender: TObject);
   private
     FTasks: TList<ITask>;
     FIsReady: boolean;
+    //Services
+    FEnvironmentServices: IEnvironmentServices;
     function CreateAni(const AControl: TPresentedControl): TAniIndicator;
     procedure LoadEditContent(const AEdit: TEdit; ATask: TFunc<string>);
     procedure LoadToolPath(const ABasePath, ATool: string; const AEdit: TEdit);
@@ -66,6 +70,7 @@ type
     procedure LoadJdkToolsPath(const ABasePath: string);
     function CanUpdatePaths(): boolean;
   protected
+
     procedure Load(); override;
 
     procedure FormUpdate(); override;
@@ -89,6 +94,7 @@ procedure TEnvironmentForm.FormCreate(Sender: TObject);
 begin
   inherited;
   FTasks := TList<ITask>.Create();
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
 end;
 
 procedure TEnvironmentForm.FormDestroy(Sender: TObject);
@@ -122,6 +128,13 @@ begin
 
   if not edtJdkBasePath.Text.IsEmpty() then
     LoadJdkToolsPath(edtJdkBasePath.Text);
+end;
+
+procedure TEnvironmentForm.actSaveExecute(Sender: TObject);
+begin
+  inherited;
+  FEnvironmentServices.UnloadEnvironment();
+  FEnvironmentServices.LoadEnvironment();
 end;
 
 function TEnvironmentForm.CanUpdatePaths: boolean;
