@@ -20,6 +20,17 @@ type
       const AAsyncCallback: TAsyncCallback = nil): IAsyncResult;
   end;
 
+  IEnvironmentServices = interface
+    ['{2E79F36D-7BD5-4141-A567-066B80BEF012}']
+    procedure SaveEnvironment(const AEnvironment: TEnvironmentModel);
+    function LoadEnvironment(): TEnvironmentModel;
+    procedure UnLoadEnvironment();
+
+    function HasActiveEnvironment(): boolean;
+    function GetActiveEnvironment(): TEnvironmentModel;
+    procedure CheckActiveEnvironment();
+  end;
+
   IAdbServices = interface
     ['{BAF1EE13-B459-4EBC-9E81-7C782F285F22}']
     procedure ListDevices(const AStrings: TStrings);
@@ -60,9 +71,11 @@ type
       const AAddMainScript: boolean = true): TProjectModel;
     procedure SaveProject(const AProject: TProjectModel);
     function LoadProject(const AProjectName: string): TProjectModel;
+    procedure UnLoadProject();
     function ListProjects(): TArray<string>;
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
+    function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
 

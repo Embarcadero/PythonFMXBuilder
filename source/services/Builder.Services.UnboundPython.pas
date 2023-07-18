@@ -6,14 +6,13 @@ uses
   System.SysUtils,
   Builder.Types,
   Builder.Services,
-  Builder.Storage,
   Builder.Model.Environment;
 
 type
   TUnboundPythonServices = class(TInterfacedObject, IUnboundPythonServices)
   private
     FAdbServices: IAdbServices;
-    FEnvironmentStorage: IStorage<TEnvironmentModel>;
+    FEnvironmentServices: IEnvironmentServices;
     FEnvironmentModel: TEnvironmentModel;
   public
     constructor Create();
@@ -36,7 +35,6 @@ uses
   System.IOUtils,
   Builder.Paths,
   Builder.Exception,
-  Builder.Storage.Default,
   Builder.Services.Factory;
 
 { TUnboundPythonServices }
@@ -45,9 +43,8 @@ constructor TUnboundPythonServices.Create;
 begin
   inherited;
   FAdbServices := TServiceSimpleFactory.CreateAdb();
-  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  if not FEnvironmentStorage.LoadModel(FEnvironmentModel) then
-    raise EEmptySettings.Create('The Environment Settings are empty.');
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
+  FEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
 end;
 
 destructor TUnboundPythonServices.Destroy;

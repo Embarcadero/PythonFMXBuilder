@@ -27,7 +27,8 @@ type
     function HasProject(const AProjectName: string): boolean;
     function RemoveProject(const AProjectName: string): boolean;
 
-    
+
+    function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
 
@@ -119,6 +120,11 @@ end;
 function TProjectService.GetProjectFilesPath(const AProjectName: string): string;
 begin
   Result := TPath.Combine(GetBasePath(), AProjectName);
+end;
+
+function TProjectService.HasActiveProject: boolean;
+begin
+  Result := Assigned(FActiveProject);
 end;
 
 function TProjectService.HasProject(const AProjectName: string): boolean;

@@ -17,7 +17,6 @@ uses
   Builder.Model.Project,
   Builder.Model.Environment,
   Builder.Services,
-  Builder.Storage,
   Builder.Model;
 
 type
@@ -75,15 +74,13 @@ type
     //Models
     FProjectModel: TProjectModel;
     //Services
+    FEnvironmentServices: IEnvironmentServices;
     FProjectServices: IProjectServices;
     FAppServices: IAppServices;
-    //Storages
-    FEnvironmentStorage: IStorage<TEnvironmentModel>;
-    FProjectStorage: IStorage<TProjectModel>;
     //Builder
-    FBuilder: IBuildServices;
+    FBuilderServices: IBuildServices;
     //Debugger
-    FDebugger: IDebugServices;
+    FDebuggerServices: IDebugServices;
     function IsLoadingProject(): boolean; inline;
     function HasActiveProject(): boolean; inline;
     function GetActionEnabledByTag(AAction: TBasicAction): boolean;
@@ -110,19 +107,16 @@ uses
   FMX.DialogService,
   Container.Images,
   Form.Factory,
-  Builder.Storage.Factory,
-  Builder.Services.Factory,
-  Builder.Storage.Default;
+  Builder.Services.Factory;
 
 constructor TMenuActionsContainer.Create(AOwner: TComponent);
 begin
   inherited;
   FProjectServices := TServiceSimpleFactory.CreateProject();
   FAppServices := TServiceSimpleFactory.CreateApp();
-  FEnvironmentStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  FProjectStorage := TDefaultStorage<TProjectModel>.Make();
-  FBuilder := TServiceSimpleFactory.CreateBuild();
-  FDebugger := TServiceSimpleFactory.CreateDebug();
+  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
+  FBuilderServices := TServiceSimpleFactory.CreateBuild();
+  FDebuggerServices := TServiceSimpleFactory.CreateDebug();
 
   FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
     procedure(const AEventNotification: TAsyncOperationStartedEvent)
@@ -152,7 +146,7 @@ procedure TMenuActionsContainer.actBuildCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
   end);
@@ -161,7 +155,7 @@ end;
 procedure TMenuActionsContainer.actBuildCurrentProjectExecute(Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.Run(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
   end);
@@ -170,11 +164,11 @@ end;
 procedure TMenuActionsContainer.actDebugCurrentProjectAsyncExecute(Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
-    AProxy.DebugActiveProject(FDebugger);
+    AProxy.DebugActiveProject(FDebuggerServices);
   end);
 end;
 
@@ -182,7 +176,7 @@ procedure TMenuActionsContainer.actDeployCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
@@ -192,7 +186,7 @@ end;
 procedure TMenuActionsContainer.actDeployCurrentProjectExecute(Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.Run(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
@@ -255,7 +249,7 @@ procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.RunAsync(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
@@ -266,7 +260,7 @@ end;
 procedure TMenuActionsContainer.actRunCurrentProjectExecute(Sender: TObject);
 begin
   TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
-  FBuilder.Run(procedure(AProxy: IBuilderTasks) begin
+  FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
@@ -276,12 +270,12 @@ end;
 
 procedure TMenuActionsContainer.actContinueExecute(Sender: TObject);
 begin
-  FDebugger.Continue();
+  FDebuggerServices.Continue();
 end;
 
 procedure TMenuActionsContainer.actPauseExecute(Sender: TObject);
 begin
-  FDebugger.Pause();
+  FDebuggerServices.Pause();
 end;
 
 procedure TMenuActionsContainer.actSaveAllStateExecute(Sender: TObject);
@@ -298,22 +292,22 @@ end;
 
 procedure TMenuActionsContainer.actStepInExecute(Sender: TObject);
 begin
-  FDebugger.StepIn();
+  FDebuggerServices.StepIn();
 end;
 
 procedure TMenuActionsContainer.actStepOutExecute(Sender: TObject);
 begin
-  FDebugger.StepOut();
+  FDebuggerServices.StepOut();
 end;
 
 procedure TMenuActionsContainer.actStepOverExecute(Sender: TObject);
 begin
-  FDebugger.StepOver();
+  FDebuggerServices.StepOver();
 end;
 
 procedure TMenuActionsContainer.actStopExecute(Sender: TObject);
 begin
-  FDebugger.Stop();
+  FDebuggerServices.Stop();
 end;
 
 procedure TMenuActionsContainer.actUpdateCurrentProjectExecute(Sender: TObject);
@@ -344,62 +338,62 @@ begin
   var LPredicate1 := function(): boolean
   begin
     Result := not IsLoadingProject()
-      and not FBuilder.IsBuilding
-        and not FDebugger.IsDebugging
+      and not FBuilderServices.IsBuilding
+        and not FDebuggerServices.IsDebugging
   end;
 
   var LPredicate2 := function(): boolean
   begin
     Result := HasActiveProject()
       and not IsLoadingProject()
-        and not FBuilder.IsBuilding
-          and not FDebugger.IsDebugging;
+        and not FBuilderServices.IsBuilding
+          and not FDebuggerServices.IsDebugging;
   end;
 
   var LPredicate3 := function(): boolean
   begin
-    Result := FDebugger.CanStepIn();
+    Result := FDebuggerServices.CanStepIn();
   end;
 
   var LPredicate4 := function(): boolean
   begin
-    Result := FDebugger.CanStepOver();
+    Result := FDebuggerServices.CanStepOver();
   end;
 
   var LPredicate5 := function(): boolean
   begin
-    Result := FDebugger.CanStepOut();
+    Result := FDebuggerServices.CanStepOut();
   end;
 
   var LPredicate6 := function(): boolean
   begin
-    Result := FDebugger.CanPause();
+    Result := FDebuggerServices.CanPause();
   end;
 
   var LPredicate7 := function(): boolean
   begin
-    Result := FDebugger.CanStop();
+    Result := FDebuggerServices.CanStop();
   end;
 
   var LPredicate8 := function(): boolean
   begin
-    Result := FDebugger.CanContinue();
+    Result := FDebuggerServices.CanContinue();
   end;
 
   var LPredicate9 := function(): boolean
   begin
     Result := HasActiveProject()
       and not IsLoadingProject()
-        and not FBuilder.IsBuilding
-          and not FDebugger.IsDebugging;
+        and not FBuilderServices.IsBuilding
+          and not FDebuggerServices.IsDebugging;
   end;
 
   var LPredicate10 := function(): boolean
   begin
     Result := HasActiveProject()
       and not IsLoadingProject()
-        and not FBuilder.IsBuilding
-          and FDebugger.CanContinue();
+        and not FBuilderServices.IsBuilding
+          and FDebuggerServices.CanContinue();
   end;
 
   case AAction.Tag of
