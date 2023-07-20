@@ -8,6 +8,11 @@ uses
 type
   TBuilderPaths = record
   public
+    //Workspace
+    class function WorkspaceFolder(): string; static;
+    class function RecommendProjectName(const AWorkspace: string): string; static;
+    class function RecommendModuleName(const AProjectName: string): string; static;
+    class function PhantomProjectName(const AWorkspace: string): string; static;
     //Python embeddable
     class function GetPythonFolder(): string; static;
     class function GetDistributionFolder(): string; static;
@@ -221,6 +226,50 @@ end;
 class function TBuilderPaths.GetRpycScriptPath: string;
 begin
   Result := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'rpyc.py');
+end;
+
+class function TBuilderPaths.PhantomProjectName(
+  const AWorkspace: string): string;
+begin
+  var I := 1;
+  repeat
+    Result := TPath.Combine(
+      TBuilderPaths.WorkspaceFolder(),
+      'Project' + I.ToString() + '.pyfmxproj');
+    Inc(I);
+  until not TFile.Exists(Result);
+end;
+
+class function TBuilderPaths.RecommendModuleName(
+  const AProjectName: string): string;
+begin
+  var I := 1;
+  repeat
+    Result := TPath.Combine(
+      TPath.GetDirectoryName(AProjectName),
+      'module' + I.ToString() + '.py');
+    Inc(I);
+  until not TDirectory.Exists(Result);
+end;
+
+class function TBuilderPaths.RecommendProjectName(
+  const AWorkspace: string): string;
+begin
+  var LProjectName := String.Empty;
+  var I := 1;
+  repeat
+    LProjectName := 'Project' + I.ToString();
+    Result := TPath.Combine(TBuilderPaths.WorkspaceFolder(), LProjectName);
+    Inc(I);
+  until not TDirectory.Exists(Result);
+  Result := TPath.Combine(Result, LProjectName + '.pyfmxproj');
+end;
+
+class function TBuilderPaths.WorkspaceFolder: string;
+begin
+  Result := TPath.Combine(
+    TPath.Combine(TPath.GetDocumentsPath(), 'PythonFMXBuilder'),
+    'Projects');
 end;
 
 class function TBuilderPaths.GetRemServerScriptPath: string;
