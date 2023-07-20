@@ -16,24 +16,23 @@ type
   private
     function GetBasePath(): string;
     function GetProjectFilesPath(const AProjectName: string): string;
-    function TestProject(const AModel: TProjectModel): boolean;
   public
-    function CreateProject(const AProjectName: string;
-      const AAddMainScript: boolean = true): TProjectModel;
-    procedure SaveProject(const AProject: TProjectModel);
-    function LoadProject(const AProjectName: string): TProjectModel;
-    procedure UnLoadProject();
-    function ListProjects(): TArray<string>;
-    function HasProject(const AProjectName: string): boolean;
+    function CreateProject(const AProjectName,
+      AMainModuleName: string): TProjectModel;
+    procedure SaveProject(const AProjectPath: string;
+      const AProject: TProjectModel);
     function RemoveProject(const AProjectName: string): boolean;
-
-
+    //Open/close project in editor
+    procedure OpenProject(const AProject: TProjectModel); overload;
+    function OpenProject(const AProjectPath: string): TProjectModel; overload;
+    procedure CloseProject();
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
 
     //Main module
-    function CreateMainModule(const AModel: TProjectModel): string;
+    function CreateMainModule(const AModel: TProjectModel;
+      const AFilePath: string): string;
     procedure SetMainModule(const AModel: TProjectModel;
       const AFilePath: string);
     function IsMainModule(const AModel: TProjectModel;
@@ -42,8 +41,12 @@ type
     //Modules
     function AddModule(const AModel: TProjectModel;
       const AFilePath: string): TProjectFilesModule;
+    function GetModule(const AModel: TProjectModel;
+      const AFilePath: string): TProjectFilesModule;
     procedure RemoveModule(const AModel: TProjectModel; const AFilePath: string);
     function GetModules(const AModel: TProjectModel): TProjectFilesModules;
+    procedure CheckModuleExists(const AModel: TProjectModel;
+      const AFilePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
@@ -94,6 +97,17 @@ begin
   Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'files');
 end;
 
+function TProjectService.GetModule(const AModel: TProjectModel;
+  const AFilePath: string): TProjectFilesModule;
+begin
+  for var LModule in AModel.Files.Modules do begin
+    if (LModule.Path = AFilePath) then
+      Exit(LModule);
+  end;
+
+  Result := nil;
+end;
+
 function TProjectService.GetModules(const AModel: TProjectModel): TProjectFilesModules;
 begin
   Result := AModel.Files.Modules;
@@ -127,40 +141,26 @@ begin
   Result := Assigned(FActiveProject);
 end;
 
-function TProjectService.HasProject(const AProjectName: string): boolean;
-begin
-  var LStorage := TDefaultStorage<TProjectModel>.Make();
-  var LModel: TProjectModel := nil;
-  try
-    Result := LStorage.LoadModel(LModel, String.Empty, AProjectName);
-  finally
-    LModel.Free();
-  end;
-end;
-
 function TProjectService.IsMainModule(const AModel: TProjectModel;
   const AFilePath: string): boolean;
 begin
   Result := TPath.GetFileName(AFilePath) = AModel.Files.Main;
 end;
 
-function TProjectService.TestProject(const AModel: TProjectModel): boolean;
-begin
-  Result := HasProject(AModel.ProjectName);
-end;
-
-procedure TProjectService.UnLoadProject;
-begin
-  if Assigned(FActiveProject) then begin
-    TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FActiveProject));
-    FreeAndNil(FActiveProject);
-  end;
-end;
-
 procedure TProjectService.CheckActiveProject;
 begin
   if not Assigned(GetActiveProject()) then
     raise EMustOpenOrCreateProject.Create('Open/Create a project before continue.');
+end;
+
+procedure TProjectService.CheckModuleExists(const AModel: TProjectModel;
+  const AFilePath: string);
+begin
+  var LModule := GetModule(AModel, AFilePath);
+  if Assigned(LModule) then
+    raise EModuleAlreadyExists.CreateFmt(
+      'There is another module with the same name "%s".', [
+      TPath.GetFileName(AFilePath)]);
 end;
 
 procedure TProjectService.ClearDependencies(const AModel: TProjectModel);
@@ -178,54 +178,43 @@ begin
   AModel.Files.Packages.Clear();
 end;
 
-function TProjectService.CreateProject(const AProjectName: string;
-  const AAddMainScript: boolean): TProjectModel;
+function TProjectService.CreateProject(const AProjectName,
+  AMainModuleName: string): TProjectModel;
 begin
-  UnloadProject();
-  FActiveProject := TProjectModel.Create(AProjectName);
+  Result := TProjectModel.Create(AProjectName);
 
-  if AAddMainScript then
-    CreateMainModule(FActiveProject);
+  if not TDirectory.Exists(TPath.GetDirectoryName(AProjectName)) then
+    TDirectory.CreateDirectory(TPath.GetDirectoryName(AProjectName));
 
-  Result := FActiveProject;
+  if not AMainModuleName.IsEmpty() then
+    CreateMainModule(Result, AMainModuleName);
 end;
 
-function TProjectService.ListProjects: TArray<string>;
+procedure TProjectService.OpenProject(const AProject: TProjectModel);
 begin
+  CloseProject();
+  FActiveProject := AProject;
+  TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(AProject));
+end;
+
+function TProjectService.OpenProject(const AProjectPath: string): TProjectModel;
+begin
+  Result := nil;
   var LStorage := TDefaultStorage<TProjectModel>.Make();
-  var LModels := LStorage.ListModels();
-  if Length(LModels) > 0 then begin
-    try
-      var LList := TList<string>.Create();
-      try
-        for var LModel in LModels do begin
-          if TestProject(LModel) then
-            LList.Add(LModel.ProjectName);
-        end;
-        Result := LList.ToArray();
-      finally
-        LList.Free();
-      end;
-    finally
-      for var LModel in LModels do begin
-        LModel.Free();
-      end;
-    end;
-  end else
-    Result := [];
+  if not LStorage.LoadModel(Result, AProjectPath) then
+    raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectPath]);
+  OpenProject(Result);
 end;
 
-function TProjectService.LoadProject(const AProjectName: string): TProjectModel;
+procedure TProjectService.CloseProject;
 begin
-  UnloadProject();
-  var LStorage := TDefaultStorage<TProjectModel>.Make();
-  if not LStorage.LoadModel(FActiveProject, String.Empty, AProjectName) then
-    raise EProjectNotFound.CreateFmt('Project %s not found.', [AProjectName]);
-  Result := FActiveProject;
-  TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(Result));
+  if Assigned(FActiveProject) then
+    TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FActiveProject));
+  FreeAndNil(FActiveProject);
 end;
 
-function TProjectService.CreateMainModule(const AModel: TProjectModel): string;
+function TProjectService.CreateMainModule(const AModel: TProjectModel;
+  const AFilePath: string): string;
 const
   SCRIPT_TEXT =
       'from delphifmx import *'
@@ -247,16 +236,8 @@ const
     + #13#10
     + 'MainForm.Show()';
 begin
-  var LProjectFilesFolder := GetProjectFilesPath(AModel.ProjectName);
-  if not TDirectory.Exists(LProjectFilesFolder) then
-    TDirectory.CreateDirectory(LProjectFilesFolder);
-
-  var LMainScriptPath := TPath.Combine(
-    GetProjectFilesPath(AModel.ProjectName),
-    'main.py');
-
-  if not TFile.Exists(LMainScriptPath) then begin
-    with TFile.Create(LMainScriptPath) do begin
+  if not TFile.Exists(AFilePath) then
+    with TFile.Create(AFilePath) do
       try
         WriteData(
           TEncoding.UTF8.GetBytes(SCRIPT_TEXT),
@@ -264,13 +245,11 @@ begin
       finally
         Free();
       end;
-    end;
-  end;
 
   //Save the script file in the model files
-  AddModule(AModel, LMainScriptPath);
+  AddModule(AModel, AFilePath);
   //Once we add the main file, we automatically set it as the main file
-  SetMainModule(AModel, LMainScriptPath);
+  SetMainModule(AModel, AFilePath);
 end;
 
 function TProjectService.AddDependency(const AModel: TProjectModel;
@@ -279,7 +258,7 @@ begin
   //We are not accepting duplicated file names
   for var LDependency in AModel.Files.Dependencies do begin
     if TPath.GetFileName(LDependency.Path) = TPath.GetFileName(AFilePath) then
-      Exit(LDependency);
+      Exit(nil);
   end;
 
   //We are only accepting zip files
@@ -297,7 +276,7 @@ begin
   //We are not accepting duplicated file names
   for var LOther in AModel.Files.Others do begin
     if TPath.GetFileName(LOther.Path) = TPath.GetFileName(AFilePath) then
-      Exit(LOther);
+      Exit(nil);
   end;
 
   //Should we copy this file to a local dir?
@@ -311,7 +290,7 @@ begin
   //We are not accepting duplicated file names
   for var LPackage in AModel.Files.Packages do begin
     if LPackage.Path = TPath.GetFileName(AFilePath) then
-      Exit(LPackage);
+      Exit(nil);
   end;
 
   //We are only accepting zip and/or wheel files
@@ -330,7 +309,7 @@ begin
   //We are not accepting duplicated file names
   for var LModule in AModel.Files.Modules do begin
     if TPath.GetFileName(LModule.Path) = TPath.GetFileName(AFilePath) then
-      Exit(LModule);
+      Exit(nil);
   end;
 
   //Should we copy this file to a local dir?
@@ -384,7 +363,7 @@ end;
 
 function TProjectService.RemoveProject(const AProjectName: string): boolean;
 begin
-  var LProjectModel := LoadProject(AProjectName);
+  var LProjectModel := OpenProject(AProjectName);
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   Result := LStorage.DeleteModel(LProjectModel);
 
@@ -396,13 +375,14 @@ begin
     TDirectory.Delete(LProjectFilesFolder, true);
 
   if Assigned(FActiveProject) and (FActiveProject.ProjectName = AProjectName) then
-    UnLoadProject();
+    CloseProject();
 end;
 
-procedure TProjectService.SaveProject(const AProject: TProjectModel);
+procedure TProjectService.SaveProject(const AProjectPath: string;
+  const AProject: TProjectModel);
 begin
   var LStorage := TDefaultStorage<TProjectModel>.Make();
-  LStorage.SaveModel(AProject);
+  LStorage.SaveModel(AProject, AProjectPath);
 end;
 
 procedure TProjectService.SetMainModule(const AModel: TProjectModel;
