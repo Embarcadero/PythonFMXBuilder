@@ -3,16 +3,21 @@ unit Builder.Model;
 interface
 
 uses
-  System.Classes, System.SysUtils, REST.JsonReflect;
+  System.Classes, System.SysUtils, REST.Json.Types, REST.JsonReflect;
 
 type
   TModelClass = class of TModel;
 
   TModel = class
+  private
+    [JSONMarshalled(false)]
+    FStorage: string;
   public
     constructor Create(); virtual;
 
     function Validate(const AErrors: TStrings): boolean; virtual; abstract;
+
+    property Storage: string read FStorage write FStorage;
   end;
 
   ModelAttribute = class(TCustomAttribute)

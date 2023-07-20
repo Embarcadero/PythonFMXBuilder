@@ -36,7 +36,6 @@ type
     FFiles: TProjectFilesModel;
   private
     FDebugger: TDebugger;
-    function GetId(): string;
     function GetProjectName: string;
     function GetFiles: TProjectFilesModel;
     function GetIcons: TProjectIconModel;
@@ -48,7 +47,6 @@ type
 
     function Validate(const AErrors: TStrings): boolean; override;
   public
-    property Id: string read GetId;
     property ProjectName: string read GetProjectName write FProjectName;
     property ApplicationName: string read FApplicationName write FApplicationName;
     property PackageName: string read FPackageName write FPackageName;
@@ -65,7 +63,7 @@ type
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, System.IOUtils;
 
 { TProjectModel }
 
@@ -77,7 +75,7 @@ end;
 constructor TProjectModel.Create(const AProjectName, AApplicationName: string);
 begin
   Create();
-  FProjectName := AProjectName;
+  FProjectName := TPath.GetFileNameWithoutExtension(AProjectName);
   FApplicationName := AApplicationName;
   FPackageName := 'com.embarcadero.' + AApplicationName;
   FVersionCode := 1;
@@ -89,7 +87,7 @@ end;
 
 constructor TProjectModel.Create(const AProjectName: string);
 begin
-  Create(AProjectName, AProjectName);
+  Create(AProjectName, TPath.GetFileNameWithoutExtension(AProjectName));
 end;
 
 destructor TProjectModel.Destroy;
@@ -111,11 +109,6 @@ begin
   if not Assigned(FIcons) then
     FIcons := TProjectIconModel.Create();
   Result := FIcons;
-end;
-
-function TProjectModel.GetId: string;
-begin
-  Result := GetProjectName;
 end;
 
 function TProjectModel.GetProjectName: string;
