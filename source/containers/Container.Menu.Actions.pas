@@ -9,6 +9,9 @@ uses
   FMX.StdActns,
   FMX.ActnList,
   FMX.Forms,
+  FMX.Types,
+  FMX.Dialogs,
+  FMX.Menus,
   Form.Slider,
   Form.Project.Create,
   Form.SelectProject,
@@ -26,7 +29,7 @@ type
     actUpdateCurrentProject: TAction;
     actBuildCurrentProject: TAction;
     actDeployCurrentProject: TAction;
-    actNewProject: TAction;
+    actCreateProject: TAction;
     actOpenProject: TAction;
     actRemoveCurrentProject: TAction;
     actRunCurrentProject: TAction;
@@ -45,12 +48,21 @@ type
     actFileExit: TFileExit;
     actFileHideApp: TFileHideApp;
     actFileHideAppOthers: TFileHideAppOthers;
+    sdProject: TSaveDialog;
+    sdModule: TSaveDialog;
+    odProject: TOpenDialog;
+    odModule: TOpenDialog;
+    odPackage: TOpenDialog;
+    odOther: TOpenDialog;
+    odFMXModule: TOpenDialog;
+    actNewBlankProject: TAction;
+    actNewProject: TAction;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
     procedure actDeployCurrentProjectExecute(Sender: TObject);
     procedure actRunCurrentProjectExecute(Sender: TObject);
-    procedure actNewProjectExecute(Sender: TObject);
+    procedure actCreateProjectExecute(Sender: TObject);
     procedure actOpenProjectExecute(Sender: TObject);
     procedure actRemoveCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectAsyncExecute(Sender: TObject);
@@ -66,6 +78,8 @@ type
     procedure actContinueExecute(Sender: TObject);
     procedure actSaveStateExecute(Sender: TObject);
     procedure actSaveAllStateExecute(Sender: TObject);
+    procedure actNewBlankProjectExecute(Sender: TObject);
+    procedure actNewProjectExecute(Sender: TObject);
   private
     //Async control
     FLoadingProject: integer;
@@ -107,6 +121,7 @@ uses
   FMX.DialogService,
   Container.Images,
   Form.Factory,
+  Builder.Paths,
   Builder.Services.Factory;
 
 constructor TMenuActionsContainer.Create(AOwner: TComponent);
@@ -200,30 +215,42 @@ begin
     TAction(Action).Enabled := GetActionEnabledByTag(Action);
 end;
 
+procedure TMenuActionsContainer.actNewBlankProjectExecute(Sender: TObject);
+begin
+  var LPhantonProjectName := TBuilderPaths.PhantomProjectName(
+    TBuilderPaths.WorkspaceFolder());
+  FProjectModel := FProjectServices.CreateProject(
+    LPhantonProjectName, String.Empty);
+  FProjectServices.OpenProject(FProjectModel);
+end;
+
 procedure TMenuActionsContainer.actNewProjectExecute(Sender: TObject);
+begin
+  var LPhantonProjectName := TBuilderPaths.PhantomProjectName(
+    TBuilderPaths.WorkspaceFolder());
+  var LPhantonModuleName := TBuilderPaths.RecommendModuleName(
+    LPhantonProjectName);
+  FProjectModel := FProjectServices.CreateProject(
+    LPhantonProjectName, LPhantonModuleName);
+  FProjectServices.OpenProject(FProjectModel);
+end;
+
+procedure TMenuActionsContainer.actCreateProjectExecute(Sender: TObject);
 var
   LProjectName: string;
-  LCreateMainFile: boolean;
+  LMainModuleName: string;
 begin
-  if TProjectCreateForm.CreateProject(LProjectName, LCreateMainFile) then begin
-    FProjectServices.SaveProject(
-      FProjectServices.CreateProject(LProjectName, LCreateMainFile));
-    FProjectModel := FProjectServices.LoadProject(LProjectName);
+  if TProjectCreateForm.CreateProject(LProjectName, LMainModuleName) then begin
+    FProjectModel := FProjectServices.CreateProject(LProjectName, LMainModuleName);
+    FProjectServices.SaveProject(LProjectName, FProjectModel);
+    FProjectModel := FProjectServices.OpenProject(LProjectName);
   end;
 end;
 
 procedure TMenuActionsContainer.actOpenProjectExecute(Sender: TObject);
 begin
-  var LProjects := FProjectServices.ListProjects();
-  if Length(LProjects) > 0 then begin
-    var LSelected := TSelectProjectForm.Select(LProjects);
-    if not LSelected.IsEmpty() then begin
-      if Assigned(FProjectModel) and (FProjectModel.ProjectName = LSelected) then
-        Exit;
-      FProjectModel := FProjectServices.LoadProject(LSelected);
-    end;
-  end else
-    raise Exception.Create('Your workspace is empty. Try to create a new project.');
+  if odProject.Execute() then
+    FProjectModel := FProjectServices.OpenProject(odProject.FileName);
 end;
 
 procedure TMenuActionsContainer.actRemoveCurrentProjectExecute(Sender: TObject);
@@ -315,7 +342,7 @@ begin
   FProjectServices.CheckActiveProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
-    LForm.Id := FProjectServices.GetActiveProject().Id;
+    LForm.Storage := FProjectServices.GetActiveProject().Storage;
     TFormSlider.ShowModal(Application.MainForm, LForm);
   finally
     LForm.Free();

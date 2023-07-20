@@ -101,7 +101,7 @@ uses
 procedure TProjectForm.actSaveExecute(Sender: TObject);
 begin
   inherited;
-  FProjectServices.LoadProject(TProjectModel(Model).ProjectName);
+  FProjectServices.OpenProject(TProjectModel(Model).ProjectName);
 end;
 
 procedure TProjectForm.FormCreate(Sender: TObject);
