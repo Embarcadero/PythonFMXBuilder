@@ -42,10 +42,10 @@ type
     miDeploy: TMenuItem;
     miRun: TMenuItem;
     miUpdateProject: TMenuItem;
-    miAddFile: TMenuItem;
-    miRemoveFile: TMenuItem;
+    miRemoveModule: TMenuItem;
+    miAddModule: TMenuItem;
     miOpenProject: TMenuItem;
-    miNewProject: TMenuItem;
+    miCreateProject: TMenuItem;
     miRemoveProject: TMenuItem;
     miSetToMain: TMenuItem;
     frmDebugButtons: TDebugButtonsFrame;
@@ -64,6 +64,9 @@ type
     miFileHideAppOthers: TMenuItem;
     miFileExit: TMenuItem;
     miAppSeparator: TMenuItem;
+    miNewModule: TMenuItem;
+    miNewBlankProject: TMenuItem;
+    miNewProject: TMenuItem;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);
