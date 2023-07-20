@@ -19,7 +19,7 @@ inherited DataForm: TDataForm
     Size.Width = 640.000000000000000000
     Size.Height = 380.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 1
+    TabOrder = 4
     object lbProject: TListBox
       Align = Client
       Size.Width = 640.000000000000000000
@@ -40,7 +40,7 @@ inherited DataForm: TDataForm
     Size.Width = 640.000000000000000000
     Size.Height = 50.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 2
+    TabOrder = 5
     object loLeftActions: TLayout
       Align = Left
       Margins.Top = 10.000000000000000000

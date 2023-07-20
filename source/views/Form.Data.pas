@@ -31,7 +31,7 @@ type
   private
     FModel: TModel;
     FHasLoaded: boolean;
-    FId: string;
+    FStorage: string;
   protected
     //Create the model that represents the form data
     function CreateModel(): TModel; virtual;
@@ -48,8 +48,8 @@ type
 
     property Model: TModel read FModel;
   public
-    //Model id for autoload
-    property Id: string read FId write FId;
+    //Model storage details for autoload
+    property Storage: string read FStorage write FStorage;
     //Loading status
     property HasLoaded: boolean read FHasLoaded;
   end;
@@ -69,6 +69,7 @@ var
 implementation
 
 uses
+  System.TypInfo,
   Container.Images,
   Builder.Exception,
   Builder.Storage,
@@ -136,7 +137,7 @@ procedure TDataForm.Load;
 begin
   var LStorage: IStorage := TDefaultStorage<TObject>.Make();
   if LStorage.LoadModel(
-    GetEntityType().ClassInfo, TObject(FModel), String.Empty, FId) then
+    PTypeInfo(GetEntityType().ClassInfo), TObject(FModel), FStorage) then
   begin
     FormUpdate();
     FHasLoaded := true;
@@ -159,7 +160,7 @@ begin
   ModelUpdate();
   ModelValidate();
   var LStorage: IStorage := TDefaultStorage<TObject>.Make();
-  LStorage.SaveModel(GetEntityType().ClassInfo, FModel);
+  LStorage.SaveModel(FModel, FStorage);
   Close();
 end;
 
