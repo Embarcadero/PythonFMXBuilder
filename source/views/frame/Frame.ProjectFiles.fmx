@@ -24,6 +24,11 @@ object ProjectFilesFrame: TProjectFilesFrame
     Images = ImageContainer.images
     Left = 40
     Top = 16
+    object miNewModule: TMenuItem
+      Action = actNewModule
+      Enabled = True
+      ImageIndex = 34
+    end
     object miAddModule: TMenuItem
       Action = actAddModule
       Enabled = True
@@ -74,16 +79,18 @@ object ProjectFilesFrame: TProjectFilesFrame
       ImageIndex = 33
     end
   end
-  object odtvProjectFiles: TOpenDialog
-    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 40
-    Top = 128
-  end
   object altvProjectFiles: TActionList
     Images = ImageContainer.images
     OnUpdate = altvProjectFilesUpdate
     Left = 40
     Top = 72
+    object actNewModule: TAction
+      Category = 'modules'
+      Text = 'New module'
+      ImageIndex = 34
+      OnExecute = actNewModuleExecute
+      ImageIndex = 34
+    end
     object actAddModule: TAction
       Category = 'modules'
       Text = 'Add module'
