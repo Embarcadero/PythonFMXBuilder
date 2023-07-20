@@ -8,7 +8,8 @@ uses
   FMX.StdCtrls, FMX.Layouts, FMX.TreeView, FMX.Menus, System.ImageList,
   FMX.ImgList, FMX.ActnList,
   Container.Images,
-  Builder.Services, Builder.Types, Builder.Chain, Builder.Model.Project;
+  Builder.Services, Builder.Types, Builder.Chain,
+  Builder.Model.Project, Builder.Model.Project.Files;
 
 type
   TNodeType = (
@@ -28,7 +29,6 @@ type
     altvProjectFiles: TActionList;
     actAddModule: TAction;
     actRemoveModule: TAction;
-    odtvProjectFiles: TOpenDialog;
     miSetToMain: TMenuItem;
     actSetToMain: TAction;
     miSepPackages: TMenuItem;
@@ -44,6 +44,8 @@ type
     miSepOptions: TMenuItem;
     miRevealFile: TMenuItem;
     actRevealFile: TAction;
+    actNewModule: TAction;
+    miNewModule: TMenuItem;
     procedure actAddModuleExecute(Sender: TObject);
     procedure actRemoveModuleExecute(Sender: TObject);
     procedure altvProjectFilesUpdate(Action: TBasicAction;
@@ -54,18 +56,19 @@ type
     procedure actAddOtherFileExecute(Sender: TObject);
     procedure actRemoveOtherFileExecute(Sender: TObject);
     procedure actRevealFileExecute(Sender: TObject);
+    procedure actNewModuleExecute(Sender: TObject);
   private
-    [weak]
     FProjectModel: TProjectModel;
-    FFileExt: TArray<string>;
     FProjectServices: IProjectServices;
     FRoot: TTreeViewItem;
     FOpenProjectEvent: IDisconnectable;
     FCloseProjectEvent: IDisconnectable;
   private
     function GetProjectServices: IProjectServices;
+    //Project operations
+    procedure DoAddModule(const AFileName: string);
     procedure SaveChanges();
-    // TreeView operations
+    //TreeView operations
     procedure LoadIcon(const AItem: TTreeViewItem);
     procedure LoadStyles(const AItem: TTreeViewItem);
     procedure LoadEvents(const AItem: TTreeViewItem);
@@ -102,12 +105,10 @@ type
     procedure LoadProject(const AProjectModel: TProjectModel);
     procedure UnLoadProject(const AProjectModel: TProjectModel);
 
-    function GetDefaultScriptFilePath(const AProject: TProjectModel): string; overload;
-    function GetDefaultScriptFilePath(): string; overload;
+    function GetDefaultProjectFilePath(const AProject: TProjectModel): string; overload;
+    function GetDefaultProjectFilePath(): string; overload;
 
     function GetItemFilePath(const AItem: TTreeViewItem): string;
-
-    property FileExt: TArray<string> read FFileExt write FFileExt;
   end;
 
   PNodeInfo = ^TNodeInfo;
@@ -130,6 +131,7 @@ uses
   {$IFDEF MSWINDOWS}
   ShellApi, WinAPI.Windows,
   {$ENDIF MSWINDOWS}
+  Container.Menu.Actions,
   Builder.Services.Factory;
 
 type
@@ -179,8 +181,6 @@ end;
 constructor TProjectFilesFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FFileExt := ['.py'];
-
   FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
     procedure(const AEventNotification: TOpenProjectEvent)
     begin
@@ -193,9 +193,9 @@ begin
         begin
           try
             LoadProject(LProject);
-            var LDefaultScriptFile := GetDefaultScriptFilePath();
-            if TFile.Exists(LDefaultScriptFile) then
-              BroadcastOpenFile(LDefaultScriptFile);
+            var LDefaultProjectFilePath := GetDefaultProjectFilePath();
+            if not LDefaultProjectFilePath.IsEmpty() then
+              BroadcastOpenFile(LDefaultProjectFilePath);
           finally
             TGlobalBuilderChain.BroadcastEventAsync(
               TAsyncOperationEndedEvent.Create(TAsyncOperation.OpenProject));
@@ -222,32 +222,53 @@ begin
   inherited;
 end;
 
+procedure TProjectFilesFrame.DoAddModule(const AFileName: string);
+begin
+  var LModule := GetProjectServices().AddModule(FProjectModel, AFileName);
+  if Assigned(LModule) then begin
+    //Creates the tree item
+    var LItem := BuildNode(
+      GetNodeByNodeType(TNodeType.ntRootModule),
+      ntModule,
+      LModule.Path);
+
+    LItem.Text := LModule.Name;
+
+    //Add as the deafult script file if none
+    if FProjectModel.Files.Main.IsEmpty() then
+      GetProjectServices().SetMainModule(FProjectModel, LModule.Path);
+
+    SaveChanges();
+    tvProjectFiles.Selected := LItem;
+
+    BroadcastOpenFile(AFileName);
+  end;
+end;
+
 function TProjectFilesFrame.GetItemFilePath(const AItem: TTreeViewItem): string;
 begin
   Result := String(AItem.Data.AsType<TNodeInfo>().NodeData.AsString);
 end;
 
-function TProjectFilesFrame.GetDefaultScriptFilePath(const AProject: TProjectModel): string;
+function TProjectFilesFrame.GetDefaultProjectFilePath(
+  const AProject: TProjectModel): string;
 begin
   if not Assigned(AProject) then
     Exit(String.Empty);
 
-  //We try to find the main script
-  if TFile.Exists(AProject.Files.Main) then
-    Exit(AProject.Files.Main);
+  if not AProject.Files.Main.IsEmpty() then
+      Exit(AProject.Files.Main);
 
-  //If we don't have a main script, we try to get the first existent script
-  for var LModule in AProject.Files.Modules do begin
-    if TFile.Exists(LModule.Path) then
-      Exit(LModule.Path);
-  end;
+  //If we don't have a main script, we try to get the first existing script
+  if AProject.Files.Modules.Count > 0 then
+    Exit(AProject.Files.Modules[0].Path);
 
   Result := String.Empty;
 end;
 
-function TProjectFilesFrame.GetDefaultScriptFilePath: string;
+function TProjectFilesFrame.GetDefaultProjectFilePath: string;
 begin
-  Result := GetDefaultScriptFilePath(FProjectModel);
+  Result := GetDefaultProjectFilePath(FProjectModel);
 end;
 
 function TProjectFilesFrame.GetNodeByNodeType(
@@ -387,19 +408,22 @@ end;
 
 procedure TProjectFilesFrame.SaveChanges;
 begin
-  GetProjectServices().SaveProject(FProjectModel);
+  GetProjectServices().SaveProject(FProjectModel.Storage, FProjectModel);
 end;
 
 procedure TProjectFilesFrame.OnTreeViewItemDblClickModule(Sender: TObject);
 begin
-  BroadcastOpenFile(GetItemFilePath(TTreeViewItem(Sender)));
+  var LFilePath := GetItemFilePath(TTreeViewItem(Sender));
+  if not LFilePath.IsEmpty() then
+    BroadcastOpenFile(LFilePath);
 end;
 
 procedure TProjectFilesFrame.OnTreeViewItemDblClickBuildConfigurationItem(
   Sender: TObject);
 begin
   var LNode := TTreeViewItem(Sender);
-  FProjectModel.BuildConfiguration := LNode.Data.AsType<TNodeInfo>.NodeData.AsType<TBuildConfiguration>;
+  FProjectModel.BuildConfiguration := LNode.Data.AsType<TNodeInfo>
+    .NodeData.AsType<TBuildConfiguration>;
   UpdateSelectedBuildConfiguration(LNode);
   SaveChanges;
   LoadStyles(LNode);
@@ -409,7 +433,8 @@ procedure TProjectFilesFrame.OnTreeViewItemDblClickPlatformItem(
   Sender: TObject);
 begin
   var LNode := TTreeViewItem(Sender);
-  FProjectModel.Architecture := LNode.Data.AsType<TNodeInfo>.NodeData.AsType<TArchitecture>;  
+  FProjectModel.Architecture := LNode.Data.AsType<TNodeInfo>
+    .NodeData.AsType<TArchitecture>;
   UpdateSelectedPlatform(LNode);
   SaveChanges;
   LoadStyles(LNode);
@@ -418,7 +443,8 @@ end;
 procedure TProjectFilesFrame.OnTreeViewItemDblClickPythonItem(Sender: TObject);
 begin
   var LNode := TTreeViewItem(Sender);
-  FProjectModel.PythonVersion := LNode.Data.AsType<TNodeInfo>.NodeData.AsType<TPythonVersion>;
+  FProjectModel.PythonVersion := LNode.Data.AsType<TNodeInfo>
+    .NodeData.AsType<TPythonVersion>;
   UpdateSelectedPython(LNode);
   SaveChanges;
   LoadStyles(LNode);
@@ -436,7 +462,8 @@ procedure TProjectFilesFrame.UpdateSelectedBuildConfiguration(
 begin
   var LRoot := ASelected.ParentItem;
   LRoot.Text := Format('Build Configuration (%s)', [
-    ASelected.Data.AsType<TNodeInfo>.NodeData.AsType<TBuildConfiguration>.ToBuildConfiguration()]);
+    ASelected.Data.AsType<TNodeInfo>
+      .NodeData.AsType<TBuildConfiguration>.ToBuildConfiguration()]);
 end;
 
 procedure TProjectFilesFrame.UpdateSelectedPlatform(
@@ -444,7 +471,8 @@ procedure TProjectFilesFrame.UpdateSelectedPlatform(
 begin
   var LRoot := ASelected.ParentItem;
   LRoot.Text := Format('Target Platforms (%s)', [
-    ASelected.Data.AsType<TNodeInfo>.NodeData.AsType<TArchitecture>.ToTargetPlatform()]);
+    ASelected.Data.AsType<TNodeInfo>
+      .NodeData.AsType<TArchitecture>.ToTargetPlatform()]);
 end;
 
 procedure TProjectFilesFrame.UpdateSelectedPython(
@@ -452,7 +480,8 @@ procedure TProjectFilesFrame.UpdateSelectedPython(
 begin
   var LRoot := ASelected.ParentItem;
   LRoot.Text := Format('Target Python (%s)', [
-    ASelected.Data.AsType<TNodeInfo>.NodeData.AsType<TPythonVersion>.ToTargetPython()]);
+    ASelected.Data.AsType<TNodeInfo>
+      .NodeData.AsType<TPythonVersion>.ToTargetPython()]);
 end;
 
 procedure TProjectFilesFrame.BroadcastOpenFile(const AFilePath: string);
@@ -501,7 +530,8 @@ begin
   if not Assigned(ARoot) then
     Exit;
 
-  var LBuildConfigurationNode := BuildNode(ARoot, ntRootBuildConfiguration, String.Empty);
+  var LBuildConfigurationNode := BuildNode(
+    ARoot, ntRootBuildConfiguration, String.Empty);
   var LCurrentBuildConfiguration := FProjectModel.BuildConfiguration;
 
   for var LBuildConfiguration := Low(TBuildConfiguration) to High(TBuildConfiguration) do
@@ -601,6 +631,9 @@ procedure TProjectFilesFrame.altvProjectFilesUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
   //Modules
+  actNewModule.Enabled := Assigned(FRoot)
+    and NodeIsType(FRoot, TNodeType.ntProject);
+
   actAddModule.Enabled := Assigned(FRoot)
     and NodeIsType(FRoot, TNodeType.ntProject);
 
@@ -644,13 +677,11 @@ end;
 
 procedure TProjectFilesFrame.actAddOtherFileExecute(Sender: TObject);
 begin
-  odtvProjectFiles.Filter := '*.*';
-  odtvProjectFiles.FilterIndex := 1;
-  if odtvProjectFiles.Execute() then begin
+  if MenuActionsContainer.odOther.Execute() then begin
     //Save file into the project
-    var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
+    var LStream := TFileStream.Create(MenuActionsContainer.odOther.FileName, fmOpenRead);
     try
-      var LOther := GetProjectServices().AddOtherFile(FProjectModel, odtvProjectFiles.FileName);
+      var LOther := GetProjectServices().AddOtherFile(FProjectModel, MenuActionsContainer.odOther.FileName);
       if Assigned(LOther) then
       begin
         //Creates the tree item
@@ -673,13 +704,11 @@ end;
 
 procedure TProjectFilesFrame.actAddPackageExecute(Sender: TObject);
 begin
-  odtvProjectFiles.Filter := 'Zip imports|*.zip|PIP wheel|*.whl';
-  odtvProjectFiles.FilterIndex := 1;
-  if odtvProjectFiles.Execute() then begin
+  if MenuActionsContainer.odPackage.Execute() then begin
     //Save file into the project
-    var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
+    var LStream := TFileStream.Create(MenuActionsContainer.odPackage.FileName, fmOpenRead);
     try
-      var LPackage := GetProjectServices().AddPackage(FProjectModel, odtvProjectFiles.FileName);
+      var LPackage := GetProjectServices().AddPackage(FProjectModel, MenuActionsContainer.odPackage.FileName);
       if Assigned(LPackage) then
       begin
         //Creates the tree item
@@ -700,34 +729,27 @@ begin
   end;
 end;
 
-procedure TProjectFilesFrame.actAddModuleExecute(Sender: TObject);
-begin                  
-  odtvProjectFiles.Filter := 'Python module|*.py|Delphi FMX file|*.pyfmx'; 
-  odtvProjectFiles.FilterIndex := 1;
-  if odtvProjectFiles.Execute() then begin
+procedure TProjectFilesFrame.actNewModuleExecute(Sender: TObject);
+begin
+  if MenuActionsContainer.sdModule.Execute() then begin
+    GetProjectServices().CheckModuleExists(FProjectModel, MenuActionsContainer.sdModule.FileName);
     //Save file into the project
-    var LStream := TFileStream.Create(odtvProjectFiles.FileName, fmOpenRead);
+    var LStream := TFileStream.Create(MenuActionsContainer.sdModule.FileName, fmCreate);
     try
-      var LModule := GetProjectServices().AddModule(FProjectModel, odtvProjectFiles.FileName);
-      if Assigned(LModule) then
-      begin
-        //Creates the tree item
-        var LItem := BuildNode(
-          GetNodeByNodeType(TNodeType.ntRootModule),
-          ntModule,
-          LModule.Path);
+      DoAddModule(MenuActionsContainer.sdModule.FileName);
+    finally
+      LStream.Free();
+    end;
+  end;
+end;
 
-        LItem.Text := LModule.Name;
-
-        //Add as the deafult script file if none
-        if FProjectModel.Files.Main.IsEmpty() then
-          GetProjectServices().SetMainModule(FProjectModel, LModule.Path);
-
-        SaveChanges();
-        tvProjectFiles.Selected := LItem;
-
-        BroadcastOpenFile(odtvProjectFiles.FileName);
-      end;
+procedure TProjectFilesFrame.actAddModuleExecute(Sender: TObject);
+begin
+  if MenuActionsContainer.odFMXModule.Execute() then begin
+    //Save file into the project
+    var LStream := TFileStream.Create(MenuActionsContainer.odFMXModule.FileName, fmOpenRead);
+    try
+      DoAddModule(MenuActionsContainer.odFMXModule.FileName);
     finally
       LStream.Free();
     end;
