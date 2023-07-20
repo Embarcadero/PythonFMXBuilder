@@ -1,11 +1,12 @@
 object MenuActionsContainer: TMenuActionsContainer
-  Height = 480
-  Width = 640
+  Height = 406
+  Width = 874
+  PixelsPerInch = 192
   object actlMenu: TActionList
     Images = ImageContainer.images
     OnUpdate = actlMenuUpdate
-    Left = 304
-    Top = 224
+    Left = 104
+    Top = 16
     object actUpdateEnvironment: TAction
       Tag = 1
       Category = 'Entities'
@@ -42,13 +43,13 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actDeployCurrentProjectExecute
       ImageIndex = 12
     end
-    object actNewProject: TAction
+    object actCreateProject: TAction
       Tag = 1
       Category = 'Project'
-      Text = 'New Project'
-      Hint = 'New Project'
+      Text = 'Create Project'
+      Hint = 'Create Project'
       ImageIndex = 8
-      OnExecute = actNewProjectExecute
+      OnExecute = actCreateProjectExecute
       ImageIndex = 8
     end
     object actOpenProject: TAction
@@ -196,5 +197,75 @@ object MenuActionsContainer: TMenuActionsContainer
       Category = 'File'
       Hint = 'Hide Others|Hide all other applications'
     end
+    object actNewBlankProject: TAction
+      Tag = 1
+      Category = 'Project'
+      Text = 'New Blank Project'
+      Hint = 
+        'The blank project template is a jumping off point for creating a' +
+        ' custom project.'
+      ImageIndex = 32
+      OnExecute = actNewBlankProjectExecute
+      ImageIndex = 32
+    end
+    object actNewProject: TAction
+      Tag = 1
+      Category = 'Project'
+      Text = 'New Project'
+      Hint = 
+        'The new project template will create the main module alongside a' +
+        ' custom project.'
+      ImageIndex = 35
+      OnExecute = actNewProjectExecute
+      ImageIndex = 35
+    end
+  end
+  object sdProject: TSaveDialog
+    DefaultExt = 'pyfmxproj'
+    Filter = 'Python FMX Project|*.pyfmxproj'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    Left = 104
+    Top = 152
+  end
+  object sdModule: TSaveDialog
+    DefaultExt = '.py'
+    Filter = 'Python Module|*.py.'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    Left = 248
+    Top = 152
+  end
+  object odProject: TOpenDialog
+    DefaultExt = 'pyfmxproj'
+    Filter = 'Python FMX Project|*.pyfmxproj'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 104
+    Top = 264
+  end
+  object odModule: TOpenDialog
+    DefaultExt = '.py'
+    Filter = 'Python Module|*.py'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 248
+    Top = 264
+  end
+  object odPackage: TOpenDialog
+    DefaultExt = '.whl'
+    Filter = 'Zip imports|*.zip|PIP wheel|*.whl'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 584
+    Top = 264
+  end
+  object odOther: TOpenDialog
+    Filter = '*.*'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 720
+    Top = 264
+  end
+  object odFMXModule: TOpenDialog
+    DefaultExt = '.py'
+    Filter = 'Python Module|*.py|Delphi FMX File|*.pyfmx'
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
+    Left = 416
+    Top = 264
   end
 end

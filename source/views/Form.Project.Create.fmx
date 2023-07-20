@@ -1,14 +1,16 @@
 object ProjectCreateForm: TProjectCreateForm
   Left = 0
   Top = 0
+  ActiveControl = btnSaveProject
   Caption = 'Create a new project'
-  ClientHeight = 221
+  ClientHeight = 258
   ClientWidth = 600
   Position = MainFormCenter
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnConstrainedResize = FormConstrainedResize
   DesignerMasterStyle = 0
   object lnHeaderSeparator: TLine
@@ -24,21 +26,22 @@ object ProjectCreateForm: TProjectCreateForm
   object loBody: TLayout
     Align = Client
     Size.Width = 600.000000000000000000
-    Size.Height = 121.000000000000000000
+    Size.Height = 158.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 1
+    TabOrder = 5
     object lbProject: TListBox
       Align = Client
       Size.Width = 600.000000000000000000
-      Size.Height = 121.000000000000000000
+      Size.Height = 158.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       DisableFocusEffect = True
+      ItemIndex = 1
       DefaultItemStyles.ItemStyle = ''
       DefaultItemStyles.GroupHeaderStyle = ''
       DefaultItemStyles.GroupFooterStyle = ''
       Viewport.Width = 596.000000000000000000
-      Viewport.Height = 117.000000000000000000
+      Viewport.Height = 154.000000000000000000
       object lbghProjectName: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
@@ -47,15 +50,16 @@ object ProjectCreateForm: TProjectCreateForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 2
+        TabOrder = 0
         Text = 'Project Name:'
       end
       object lbiProjectName: TListBoxItem
+        IsSelected = True
         Position.Y = 24.000000000000000000
         Size.Width = 596.000000000000000000
         Size.Height = 38.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 0
+        TabOrder = 1
         object edtProjectName: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Client
@@ -65,11 +69,27 @@ object ProjectCreateForm: TProjectCreateForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 586.000000000000000000
+          Size.Width = 556.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
-          TextPrompt = 'PyApp'
+          TextPrompt = 'PyApp.pyproj'
           OnChange = edtAppNameChange
+        end
+        object btnSaveProject: TButton
+          Align = Right
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 571.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 20.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'searchtoolbutton'
+          TabOrder = 1
+          Text = 'btnSaveProject'
+          OnClick = btnSaveProjectClick
         end
       end
       object lbghApplicationOptions: TListBoxGroupHeader
@@ -81,16 +101,16 @@ object ProjectCreateForm: TProjectCreateForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
-        TabOrder = 3
+        TabOrder = 2
         Text = 'Application Options:'
       end
-      object lbiCreateMainFile: TListBoxItem
+      object lbiCreateMainModule: TListBoxItem
         Position.Y = 86.000000000000000000
         Size.Width = 596.000000000000000000
         Size.Height = 30.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 1
-        object cbCreateMainFile: TCheckBox
+        TabOrder = 3
+        object cbCreateMainModule: TCheckBox
           Align = Top
           StyledSettings = [Family, Style, FontColor]
           Margins.Left = 5.000000000000000000
@@ -102,19 +122,58 @@ object ProjectCreateForm: TProjectCreateForm
           Size.Width = 586.000000000000000000
           Size.Height = 19.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 60
-          Text = 'Create Main File'
+          TabOrder = 40
+          Text = 'Create Main Module'
+          OnChange = cbCreateMainModuleChange
+        end
+      end
+      object lbiMainModulePath: TListBoxItem
+        Position.Y = 116.000000000000000000
+        Size.Width = 596.000000000000000000
+        Size.Height = 38.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object edtMainModulePath: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Client
+          StyleLookup = 'editstyle'
+          TabOrder = 0
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Size.Width = 556.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          TextPrompt = 'PyApp.py'
+          OnChange = edtAppNameChange
+        end
+        object btnSaveMainModule: TButton
+          Align = Right
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 5.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 5.000000000000000000
+          Position.X = 571.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 20.000000000000000000
+          Size.Height = 28.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'searchtoolbutton'
+          TabOrder = 1
+          Text = 'Button1'
+          OnClick = btnSaveMainModuleClick
         end
       end
     end
   end
   object loFooter: TLayout
     Align = Bottom
-    Position.Y = 171.000000000000000000
+    Position.Y = 208.000000000000000000
     Size.Width = 600.000000000000000000
     Size.Height = 50.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 2
+    TabOrder = 6
     object loRightActions: TLayout
       Align = Right
       Margins.Top = 10.000000000000000000
