@@ -934,8 +934,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 988.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 968.000000000000000000
-                    Viewport.Height = 76.000000000000000000
+                    Viewport.Width = 984.000000000000000000
+                    Viewport.Height = 92.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -1090,6 +1090,9 @@ inherited MainForm: TMainForm
             Viewport.Height = 336.000000000000000000
           end
           inherited altvProjectFiles: TActionList
+            inherited actNewModule: TAction
+              ImageIndex = 34
+            end
             inherited actAddModule: TAction
               ImageIndex = 6
             end
@@ -1280,6 +1283,10 @@ inherited MainForm: TMainForm
       inherited btnRemove: TSpeedButton
         Size.Height = 40.000000000000000000
       end
+      inherited pmCreateProject: TPopupMenu
+        Left = 37
+        Top = 130
+      end
     end
     inline frmDevice: TDeviceFrame
       Align = Right
@@ -1462,13 +1469,19 @@ inherited MainForm: TMainForm
     end
     object miFiles: TMenuItem
       Text = '&Files'
-      object miRemoveFile: TMenuItem
+      object miNewModule: TMenuItem
+        Action = frmProjectFiles.actNewModule
+        Enabled = True
+        Locked = True
+        ImageIndex = 34
+      end
+      object miAddModule: TMenuItem
         Action = frmProjectFiles.actAddModule
         Enabled = True
         Locked = True
         ImageIndex = 6
       end
-      object miAddFile: TMenuItem
+      object miRemoveModule: TMenuItem
         Action = frmProjectFiles.actRemoveModule
         Enabled = True
         Locked = True
@@ -1483,11 +1496,22 @@ inherited MainForm: TMainForm
     end
     object miProject: TMenuItem
       Text = '&Project'
-      object miNewProject: TMenuItem
-        Action = MenuActionsContainer.actNewProject
-        Enabled = True
+      object miCreateProject: TMenuItem
         Locked = True
+        Text = 'Create Project'
         ImageIndex = 8
+        object miNewProject: TMenuItem
+          Action = MenuActionsContainer.actNewProject
+          Enabled = True
+          Locked = True
+          ImageIndex = 35
+        end
+        object miNewBlankProject: TMenuItem
+          Action = MenuActionsContainer.actNewBlankProject
+          Enabled = True
+          Locked = True
+          ImageIndex = 32
+        end
       end
       object miOpenProject: TMenuItem
         Action = MenuActionsContainer.actOpenProject
