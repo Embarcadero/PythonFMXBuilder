@@ -67,20 +67,20 @@ type
 
   IProjectServices = interface
     ['{4C39B307-4536-4832-972D-0DEB0319509A}']
-    function CreateProject(const AProjectName: string;
-      const AAddMainScript: boolean = true): TProjectModel;
-    procedure SaveProject(const AProject: TProjectModel);
-    function LoadProject(const AProjectName: string): TProjectModel;
-    procedure UnLoadProject();
-    function ListProjects(): TArray<string>;
-    function HasProject(const AProjectName: string): boolean;
+    function CreateProject(const AProjectName,
+      AMainModuleName: string): TProjectModel;
+    procedure SaveProject(const AProjectPath: string; const AProject: TProjectModel);
     function RemoveProject(const AProjectName: string): boolean;
+    procedure OpenProject(const AProject: TProjectModel); overload;
+    function OpenProject(const AProjectPath: string): TProjectModel; overload;
+    procedure CloseProject();
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
 
     //Main module
-    function CreateMainModule(const AModel: TProjectModel): string;
+    function CreateMainModule(const AModel: TProjectModel;
+      const AFilePath: string): string;
     procedure SetMainModule(const AModel: TProjectModel;
       const AFilePath: string);
     function IsMainModule(const AModel: TProjectModel;
@@ -89,8 +89,12 @@ type
     //Modules
     function AddModule(const AModel: TProjectModel;
       const AFilePath: string): TProjectFilesModule;
+    function GetModule(const AModel: TProjectModel;
+      const AFilePath: string): TProjectFilesModule;
     procedure RemoveModule(const AModel: TProjectModel; const AFilePath: string);
     function GetModules(const AModel: TProjectModel): TProjectFilesModules;
+    procedure CheckModuleExists(const AModel: TProjectModel;
+      const AFilePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
