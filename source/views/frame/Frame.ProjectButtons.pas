@@ -6,13 +6,17 @@ uses
   System.SysUtils, System.Types, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.Layouts, Container.Images, Builder.Services,
-  Builder.Model.Project, Form.SelectProject, Form.Project.Create;
+  Builder.Model.Project, Form.SelectProject, Form.Project.Create, FMX.Menus;
 
 type
   TProjectButtonsFrame = class(TFrame)
     btnCreate: TSpeedButton;
     btnOpen: TSpeedButton;
     btnRemove: TSpeedButton;
+    pmCreateProject: TPopupMenu;
+    miNewBlankProject: TMenuItem;
+    miNewProject: TMenuItem;
+    procedure btnCreateClick(Sender: TObject);
   end;
 
 implementation
@@ -22,5 +26,16 @@ uses
   Container.Menu.Actions;
 
 {$R *.fmx}
+
+type
+  TSpeedButtonCracker = class(TSpeedButton);
+
+procedure TProjectButtonsFrame.btnCreateClick(Sender: TObject);
+begin
+  var LP := LocalToAbsolute(TPointF.Create(
+    TControl(Sender).Width * 0.18, TControl(Sender).Height));
+  LP := Scene.LocalToScreen(LP);
+  TSpeedButtonCracker(Sender).ShowContextMenu(LP);
+end;
 
 end.
