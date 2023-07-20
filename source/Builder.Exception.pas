@@ -24,6 +24,8 @@ type
 
   EModelValidationError = class(EBuilderError);
 
+  EModuleAlreadyExists = class(EBuilderError);
+
   EBuildFailed = class(EBuilderError);
 
   EInstallFailed = class(EBuilderError);
