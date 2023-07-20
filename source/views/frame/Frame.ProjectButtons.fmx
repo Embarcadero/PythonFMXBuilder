@@ -3,17 +3,19 @@ object ProjectButtonsFrame: TProjectButtonsFrame
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object btnCreate: TSpeedButton
-    Action = MenuActionsContainer.actNewProject
     Align = Left
-    Enabled = True
+    Hint = 'New Project'
     Images = ImageContainer.images
     ImageIndex = 8
     Margins.Left = 5.000000000000000000
+    PopupMenu = pmCreateProject
     Position.X = 5.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
+    Text = 'New Project'
+    OnClick = btnCreateClick
   end
   object btnOpen: TSpeedButton
     Action = MenuActionsContainer.actOpenProject
@@ -40,5 +42,20 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
+  end
+  object pmCreateProject: TPopupMenu
+    Images = ImageContainer.images
+    Left = 65517
+    Top = 18
+    object miNewProject: TMenuItem
+      Action = MenuActionsContainer.actNewProject
+      Enabled = True
+      ImageIndex = 35
+    end
+    object miNewBlankProject: TMenuItem
+      Action = MenuActionsContainer.actNewBlankProject
+      Enabled = True
+      ImageIndex = 32
+    end
   end
 end
