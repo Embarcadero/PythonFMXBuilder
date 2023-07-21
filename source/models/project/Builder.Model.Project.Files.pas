@@ -56,15 +56,17 @@ type
 
   TProjectFileClass = class of TProjectFile;
 
-  TProjectFile = class
+  TProjectFile = class(TModel)
   private
     [JSONName('name')]
     FName: string;
     [JSONName('path')]
     FPath: string;
   public
-    constructor Create(const AName, APath: string); overload;
-    constructor Create(const APath: string); overload;
+    constructor Create(const AName, APath: string); reintroduce; overload;
+    constructor Create(const APath: string); reintroduce; overload;
+
+    function Validate(const AErrors: TStrings): boolean; override;
 
     property Name: string read FName write FName;
     property Path: string read FPath write FPath;
@@ -193,6 +195,15 @@ end;
 constructor TProjectFile.Create(const APath: string);
 begin
   Create(TPath.GetFileName(APath), APath);
+end;
+
+function TProjectFile.Validate(const AErrors: TStrings): boolean;
+begin
+  Result := true;
+  if not TFile.Exists(Path) then begin
+    Result := false;
+    AErrors.Add(Format('* File %s not found.', [Path]))
+  end;
 end;
 
 end.

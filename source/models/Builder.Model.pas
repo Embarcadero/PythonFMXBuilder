@@ -8,16 +8,34 @@ uses
 type
   TModelClass = class of TModel;
 
+  TModelDefinition = class
+  private
+    FPhantom: boolean;
+    FStorage: string;
+    FUntitled: boolean;
+  public
+    constructor Create();
+    //Never persisted
+    property Phantom: boolean read FPhantom write FPhantom;
+    //Storage info
+    property Storage: string read FStorage write FStorage;
+    //Never saved by user
+    property Untitled: boolean read FUntitled write FUntitled;
+  end;
+
   TModel = class
   private
     [JSONMarshalled(false)]
-    FStorage: string;
+    FDefs: TModelDefinition;
+  protected
+    function CreateDefs(): TModelDefinition; virtual;
   public
     constructor Create(); virtual;
+    destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; virtual; abstract;
 
-    property Storage: string read FStorage write FStorage;
+    property Defs: TModelDefinition read FDefs;
   end;
 
   ModelAttribute = class(TCustomAttribute)
@@ -41,6 +59,18 @@ implementation
 constructor TModel.Create;
 begin
   inherited;
+  FDefs := CreateDefs;
+end;
+
+destructor TModel.Destroy;
+begin
+  FDefs.Free();
+  inherited;
+end;
+
+function TModel.CreateDefs: TModelDefinition;
+begin
+  Result := TModelDefinition.Create();
 end;
 
 { ModelAttribute }
@@ -59,6 +89,14 @@ begin
     TConverterType.ctObjects,
     TReverterType.rtObjects,
     nil, TJSONPopulationCustomizer, false);
+end;
+
+{ TModelDefinition }
+
+constructor TModelDefinition.Create;
+begin
+  inherited;
+  FPhantom := true;
 end;
 
 end.

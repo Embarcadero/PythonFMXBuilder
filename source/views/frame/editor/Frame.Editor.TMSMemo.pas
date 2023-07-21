@@ -24,6 +24,7 @@ type
     FStoppedEvent: IUnsubscribable;
     procedure LoadFromFile(const AFileName: string);
     procedure Save();
+    procedure SaveTo(const AFileName: string);
     function GetBreakpoints(): TArray<integer>;
     procedure SetBreakpoints(ABreakpoints: TArray<integer>);
     function GetActiveLine(): integer;
@@ -130,8 +131,14 @@ end;
 
 procedure TTMSMemoEditorFrame.Save;
 begin
-  if not FFileName.IsEmpty() then
+  if not FFileName.IsEmpty() and TFile.Exists(FFileName) then
     mmEditor.Lines.SaveToFile(FFileName);
+end;
+
+procedure TTMSMemoEditorFrame.SaveTo(const AFileName: string);
+begin
+  if not AFileName.IsEmpty() and TFile.Exists(AFileName) then
+    mmEditor.Lines.SaveToFile(AFileName);
 end;
 
 procedure TTMSMemoEditorFrame.SetActiveLine(AActiveLine: integer);
@@ -160,7 +167,7 @@ procedure TTMSMemoEditorFrame.LoadFromFile(const AFileName: string);
 begin
   FFileName := AFileName;
   mmEditor.Lines.LoadFromFile(AFileName);
-
+  { TODO : REMOVE ALL OLD SETTINGS }
   DebuggerDataSetContainer.AddSource(
     TPath.GetFileName(AFileName),
     AFileName,

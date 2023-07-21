@@ -18,6 +18,7 @@ type
 
     procedure LoadFromFile(const AFileName: string);
     procedure Save();
+    procedure SaveTo(const AFileName: string);
 
     property Breakpoints: TArray<integer> read GetBreakpoints write SetBreakpoints;
     property ActiveLine: integer read GetActiveLine write SetActiveLine;
@@ -30,10 +31,12 @@ type
   private
     class var FDefaultEditorClass: TControlClass;
   private
-    FFilePath: string;
+    FFileName: string;
     FCanClose: boolean;
-    FSaveState: IDisconnectable;
     FEditor: TControl;
+    //Events
+    FSaveState: IDisconnectable;
+    FRenameFile: IDisconnectable;
     function GetCloseControl(): TControl;
     procedure OnCloseTab(Sender: TObject);
     procedure CreateEditor();
@@ -49,6 +52,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
 
+    procedure LoadFile(const AFileName: string);
+
+    property FileName: string read FFileName write FFileName;
     property TextEditor: ITextEditor read GetTextEditor;
     property CanClose: boolean read FCanClose write FCanClose;
 
@@ -59,7 +65,7 @@ type
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, System.IOUtils;
 
 { TEditorTabItem }
 
@@ -71,10 +77,20 @@ begin
     procedure(const AEventNotification: TSaveStateEvent)
     begin
       if (AEventNotification.Body.SaveState = TSaveState.Save) then begin
-        if (Self.TabControl.ActiveTab = Self) then
+        if (TabControl.ActiveTab = Self) then
           TextEditor.Save();
       end else if (AEventNotification.Body.SaveState = TSaveState.SaveAll) then
         TextEditor.Save();
+    end);
+  FRenameFile := TGlobalBuilderChain.SubscribeToEvent<TRenameFileEvent>(
+    procedure(const AEventNotification: TRenameFileEvent)
+    begin
+      if (FFileName = AEventNotification.Body.OldFilePath) then begin
+        TextEditor.SaveTo(AEventNotification.Body.NewFilePath);
+        TThread.Synchronize(TThread.Current, procedure() begin
+          LoadFile(AEventNotification.Body.NewFilePath);
+        end);
+      end;
     end);
 end;
 
@@ -87,6 +103,7 @@ end;
 
 destructor TEditorTabItem.Destroy;
 begin
+  FRenameFile.Disconnect();
   FSaveState.Disconnect();
   inherited;
 end;
@@ -103,7 +120,7 @@ end;
 
 function TEditorTabItem.GetData: TValue;
 begin
-  Result := FFilePath;
+  Result := FFileName;
 end;
 
 function TEditorTabItem.GetTextEditor: ITextEditor;
@@ -111,9 +128,16 @@ begin
   Result := FEditor as ITextEditor;
 end;
 
+procedure TEditorTabItem.LoadFile(const AFileName: string);
+begin
+  FFileName := AFileName;
+  Text := TPath.GetFileName(FFileName);
+  TextEditor.LoadFromFile(FFileName);
+end;
+
 procedure TEditorTabItem.SetData(const Value: TValue);
 begin
-  FFilePath := Value.AsString();
+  FFileName := Value.AsString();
 end;
 
 procedure TEditorTabItem.SetText(const Value: string);
@@ -125,13 +149,12 @@ begin
   inherited;
   CalcTextObjectSize(0, LSize);
   Self.Width := LSize.cx + CLOSE_BTN_WIDTH;
-  Self.Height := 120;
 end;
 
 procedure TEditorTabItem.DoClose;
 begin
   TGlobalBuilderChain.BroadcastEventAsync(
-    TCloseFileEvent.Create(FFilePath));
+    TCloseFileEvent.Create(FFileName));
 end;
 
 function TEditorTabItem.GetCloseControl: TControl;
