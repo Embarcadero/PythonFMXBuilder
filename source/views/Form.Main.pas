@@ -46,7 +46,7 @@ type
     miAddModule: TMenuItem;
     miOpenProject: TMenuItem;
     miCreateProject: TMenuItem;
-    miRemoveProject: TMenuItem;
+    miCloseCurrentProject: TMenuItem;
     miSetToMain: TMenuItem;
     frmDebugButtons: TDebugButtonsFrame;
     spLeftPanel: TSplitter;

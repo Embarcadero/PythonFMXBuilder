@@ -934,8 +934,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 988.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 968.000000000000000000
-                    Viewport.Height = 76.000000000000000000
+                    Viewport.Width = 984.000000000000000000
+                    Viewport.Height = 92.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -1280,7 +1280,7 @@ inherited MainForm: TMainForm
       inherited btnOpen: TSpeedButton
         Size.Height = 40.000000000000000000
       end
-      inherited btnRemove: TSpeedButton
+      inherited btnClose: TSpeedButton
         Size.Height = 40.000000000000000000
       end
       inherited pmCreateProject: TPopupMenu
@@ -1541,8 +1541,8 @@ inherited MainForm: TMainForm
         Locked = True
         ImageIndex = 1
       end
-      object miRemoveProject: TMenuItem
-        Action = MenuActionsContainer.actRemoveCurrentProject
+      object miCloseCurrentProject: TMenuItem
+        Action = MenuActionsContainer.actCloseCurrentProject
         Enabled = True
         Locked = True
         ImageIndex = 10
