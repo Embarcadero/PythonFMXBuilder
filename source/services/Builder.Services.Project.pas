@@ -26,6 +26,7 @@ type
     procedure OpenProject(const AProject: TProjectModel); overload;
     function OpenProject(const AProjectPath: string): TProjectModel; overload;
     procedure CloseProject();
+    procedure RenameProject(const AModel: TProjectModel; const AProjectName: string);
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
@@ -47,6 +48,8 @@ type
     function GetModules(const AModel: TProjectModel): TProjectFilesModules;
     procedure CheckModuleExists(const AModel: TProjectModel;
       const AFilePath: string);
+    procedure RenameModule(const AProject: TProjectModel;
+      const AProjectModule: TProjectFilesModule; const AFilePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
@@ -182,6 +185,8 @@ function TProjectService.CreateProject(const AProjectName,
   AMainModuleName: string): TProjectModel;
 begin
   Result := TProjectModel.Create(AProjectName);
+  //Must be saved by user
+  Result.Defs.Untitled := true;
 
   if not TDirectory.Exists(TPath.GetDirectoryName(AProjectName)) then
     TDirectory.CreateDirectory(TPath.GetDirectoryName(AProjectName));
@@ -247,7 +252,9 @@ begin
       end;
 
   //Save the script file in the model files
-  AddModule(AModel, AFilePath);
+  var LModule := AddModule(AModel, AFilePath);
+  //Must be saved by user
+  LModule.Defs.Untitled := true;
   //Once we add the main file, we automatically set it as the main file
   SetMainModule(AModel, AFilePath);
 end;
@@ -376,6 +383,28 @@ begin
 
   if Assigned(FActiveProject) and (FActiveProject.ProjectName = AProjectName) then
     CloseProject();
+end;
+
+procedure TProjectService.RenameModule(const AProject: TProjectModel;
+  const AProjectModule: TProjectFilesModule; const AFilePath: string);
+begin
+  //Rename Main
+  if AProject.Files.Main = AProjectModule.Name then
+    AProject.Files.Main := TPath.GetFileName(AFilePath);
+
+  AProjectModule.Name := TPath.GetFileName(AFilePath);
+  AProjectModule.Path := AFilePath;
+end;
+
+procedure TProjectService.RenameProject(const AModel: TProjectModel;
+  const AProjectName: string);
+begin
+  var LNewProject := TProjectModel.Create(TPath.GetFileName(AProjectName));
+  try
+    AModel.Merge(LNewProject);
+  finally
+    LNewProject.Free();
+  end;
 end;
 
 procedure TProjectService.SaveProject(const AProjectPath: string;

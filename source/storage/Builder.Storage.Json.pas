@@ -21,6 +21,7 @@ type
       const AModel: TObject; const AFileName: string = ''): string;
     procedure SetModelFileName(const ATypeInfo: PTypeInfo;
       const AModel: TObject; const AFileName: string);
+    procedure SetPersistent(const AModel: TObject; const APersistent: boolean);
   public
     constructor Create();
     destructor Destroy(); override;
@@ -103,11 +104,18 @@ begin
   if Assigned(AModel) then begin
     var LRttiCtx := TRttiContext.Create();
     try
-      var LRttiType := LRttiCtx.GetType(ATypeInfo^.TypeData^.ClassType);
-      var LRttiProp := LRttiType.GetProperty('Storage');
-      if Assigned(LRttiProp) then
-        if not LRttiProp.GetValue(AModel).AsString().IsEmpty() then
-          Exit(LRttiProp.GetValue(AModel).AsString());
+      var LRttiType := LRttiCtx.GetType(ATypeInfo);
+      var LRttiProp := LRttiType.GetProperty('Defs');
+      if Assigned(LRttiProp) then begin
+        var LDefs := LRttiProp.GetValue(AModel).AsObject();
+        if Assigned(LDefs) then begin
+          LRttiType := LRttiCtx.GetType(LDefs.ClassType);
+          LRttiProp := LRttiType.GetProperty('Storage');
+          if Assigned(LRttiProp) then
+            if not LRttiProp.GetValue(LDefs).AsString().IsEmpty() then
+              Exit(LRttiProp.GetValue(LDefs).AsString());
+        end;
+      end;
     finally
       LRttiCtx.Free();
     end;
@@ -127,9 +135,40 @@ begin
   var LRttiCtx := TRttiContext.Create();
   try
     var LRttiType := LRttiCtx.GetType(ATypeInfo);
-    var LRttiProp := LRttiType.GetProperty('Storage');
-    if Assigned(LRttiProp) then
-      LRttiProp.SetValue(AModel, AFileName);
+    var LRttiProp := LRttiType.GetProperty('Defs');
+    if Assigned(LRttiProp) then begin
+      var LDefs := LRttiProp.GetValue(AModel).AsObject();
+      if Assigned(LDefs) then begin
+        LRttiType := LRttiCtx.GetType(LDefs.ClassType);
+        LRttiProp := LRttiType.GetProperty('Storage');
+        if Assigned(LRttiProp) then
+          LRttiProp.SetValue(LDefs, AFileName);
+      end;
+    end;
+  finally
+    LRttiCtx.Free();
+  end;
+end;
+
+procedure TJsonStorage<ModelType>.SetPersistent(const AModel: TObject;
+  const APersistent: boolean);
+begin
+  if not Assigned(AModel) then
+    Exit;
+
+  var LRttiCtx := TRttiContext.Create();
+  try
+    var LRttiType := LRttiCtx.GetType(AModel.ClassType);
+    var LRttiProp := LRttiType.GetProperty('Defs');
+    if Assigned(LRttiProp) then begin
+      var LDefs := LRttiProp.GetValue(AModel).AsObject();
+      if Assigned(LDefs) then begin
+        LRttiType := LRttiCtx.GetType(LDefs.ClassType);
+        LRttiProp := LRttiType.GetProperty('Phantom');
+        if Assigned(LRttiProp) then
+          LRttiProp.SetValue(LDefs, not APersistent);
+      end;
+    end;
   finally
     LRttiCtx.Free();
   end;
@@ -153,6 +192,7 @@ begin
       if Assigned(LJsonValue) then begin
         TFile.WriteAllText(LFileName, LJsonValue.ToJSON(), TEncoding.UTF8);
         SetModelFileName(PTypeInfo(AModel.ClassInfo), AModel, LFileName);
+        SetPersistent(AModel, true);
       end else
         raise EUnableToSaveEntity.CreateFmt('Unable to save "%s".', [LFileName]);
     finally
@@ -184,7 +224,7 @@ begin
           LJsonObj.AsType<TJSONObject>,
           AModel));
       SetModelFileName(ATypeInfo, AModel, LFileName);
-
+      SetPersistent(AModel, true);
       Result := Assigned(AModel);
     finally
       LUnmarshaler.Free();
@@ -207,6 +247,8 @@ begin
     Exit(false);
 
   TFile.Delete(LFileName);
+
+  SetPersistent(AModel, false);
 
   Result := true;
 end;

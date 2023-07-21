@@ -74,6 +74,7 @@ type
     procedure OpenProject(const AProject: TProjectModel); overload;
     function OpenProject(const AProjectPath: string): TProjectModel; overload;
     procedure CloseProject();
+    procedure RenameProject(const AModel: TProjectModel; const AProjectName: string);
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
@@ -95,6 +96,8 @@ type
     function GetModules(const AModel: TProjectModel): TProjectFilesModules;
     procedure CheckModuleExists(const AModel: TProjectModel;
       const AFilePath: string);
+    procedure RenameModule(const AProject: TProjectModel;
+      const AProjectModule: TProjectFilesModule; const AFilePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;

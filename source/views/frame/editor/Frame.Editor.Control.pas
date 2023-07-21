@@ -19,16 +19,14 @@ type
     FCloseProjectEvent: IDisconnectable;
     FOpenFileEvent: IDisconnectable;
     FCloseFileEvent: IDisconnectable;
-    function DoCreateTab(const AText: string;
-      const ACanClose: boolean = true): TTabItem;
-    function GetEditorTab(const AFilePath: string): TTabItem;
-    procedure LoadEditorFile(const AItem: TTabItem; const AFilePath: string = '');
+    function DoCreateTab(const ACanClose: boolean = true): TTabItem;
+    function GetEditorTab(const AFileName: string): TTabItem;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
 
-    function OpenEditor(const AFilePath: string): ITextEditor;
-    procedure CloseEditor(const AFilePath: string);
+    function OpenEditor(const AFileName: string): ITextEditor;
+    procedure CloseEditor(const AFileName: string);
     procedure CloseAll();
   end;
 
@@ -105,25 +103,11 @@ begin
   inherited;
 end;
 
-procedure TEditorControlFrame.LoadEditorFile(const AItem: TTabItem;
-  const AFilePath: string);
-begin
-  var LFilePath := AFilePath;
-  if LFilePath.IsEmpty() then
-    LFilePath := AItem.Data.AsString();  
-
-  TEditorTabItem(AItem).TextEditor.LoadFromFile(LFilePath);
-end;
-
-function TEditorControlFrame.DoCreateTab(const AText: string;
-  const ACanClose: boolean): TTabItem;
+function TEditorControlFrame.DoCreateTab(const ACanClose: boolean): TTabItem;
 begin
   Result := tbScripts.Add(TEditorTabItem);
   Result.AutoSize := false;
   TEditorTabItem(Result).CanClose := ACanClose;
-  Result.Text := AText;
-  Result.Height := 26;
-  Result.StyleLookup := 'tabitemclosebutton';
 end;
 
 procedure TEditorControlFrame.dsActiveSourceDataChange(Sender: TObject;
@@ -143,44 +127,43 @@ begin
 
   var LTextEditor := OpenEditor(LFilePath);
 
-  if DebuggerDataSetContainer.fdmtActiveSourceactive_source_line.AsInteger > 0 then begin
+  if DebuggerDataSetContainer.fdmtActiveSourceactive_source_line.AsInteger > 0 then
     LTextEditor.ActiveLine := DebuggerDataSetContainer.fdmtActiveSourceactive_source_line.AsInteger - 1;
-  end;
+
   LTextEditor.ShowActiveLine := DebuggerDataSetContainer.fdmtActiveSourceactive_source_line_indicator.AsBoolean;
 end;
 
-function TEditorControlFrame.GetEditorTab(const AFilePath: string): TTabItem;
+function TEditorControlFrame.GetEditorTab(const AFileName: string): TTabItem;
 begin
   for var I := 0 to tbScripts.TabCount - 1 do
-    if (tbScripts.Tabs[I].Data.AsString() = AFilePath) then
+    if (TEditorTabItem(tbScripts.Tabs[I]).FileName = AFileName) then
       Exit(tbScripts.Tabs[I]);
   Result := nil;
 end;
 
-function TEditorControlFrame.OpenEditor(const AFilePath: string): ITextEditor;
+function TEditorControlFrame.OpenEditor(const AFileName: string): ITextEditor;
 begin
-  if not TFile.Exists(AFilePath) then
-    raise Exception.CreateFmt('File %s not found.', [AFilePath]);
+  if not TFile.Exists(AFileName) then
+    raise Exception.CreateFmt('File %s not found.', [AFileName]);
 
-  var LItem := GetEditorTab(AFilePath);
+  var LItem := GetEditorTab(AFileName);
   if Assigned(LItem) then begin
     tbScripts.ActiveTab := LItem;
     Result := TEditorTabItem(LItem).TextEditor;
     Exit;
   end;
 
-  LItem := DoCreateTab(TPath.GetFileName(AFilePath));
-  LItem.Data := AFilePath;
-  LoadEditorFile(LItem);
-
+  LItem := DoCreateTab();
+  TEditorTabItem(LItem).LoadFile(AFileName);
+  LItem.Height := 26;
+  LItem.StyleLookup := 'tabitemclosebutton';
   tbScripts.ActiveTab := LItem;
-
   Result := TEditorTabItem(LItem).TextEditor;
 end;
 
-procedure TEditorControlFrame.CloseEditor(const AFilePath: string);
+procedure TEditorControlFrame.CloseEditor(const AFileName: string);
 begin
-  var LItem := GetEditorTab(AFilePath);
+  var LItem := GetEditorTab(AFileName);
   if Assigned(LItem) then
     tbScripts.Delete(LItem.Index);
 end;

@@ -34,8 +34,9 @@ type
     FIcons: TProjectIconModel;
     [JSONName('files')]
     FFiles: TProjectFilesModel;
-  private
+    [JSONMarshalled(false)]
     FDebugger: TDebugger;
+  private
     function GetProjectName: string;
     function GetFiles: TProjectFilesModel;
     function GetIcons: TProjectIconModel;
@@ -46,6 +47,8 @@ type
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
+
+    procedure Merge(const AModel: TProjectModel);
   public
     property ProjectName: string read GetProjectName write FProjectName;
     property ApplicationName: string read FApplicationName write FApplicationName;
@@ -116,6 +119,21 @@ begin
   if FProjectName.IsEmpty() and not FApplicationName.IsEmpty() then
     FProjectName := FApplicationName.Trim();
   Result := FProjectName;
+end;
+
+procedure TProjectModel.Merge(const AModel: TProjectModel);
+begin
+  Assert(Assigned(AModel), 'Param "AModel" not assigned.');
+
+  //Rename package name
+  if (PackageName = 'com.embarcadero.' + TPath.GetFileNameWithoutExtension(ProjectName)) then
+    PackageName := AModel.PackageName;
+
+  //Rename application name
+  if ApplicationName = TPath.GetFileNameWithoutExtension(ProjectName) then
+    ApplicationName := AModel.ApplicationName;
+
+  ProjectName := AModel.ProjectName;
 end;
 
 function TProjectModel.Validate(const AErrors: TStrings): boolean;

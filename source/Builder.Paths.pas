@@ -3,6 +3,7 @@ unit Builder.Paths;
 interface
 
 uses
+  System.SysUtils,
   Builder.Types;
 
 type
@@ -11,8 +12,9 @@ type
     //Workspace
     class function WorkspaceFolder(): string; static;
     class function RecommendProjectName(const AWorkspace: string): string; static;
-    class function RecommendModuleName(const AProjectName: string): string; static;
-    class function PhantomProjectName(const AWorkspace: string): string; static;
+    class function RecommendModuleName(const AProjectName: string;
+      APredicate: TPredicate<string> = nil): string; static;
+    class function UntitledProject(const AWorkspace: string): string; static;
     //Python embeddable
     class function GetPythonFolder(): string; static;
     class function GetDistributionFolder(): string; static;
@@ -62,7 +64,7 @@ const
 implementation
 
 uses
-  System.SysUtils, System.IOUtils,
+  System.IOUtils,
   Builder.Exception;
 
 { TBuilderPaths }
@@ -228,7 +230,7 @@ begin
   Result := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'rpyc.py');
 end;
 
-class function TBuilderPaths.PhantomProjectName(
+class function TBuilderPaths.UntitledProject(
   const AWorkspace: string): string;
 begin
   var I := 1;
@@ -241,15 +243,20 @@ begin
 end;
 
 class function TBuilderPaths.RecommendModuleName(
-  const AProjectName: string): string;
+  const AProjectName: string; APredicate: TPredicate<string>): string;
 begin
+  if not Assigned(APredicate) then
+    APredicate := function(Arg: string): boolean begin
+      Result := true;
+    end;
+
   var I := 1;
   repeat
     Result := TPath.Combine(
       TPath.GetDirectoryName(AProjectName),
       'module' + I.ToString() + '.py');
     Inc(I);
-  until not TDirectory.Exists(Result);
+  until not TFile.Exists(Result) and APredicate(Result);
 end;
 
 class function TBuilderPaths.RecommendProjectName(

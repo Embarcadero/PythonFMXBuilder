@@ -63,11 +63,11 @@ type
     FRoot: TTreeViewItem;
     FOpenProjectEvent: IDisconnectable;
     FCloseProjectEvent: IDisconnectable;
+    FSaveState: IDisconnectable;
   private
     function GetProjectServices: IProjectServices;
     //Project operations
-    procedure DoAddModule(const AFileName: string);
-    procedure SaveChanges();
+    function DoAddModule(const AFileName: string): TProjectFilesModule;
     //TreeView operations
     procedure LoadIcon(const AItem: TTreeViewItem);
     procedure LoadStyles(const AItem: TTreeViewItem);
@@ -98,6 +98,9 @@ type
     //Chained events
     procedure BroadcastOpenFile(const AFilePath: string);
     procedure BroadcastCloseFile(const AFilePath: string);
+    //Save files
+    procedure SaveUntitledProject();
+    procedure SaveUntitledModules();
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -132,6 +135,7 @@ uses
   ShellApi, WinAPI.Windows,
   {$ENDIF MSWINDOWS}
   Container.Menu.Actions,
+  Builder.Paths,
   Builder.Services.Factory;
 
 type
@@ -213,32 +217,51 @@ begin
           UnLoadProject(LProject);
         end);
     end);
+
+  FSaveState := TGlobalBuilderChain.SubscribeToEvent<TSaveStateEvent>(
+    procedure(const AEventNotification: TSaveStateEvent)
+    begin
+      if not Assigned(FProjectModel) then
+        Exit;
+
+      if (AEventNotification.Body.SaveState = TSaveState.SaveAll) then begin
+        TThread.Synchronize(TThread.Current, procedure() begin
+          //Save project
+          SaveUntitledProject();
+          //Save modules
+          SaveUntitledModules();
+          //Reload
+          FProjectServices.SaveProject(String.Empty, FProjectModel);
+          LoadProject(FProjectModel);
+        end);
+      end;
+    end);
 end;
 
 destructor TProjectFilesFrame.Destroy;
 begin
+  FSaveState.Disconnect();
   FOpenProjectEvent.Disconnect();
   FCloseProjectEvent.Disconnect();
   inherited;
 end;
 
-procedure TProjectFilesFrame.DoAddModule(const AFileName: string);
+function TProjectFilesFrame.DoAddModule(const AFileName: string): TProjectFilesModule;
 begin
-  var LModule := GetProjectServices().AddModule(FProjectModel, AFileName);
-  if Assigned(LModule) then begin
+  Result := GetProjectServices().AddModule(FProjectModel, AFileName);
+  if Assigned(Result) then begin
     //Creates the tree item
     var LItem := BuildNode(
       GetNodeByNodeType(TNodeType.ntRootModule),
       ntModule,
-      LModule.Path);
+      Result.Path);
 
-    LItem.Text := LModule.Name;
+    LItem.Text := Result.Name;
 
     //Add as the deafult script file if none
     if FProjectModel.Files.Main.IsEmpty() then
-      GetProjectServices().SetMainModule(FProjectModel, LModule.Path);
+      GetProjectServices().SetMainModule(FProjectModel, Result.Path);
 
-    SaveChanges();
     tvProjectFiles.Selected := LItem;
 
     BroadcastOpenFile(AFileName);
@@ -256,12 +279,13 @@ begin
   if not Assigned(AProject) then
     Exit(String.Empty);
 
-  if not AProject.Files.Main.IsEmpty() then
-      Exit(AProject.Files.Main);
+  for var LModule in AProject.Files.Modules do begin
+    if AProject.Files.Main.IsEmpty() then
+      Exit(LModule.Path);
 
-  //If we don't have a main script, we try to get the first existing script
-  if AProject.Files.Modules.Count > 0 then
-    Exit(AProject.Files.Modules[0].Path);
+    if (LModule.Name = AProject.Files.Main) then
+      Exit(LModule.Path);
+  end;
 
   Result := String.Empty;
 end;
@@ -406,11 +430,6 @@ begin
   Result := AItem.Data.AsType<TNodeInfo>().NodeType = ANodeType;
 end;
 
-procedure TProjectFilesFrame.SaveChanges;
-begin
-  GetProjectServices().SaveProject(FProjectModel.Storage, FProjectModel);
-end;
-
 procedure TProjectFilesFrame.OnTreeViewItemDblClickModule(Sender: TObject);
 begin
   var LFilePath := GetItemFilePath(TTreeViewItem(Sender));
@@ -425,7 +444,6 @@ begin
   FProjectModel.BuildConfiguration := LNode.Data.AsType<TNodeInfo>
     .NodeData.AsType<TBuildConfiguration>;
   UpdateSelectedBuildConfiguration(LNode);
-  SaveChanges;
   LoadStyles(LNode);
 end;
 
@@ -436,7 +454,6 @@ begin
   FProjectModel.Architecture := LNode.Data.AsType<TNodeInfo>
     .NodeData.AsType<TArchitecture>;
   UpdateSelectedPlatform(LNode);
-  SaveChanges;
   LoadStyles(LNode);
 end;
 
@@ -446,8 +463,62 @@ begin
   FProjectModel.PythonVersion := LNode.Data.AsType<TNodeInfo>
     .NodeData.AsType<TPythonVersion>;
   UpdateSelectedPython(LNode);
-  SaveChanges;
   LoadStyles(LNode);
+end;
+
+procedure TProjectFilesFrame.SaveUntitledModules;
+begin
+  for var LModule in FProjectModel.Files.Modules do begin
+    if not LModule.Defs.Untitled then
+      Continue;
+
+    MenuActionsContainer.sdModule.InitialDir := TPath.GetDirectoryName(
+      FProjectModel.Defs.Storage);
+    MenuActionsContainer.sdModule.FileName := LModule.Name;
+    if not MenuActionsContainer.sdModule.Execute then
+      Continue;
+
+    var LOldFileName := LModule.Path;
+    var LNewFileName := MenuActionsContainer.sdModule.FileName;
+    //Rename the project file
+    if not LOldFileName.IsEmpty() then begin
+      if TFile.Exists(LNewFileName) then
+        TFile.Delete(LNewFileName);
+      TFile.Move(LOldFileName, LNewFileName);
+    end;
+    FProjectServices.RenameModule(FProjectModel, LModule, LNewFileName);
+    //Persist project
+    FProjectServices.SaveProject(String.Empty, FProjectModel);
+    LModule.Defs.Untitled := false;
+    //Notify file renamed
+    TGlobalBuilderChain.BroadcastEventAsync(
+      TRenameFileEvent.Create(LOldFileName, LNewFileName));
+  end;
+end;
+
+procedure TProjectFilesFrame.SaveUntitledProject;
+begin
+  if not FProjectModel.Defs.Untitled then
+    Exit;
+
+  MenuActionsContainer.sdProject.InitialDir := TBuilderPaths.WorkspaceFolder();
+  MenuActionsContainer.sdProject.FileName := FProjectModel.ProjectName;
+  if not MenuActionsContainer.sdProject.Execute then
+    Exit;
+
+  var LNewFileName := MenuActionsContainer.sdProject.FileName;
+  //Rename the project file
+  if not FProjectModel.Defs.Storage.IsEmpty() then begin
+    if TFile.Exists(LNewFileName) then
+      TFile.Delete(LNewFileName);
+    TFile.Move(FProjectModel.Defs.Storage, LNewFileName);
+  end;
+  FProjectServices.RenameProject(FProjectModel, LNewFileName);
+  //Persist project
+  FProjectServices.SaveProject(
+    LNewFileName,
+    FProjectModel);
+  FProjectModel.Defs.Untitled := false;
 end;
 
 procedure TProjectFilesFrame.UnLoadProject(const AProjectModel: TProjectModel);
@@ -520,8 +591,7 @@ end;
 function TProjectFilesFrame.AddProjectNode: TTreeViewItem;
 begin
   Result := BuildNode(tvProjectFiles, ntProject, String.Empty);
-  Result.Text := ExtractFileName(
-    ExcludeTrailingPathDelimiter(FProjectModel.ProjectName));
+  Result.Text := TPath.GetFileNameWithoutExtension(FProjectModel.ProjectName);
 end;
 
 procedure TProjectFilesFrame.AddBuildConfigurationNodes(
@@ -692,8 +762,6 @@ begin
 
         LItem.Text := LOther.Name;
 
-        SaveChanges();
-
         tvProjectFiles.Selected := LItem;
       end;
     finally
@@ -719,8 +787,6 @@ begin
 
         LItem.Text := LPackage.Name;
 
-        SaveChanges();
-
         tvProjectFiles.Selected := LItem;
       end;
     finally
@@ -731,16 +797,15 @@ end;
 
 procedure TProjectFilesFrame.actNewModuleExecute(Sender: TObject);
 begin
-  if MenuActionsContainer.sdModule.Execute() then begin
-    GetProjectServices().CheckModuleExists(FProjectModel, MenuActionsContainer.sdModule.FileName);
-    //Save file into the project
-    var LStream := TFileStream.Create(MenuActionsContainer.sdModule.FileName, fmCreate);
-    try
-      DoAddModule(MenuActionsContainer.sdModule.FileName);
-    finally
-      LStream.Free();
-    end;
-  end;
+  var LUntitledModule := TBuilderPaths.RecommendModuleName(
+    FProjectModel.Defs.Storage,
+    function(AFileName: string): boolean begin
+      Result := GetProjectServices().GetModule(FProjectModel, AFileName) = nil;
+    end);
+  var LModule := DoAddModule(LUntitledModule);
+  //Create an empty file
+  TFile.WriteAllText(LUntitledModule, String.Empty, TEncoding.UTF8);
+  LModule.Defs.Untitled := true;
 end;
 
 procedure TProjectFilesFrame.actAddModuleExecute(Sender: TObject);
@@ -781,7 +846,6 @@ begin
   LNode.Free();     
 
   GetProjectServices().RemovePackage(FProjectModel, LInfo.NodeData.AsString);
-  SaveChanges();
 end;
 
 procedure TProjectFilesFrame.actRevealFileExecute(Sender: TObject);
@@ -824,7 +888,6 @@ begin
   LNode.Free();
 
   GetProjectServices().RemoveModule(FProjectModel, LInfo.NodeData.AsString);
-  SaveChanges();
   BroadcastCloseFile(LInfo.NodeData.AsString);
 end;
 
@@ -853,14 +916,12 @@ begin
   LNode.Free();
 
   GetProjectServices().RemoveOtherFile(FProjectModel, LInfo.NodeData.AsString);
-  SaveChanges();
 end;
 
 procedure TProjectFilesFrame.actSetToMainExecute(Sender: TObject);
 begin
   GetProjectServices().SetMainModule(FProjectModel,
     GetItemFilePath(tvProjectFiles.Selected));
-  SaveChanges();
 end;
 
 procedure TProjectFilesFrame.LoadProject(const AProjectModel: TProjectModel);

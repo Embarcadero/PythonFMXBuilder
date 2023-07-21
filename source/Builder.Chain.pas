@@ -25,6 +25,7 @@ type
     CloseProject,
     OpenFile,
     CloseFile,
+    RenameFile,
     //Debugger events
     DebugSessionStarted,
     DebugSessionStopped,
@@ -265,6 +266,21 @@ type
   TCloseFileEvent = class(TChainEvent<TCloseFileBody>)
   public
     constructor Create(const AFilePath: string); reintroduce;
+  end;
+
+  TRenameFileBody = class
+  private
+    FOldFilePath: string;
+    FNewFilePath: string;
+  public
+    property OldFilePath: string read FOldFilePath write FOldFilePath;
+    property NewFilePath: string read FNewFilePath write FNewFilePath;
+  end;
+
+  [EventType(TBuilderEvent.RenameFile)]
+  TRenameFileEvent = class(TChainEvent<TRenameFileBody>)
+  public
+    constructor Create(const AOldFilePath, ANewFilePath: string); reintroduce;
   end;
 
   TAsyncOperationStartedBody = class
@@ -1189,6 +1205,15 @@ constructor TDebugActionEvent.Create(
 begin
   inherited Create();
   Body.Action := ADebugAction;
+end;
+
+{ TRenameFileEvent }
+
+constructor TRenameFileEvent.Create(const AOldFilePath, ANewFilePath: string);
+begin
+  inherited Create();
+  Body.OldFilePath := AOldFilePath;
+  Body.NewFilePath := ANewFilePath;
 end;
 
 end.
