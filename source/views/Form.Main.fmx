@@ -934,8 +934,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 988.000000000000000000
                     Size.Height = 117.000000000000000000
-                    Viewport.Width = 984.000000000000000000
-                    Viewport.Height = 92.000000000000000000
+                    Viewport.Width = 968.000000000000000000
+                    Viewport.Height = 76.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -1492,6 +1492,22 @@ inherited MainForm: TMainForm
         Enabled = True
         Locked = True
         ImageIndex = 5
+      end
+      object miFilesSep1: TMenuItem
+        Locked = True
+        Text = '-'
+      end
+      object miSave: TMenuItem
+        Action = MenuActionsContainer.actSaveState
+        Enabled = True
+        Locked = True
+        ImageIndex = 2
+      end
+      object miSaveAll: TMenuItem
+        Action = MenuActionsContainer.actSaveAllState
+        Enabled = True
+        Locked = True
+        ImageIndex = 22
       end
     end
     object miProject: TMenuItem

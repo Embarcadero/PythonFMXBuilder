@@ -67,6 +67,9 @@ type
     miNewModule: TMenuItem;
     miNewBlankProject: TMenuItem;
     miNewProject: TMenuItem;
+    miFilesSep1: TMenuItem;
+    miSave: TMenuItem;
+    miSaveAll: TMenuItem;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);
