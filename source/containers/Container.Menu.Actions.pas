@@ -31,7 +31,7 @@ type
     actDeployCurrentProject: TAction;
     actCreateProject: TAction;
     actOpenProject: TAction;
-    actRemoveCurrentProject: TAction;
+    actCloseCurrentProject: TAction;
     actRunCurrentProject: TAction;
     actBuildCurrentProjectAsync: TAction;
     actDeployCurrentProjectAsync: TAction;
@@ -64,7 +64,7 @@ type
     procedure actRunCurrentProjectExecute(Sender: TObject);
     procedure actCreateProjectExecute(Sender: TObject);
     procedure actOpenProjectExecute(Sender: TObject);
-    procedure actRemoveCurrentProjectExecute(Sender: TObject);
+    procedure actCloseCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectAsyncExecute(Sender: TObject);
     procedure actDeployCurrentProjectAsyncExecute(Sender: TObject);
     procedure actRunCurrentProjectAsyncExecute(Sender: TObject);
@@ -217,21 +217,23 @@ end;
 
 procedure TMenuActionsContainer.actNewBlankProjectExecute(Sender: TObject);
 begin
-  var LPhantonProjectName := TBuilderPaths.PhantomProjectName(
+  var LUntitledProject := TBuilderPaths.UntitledProject(
     TBuilderPaths.WorkspaceFolder());
   FProjectModel := FProjectServices.CreateProject(
-    LPhantonProjectName, String.Empty);
+    LUntitledProject, String.Empty);
+  FProjectServices.SaveProject(LUntitledProject, FProjectModel);
   FProjectServices.OpenProject(FProjectModel);
 end;
 
 procedure TMenuActionsContainer.actNewProjectExecute(Sender: TObject);
 begin
-  var LPhantonProjectName := TBuilderPaths.PhantomProjectName(
+  var LUntitledProject := TBuilderPaths.UntitledProject(
     TBuilderPaths.WorkspaceFolder());
-  var LPhantonModuleName := TBuilderPaths.RecommendModuleName(
-    LPhantonProjectName);
+  var LUntitledModuleName := TBuilderPaths.RecommendModuleName(
+    LUntitledProject);
   FProjectModel := FProjectServices.CreateProject(
-    LPhantonProjectName, LPhantonModuleName);
+    LUntitledProject, LUntitledModuleName);
+  FProjectServices.SaveProject(LUntitledProject, FProjectModel);
   FProjectServices.OpenProject(FProjectModel);
 end;
 
@@ -253,23 +255,10 @@ begin
     FProjectModel := FProjectServices.OpenProject(odProject.FileName);
 end;
 
-procedure TMenuActionsContainer.actRemoveCurrentProjectExecute(Sender: TObject);
+procedure TMenuActionsContainer.actCloseCurrentProjectExecute(Sender: TObject);
 begin
   FProjectServices.CheckActiveProject();
-
-  var LRemove := true;
-  if not IsConsole then
-    TDialogService.MessageDialog('Do you really want to remove this project?',
-      TMsgDlgType.mtConfirmation,
-      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
-      procedure(const AResult: TModalResult) begin
-        LRemove := AResult = mrYes;
-      end);
-
-  if not LRemove then
-    Exit;
-
-  FProjectServices.RemoveProject(FProjectModel.ProjectName);
+  FProjectServices.CloseProject();
 end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
@@ -342,7 +331,7 @@ begin
   FProjectServices.CheckActiveProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
-    LForm.Storage := FProjectServices.GetActiveProject().Storage;
+    LForm.Storage := FProjectServices.GetActiveProject().Defs.Storage;
     TFormSlider.ShowModal(Application.MainForm, LForm);
   finally
     LForm.Free();
