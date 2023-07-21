@@ -61,13 +61,13 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actOpenProjectExecute
       ImageIndex = 9
     end
-    object actRemoveCurrentProject: TAction
+    object actCloseCurrentProject: TAction
       Tag = 9
       Category = 'Project'
-      Text = 'Remove Project'
-      Hint = 'Remove Project'
+      Text = 'Close Project'
+      Hint = 'Close Project'
       ImageIndex = 10
-      OnExecute = actRemoveCurrentProjectExecute
+      OnExecute = actCloseCurrentProjectExecute
       ImageIndex = 10
     end
     object actRunCurrentProject: TAction
@@ -221,7 +221,7 @@ object MenuActionsContainer: TMenuActionsContainer
     end
   end
   object sdProject: TSaveDialog
-    DefaultExt = 'pyfmxproj'
+    DefaultExt = '.pyfmxproj'
     Filter = 'Python FMX Project|*.pyfmxproj'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 104
@@ -229,13 +229,13 @@ object MenuActionsContainer: TMenuActionsContainer
   end
   object sdModule: TSaveDialog
     DefaultExt = '.py'
-    Filter = 'Python Module|*.py.'
+    Filter = 'Python Module|*.py'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 248
     Top = 152
   end
   object odProject: TOpenDialog
-    DefaultExt = 'pyfmxproj'
+    DefaultExt = '.pyfmxproj'
     Filter = 'Python FMX Project|*.pyfmxproj'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 104

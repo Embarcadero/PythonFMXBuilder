@@ -30,8 +30,8 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
   end
-  object btnRemove: TSpeedButton
-    Action = MenuActionsContainer.actRemoveCurrentProject
+  object btnClose: TSpeedButton
+    Action = MenuActionsContainer.actCloseCurrentProject
     Align = Left
     Enabled = True
     Images = ImageContainer.images
