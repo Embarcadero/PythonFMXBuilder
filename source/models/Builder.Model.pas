@@ -12,7 +12,7 @@ type
   private
     FPhantom: boolean;
     FStorage: string;
-    FUntitled: boolean;
+    FUntracked: boolean;
   public
     constructor Create();
     //Never persisted
@@ -20,7 +20,7 @@ type
     //Storage info
     property Storage: string read FStorage write FStorage;
     //Never saved by user
-    property Untitled: boolean read FUntitled write FUntitled;
+    property Untracked: boolean read FUntracked write FUntracked;
   end;
 
   TModel = class
