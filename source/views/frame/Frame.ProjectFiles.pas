@@ -9,7 +9,8 @@ uses
   FMX.ImgList, FMX.ActnList,
   Container.Images,
   Builder.Services, Builder.Types, Builder.Chain,
-  Builder.Model.Project, Builder.Model.Project.Files;
+  Builder.Model.Project, Builder.Model.Project.Files,
+  Builder.TreeView;
 
 type
   TNodeType = (
@@ -88,12 +89,16 @@ type
     procedure OnTreeViewItemDblClickBuildConfigurationItem(Sender: TObject);
     procedure OnTreeViewItemDblClickPlatformItem(Sender: TObject);
     procedure OnTreeViewItemDblClickPythonItem(Sender: TObject);
+    procedure OnTreeViewItemRename(Sender: TObject; const AOldName: string; var ANewName: string);
     //Visual node updates
     procedure UpdateSelectedPlatform(const ASelected: TTreeViewItem);
     procedure UpdateSelectedPython(const ASelected: TTreeViewItem);
     procedure UpdateSelectedBuildConfiguration(const ASelected: TTreeViewItem);
-    //
+    //Node bindings
+    function GetNodeType(const AItem: TTreeViewItem): TNodeType;
     function GetNodeByNodeType(const ANodeType: TNodeType): TTreeViewItem;
+    function GetNodeByProject(const AProject: TProjectModel): TTreeViewItem;
+    function GetNodeByModule(const AModule: TProjectFilesModule): TTreeViewItem;
     function GetNodeData<T>(const AItem: TTreeViewItem): T;
     //Chained events
     procedure BroadcastOpenFile(const AFilePath: string);
@@ -101,6 +106,11 @@ type
     //Save files
     procedure SaveUntitledProject();
     procedure SaveUntitledModules();
+    //Data updates
+    procedure DoRenameAndMoveProject(const AProject: TProjectModel; 
+      const AProjectFilename: string);
+    procedure DoRenameAndMoveModule(const AModule: TProjectFilesModule; 
+      const AProjectFilename: string);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -138,28 +148,7 @@ uses
   Builder.Paths,
   Builder.Services.Factory;
 
-type
-  TProjectFilesTreeViewItem = class(FMX.TreeView.TTreeViewItem)
-  private
-    FData: TValue;
-  protected
-    function GetData(): TValue; override;
-    procedure SetData(const Value: TValue); override;
-  end;
-
 {$R *.fmx}
-
-{ TProjectFilesTreeViewItem }
-
-function TProjectFilesTreeViewItem.GetData: TValue;
-begin
-  Result := FData;
-end;
-
-procedure TProjectFilesTreeViewItem.SetData(const Value: TValue);
-begin
-  FData := Value;
-end;
 
 { TNodeInfo }
 
@@ -231,8 +220,7 @@ begin
           //Save modules
           SaveUntitledModules();
           //Reload
-          FProjectServices.SaveProject(String.Empty, FProjectModel);
-          LoadProject(FProjectModel);
+          FProjectServices.SaveProject(FProjectModel);          
         end);
       end;
     end);
@@ -268,6 +256,38 @@ begin
   end;
 end;
 
+procedure TProjectFilesFrame.DoRenameAndMoveModule(
+  const AModule: TProjectFilesModule;
+  const AProjectFilename: string);
+begin
+  //Update node 
+  var LNode := GetNodeByModule(AModule);   
+  var LOldFileName := AModule.Path;   
+  FProjectServices.RenameModule(FProjectModel, AModule, TPath.GetFileName(AProjectFilename));
+  FProjectServices.MoveModule(AModule, AProjectFilename); //Only move if name has been accepted
+  FProjectServices.SaveProject(FProjectModel);    
+  if Assigned(LNode) then begin
+    LNode.Text := AModule.Name;    
+    LNode.Data := TNodeInfo.Create(GetNodeType(LNode), AModule.Path);
+  end;   
+  //Notify file renamed
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TRenameFileEvent.Create(LOldFileName, AProjectFilename));    
+end;
+
+procedure TProjectFilesFrame.DoRenameAndMoveProject(
+  const AProject: TProjectModel; const AProjectFilename: string);
+begin
+  var LNode := GetNodeByProject(FProjectModel);   
+  FProjectServices.RenameProject(FProjectModel, TPath.GetFileName(AProjectFilename));  
+  FProjectServices.MoveProject(FProjectModel, AProjectFilename); //Only move if name has been accepted
+  FProjectServices.SaveProject(FProjectModel);  
+  if Assigned(LNode) then begin
+    LNode.Text := FProjectModel.ProjectName;    
+    LNode.Data := TNodeInfo.Create(GetNodeType(LNode), FProjectModel.ProjectName);
+  end;   
+end;
+
 function TProjectFilesFrame.GetItemFilePath(const AItem: TTreeViewItem): string;
 begin
   Result := String(AItem.Data.AsType<TNodeInfo>().NodeData.AsString);
@@ -293,6 +313,20 @@ end;
 function TProjectFilesFrame.GetDefaultProjectFilePath: string;
 begin
   Result := GetDefaultProjectFilePath(FProjectModel);
+end;
+
+function TProjectFilesFrame.GetNodeByModule(
+  const AModule: TProjectFilesModule): TTreeViewItem;
+begin
+  var LRoot := GetNodeByNodeType(TNodeType.ntRootModule);
+  if not Assigned(LRoot) then
+    Exit(nil);
+
+  for var I := 0 to LRoot.Count - 1 do
+    if GetNodeData<string>(LRoot.Items[I]) = AModule.Path then
+      Exit(LRoot.Items[I]);
+
+  Result := nil;
 end;
 
 function TProjectFilesFrame.GetNodeByNodeType(
@@ -321,9 +355,20 @@ begin
   Result := RecursivelyGetNode(FRoot, ANodeType);
 end;
 
+function TProjectFilesFrame.GetNodeByProject(
+  const AProject: TProjectModel): TTreeViewItem;
+begin
+  Result := FRoot;
+end;
+
 function TProjectFilesFrame.GetNodeData<T>(const AItem: TTreeViewItem): T;
 begin
   Result := AItem.Data.AsType<TNodeInfo>.NodeData.AsType<T>;
+end;
+
+function TProjectFilesFrame.GetNodeType(const AItem: TTreeViewItem): TNodeType;
+begin
+  Result := AItem.Data.AsType<TNodeInfo>().NodeType;
 end;
 
 function TProjectFilesFrame.GetProjectServices: IProjectServices;
@@ -335,9 +380,14 @@ end;
 
 procedure TProjectFilesFrame.LoadEvents(const AItem: TTreeViewItem);
 begin
-  case AItem.Data.AsType<TNodeInfo>().NodeType of
-    ntModule:
+  AItem.Renamable := GetNodeType(AItem) in [TNodeType.ntProject, TNodeType.ntModule];
+  AItem.LazyInput := true;
+  AItem.OnRename := OnTreeViewItemRename;
+
+  case GetNodeType(AItem) of
+    ntModule: begin
       AItem.OnDblClick := OnTreeViewItemDblClickModule;
+    end;
     ntBuildConfiguration:
       AItem.OnDblClick := OnTreeViewItemDblClickBuildConfigurationItem;
     ntTargetPlatform:
@@ -437,6 +487,34 @@ begin
     BroadcastOpenFile(LFilePath);
 end;
 
+procedure TProjectFilesFrame.OnTreeViewItemRename(Sender: TObject; const AOldName: string;
+  var ANewName: string);
+begin
+  if ANewName.Trim().IsEmpty() then begin
+    ANewName := AOldName;
+    Exit;
+  end;
+  
+  if (GetNodeType(Sender as TTreeViewItem) = TNodeType.ntProject) then begin   
+    var LNewFileName := TPath.Combine(
+      TPath.GetDirectoryName(FProjectModel.Defs.Storage),
+      ANewName);
+    
+    DoRenameAndMoveProject(FProjectModel, LNewFileName);
+  end else if (GetNodeType(Sender as TTreeViewItem) = TNodeType.ntModule) then begin
+    //Search module
+    for var LModule in FProjectModel.Files.Modules do
+      if (LModule.Name = AOldName) then begin
+        var LNewFileName := TPath.Combine(
+          TPath.GetDirectoryName(LModule.Path),
+          ANewName);      
+        DoRenameAndMoveModule(LModule, LNewFileName);
+        Break;
+      end;    
+  end else
+    ANewName := AOldName;
+end;
+
 procedure TProjectFilesFrame.OnTreeViewItemDblClickBuildConfigurationItem(
   Sender: TObject);
 begin
@@ -469,7 +547,7 @@ end;
 procedure TProjectFilesFrame.SaveUntitledModules;
 begin
   for var LModule in FProjectModel.Files.Modules do begin
-    if not LModule.Defs.Untitled then
+    if not LModule.Defs.Untracked then
       Continue;
 
     MenuActionsContainer.sdModule.InitialDir := TPath.GetDirectoryName(
@@ -478,27 +556,14 @@ begin
     if not MenuActionsContainer.sdModule.Execute then
       Continue;
 
-    var LOldFileName := LModule.Path;
-    var LNewFileName := MenuActionsContainer.sdModule.FileName;
-    //Rename the project file
-    if not LOldFileName.IsEmpty() then begin
-      if TFile.Exists(LNewFileName) then
-        TFile.Delete(LNewFileName);
-      TFile.Move(LOldFileName, LNewFileName);
-    end;
-    FProjectServices.RenameModule(FProjectModel, LModule, LNewFileName);
-    //Persist project
-    FProjectServices.SaveProject(String.Empty, FProjectModel);
-    LModule.Defs.Untitled := false;
-    //Notify file renamed
-    TGlobalBuilderChain.BroadcastEventAsync(
-      TRenameFileEvent.Create(LOldFileName, LNewFileName));
+    DoRenameAndMoveModule(LModule, MenuActionsContainer.sdModule.FileName);
+    LModule.Defs.Untracked := false;    
   end;
 end;
 
 procedure TProjectFilesFrame.SaveUntitledProject;
 begin
-  if not FProjectModel.Defs.Untitled then
+  if not FProjectModel.Defs.Untracked then
     Exit;
 
   MenuActionsContainer.sdProject.InitialDir := TBuilderPaths.WorkspaceFolder();
@@ -506,19 +571,8 @@ begin
   if not MenuActionsContainer.sdProject.Execute then
     Exit;
 
-  var LNewFileName := MenuActionsContainer.sdProject.FileName;
-  //Rename the project file
-  if not FProjectModel.Defs.Storage.IsEmpty() then begin
-    if TFile.Exists(LNewFileName) then
-      TFile.Delete(LNewFileName);
-    TFile.Move(FProjectModel.Defs.Storage, LNewFileName);
-  end;
-  FProjectServices.RenameProject(FProjectModel, LNewFileName);
-  //Persist project
-  FProjectServices.SaveProject(
-    LNewFileName,
-    FProjectModel);
-  FProjectModel.Defs.Untitled := false;
+  DoRenameAndMoveProject(FProjectModel, MenuActionsContainer.sdProject.FileName);
+  FProjectModel.Defs.Untracked := false;  
 end;
 
 procedure TProjectFilesFrame.UnLoadProject(const AProjectModel: TProjectModel);
@@ -572,7 +626,7 @@ function TProjectFilesFrame.BuildNode(const AParent: TFmxObject;
 begin
   tvProjectFiles.BeginUpdate();
   try
-    Result := TProjectFilesTreeViewItem.Create(AParent);
+    Result := TTreeViewItem.Create(AParent);
     Result.BeginUpdate();
     try
       Result.Parent := AParent;
@@ -590,8 +644,8 @@ end;
 
 function TProjectFilesFrame.AddProjectNode: TTreeViewItem;
 begin
-  Result := BuildNode(tvProjectFiles, ntProject, String.Empty);
-  Result.Text := TPath.GetFileNameWithoutExtension(FProjectModel.ProjectName);
+  Result := BuildNode(tvProjectFiles, ntProject, FProjectModel.ProjectName);
+  Result.Text := FProjectModel.ProjectName;
 end;
 
 procedure TProjectFilesFrame.AddBuildConfigurationNodes(
@@ -805,7 +859,7 @@ begin
   var LModule := DoAddModule(LUntitledModule);
   //Create an empty file
   TFile.WriteAllText(LUntitledModule, String.Empty, TEncoding.UTF8);
-  LModule.Defs.Untitled := true;
+  LModule.Defs.Untracked := true;
 end;
 
 procedure TProjectFilesFrame.actAddModuleExecute(Sender: TObject);
