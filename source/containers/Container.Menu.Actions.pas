@@ -221,7 +221,7 @@ begin
     TBuilderPaths.WorkspaceFolder());
   FProjectModel := FProjectServices.CreateProject(
     LUntitledProject, String.Empty);
-  FProjectServices.SaveProject(LUntitledProject, FProjectModel);
+  FProjectServices.SaveProject(FProjectModel, LUntitledProject);
   FProjectServices.OpenProject(FProjectModel);
 end;
 
@@ -233,7 +233,7 @@ begin
     LUntitledProject);
   FProjectModel := FProjectServices.CreateProject(
     LUntitledProject, LUntitledModuleName);
-  FProjectServices.SaveProject(LUntitledProject, FProjectModel);
+  FProjectServices.SaveProject(FProjectModel, LUntitledProject);
   FProjectServices.OpenProject(FProjectModel);
 end;
 
@@ -244,7 +244,7 @@ var
 begin
   if TProjectCreateForm.CreateProject(LProjectName, LMainModuleName) then begin
     FProjectModel := FProjectServices.CreateProject(LProjectName, LMainModuleName);
-    FProjectServices.SaveProject(LProjectName, FProjectModel);
+    FProjectServices.SaveProject(FProjectModel, LProjectName);
     FProjectModel := FProjectServices.OpenProject(LProjectName);
   end;
 end;

@@ -47,6 +47,7 @@ type
     destructor Destroy(); override;
 
     function Validate(const AErrors: TStrings): boolean; override;
+    function ValidateName(const AErrors: TStrings): boolean; virtual;
 
     procedure Merge(const AModel: TProjectModel);
   public
@@ -140,10 +141,9 @@ function TProjectModel.Validate(const AErrors: TStrings): boolean;
 begin
   AErrors.Clear();
 
-  {|||||| CHECK FOR PATHS |||||||}
-  if GetProjectName().IsEmpty() then
-    AErrors.Add('* Invalid project name.');
+  ValidateName(AErrors);
 
+  {|||||| CHECK FOR PATHS |||||||}
   if FApplicationName.Trim().IsEmpty() then
     AErrors.Add('* The Application Name can not be empty.');
 
@@ -161,6 +161,14 @@ begin
   Result := Result
     and GetIcons.Validate(AErrors)
       and GetFiles.Validate(AErrors);
+end;
+
+function TProjectModel.ValidateName(const AErrors: TStrings): boolean;
+begin
+  if GetProjectName().IsEmpty() then
+    AErrors.Add('* Invalid project name.');
+
+  Result := (AErrors.Count = 0);
 end;
 
 end.

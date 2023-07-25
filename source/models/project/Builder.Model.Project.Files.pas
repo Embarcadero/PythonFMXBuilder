@@ -67,6 +67,7 @@ type
     constructor Create(const APath: string); reintroduce; overload;
 
     function Validate(const AErrors: TStrings): boolean; override;
+    function ValidateName(const AErrors: TStrings): boolean; virtual;
 
     property Name: string read FName write FName;
     property Path: string read FPath write FPath;
@@ -199,11 +200,20 @@ end;
 
 function TProjectFile.Validate(const AErrors: TStrings): boolean;
 begin
-  Result := true;
-  if not TFile.Exists(Path) then begin
-    Result := false;
-    AErrors.Add(Format('* File %s not found.', [Path]))
-  end;
+  ValidateName(AErrors);
+
+  if not TFile.Exists(Path) then
+    AErrors.Add(Format('* File %s not found.', [Path]));
+
+  Result := (AErrors.Count = 0);
+end;
+
+function TProjectFile.ValidateName(const AErrors: TStrings): boolean;
+begin
+  if FName.IsEmpty() then
+    AErrors.Add('* Invalid module name.');
+
+  Result := (AErrors.Count = 0);
 end;
 
 end.
