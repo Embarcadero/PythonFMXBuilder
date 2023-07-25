@@ -3,9 +3,9 @@ unit Builder.Services.Project;
 interface
 
 uses
-  Builder.Services, System.IOUtils, System.Classes, System.SysUtils,
+  System.IOUtils, System.Classes, System.SysUtils,
   System.Generics.Collections,
-  Builder.Model.Project, Builder.Model.Project.Files;
+  Builder.Services, Builder.Model.Project, Builder.Model.Project.Files;
 
 type
   TProjectService = class(TInterfacedObject, IProjectServices)
@@ -17,16 +17,19 @@ type
     function GetBasePath(): string;
     function GetProjectFilesPath(const AProjectName: string): string;
   public
-    function CreateProject(const AProjectName,
-      AMainModuleName: string): TProjectModel;
-    procedure SaveProject(const AProjectPath: string;
-      const AProject: TProjectModel);
+    function CreateProject(const AProjectName: string;
+      AMainModuleName: string = ''): TProjectModel;
+    procedure SaveProject(const AProject: TProjectModel;
+      const AProjectPath: string = '');
     function RemoveProject(const AProjectName: string): boolean;
     //Open/close project in editor
     procedure OpenProject(const AProject: TProjectModel); overload;
     function OpenProject(const AProjectPath: string): TProjectModel; overload;
     procedure CloseProject();
-    procedure RenameProject(const AModel: TProjectModel; const AProjectName: string);
+    procedure RenameProject(const AProject: TProjectModel;
+      const AProjectName: string);
+    procedure MoveProject(const AProject: TProjectModel;
+      const AProjectPath: string);
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
@@ -49,7 +52,9 @@ type
     procedure CheckModuleExists(const AModel: TProjectModel;
       const AFilePath: string);
     procedure RenameModule(const AProject: TProjectModel;
-      const AProjectModule: TProjectFilesModule; const AFilePath: string);
+      const AProjectModule: TProjectFilesModule; const AModuleName: string);
+    procedure MoveModule(const AModel: TProjectFilesModule;
+      const AModulePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
@@ -79,6 +84,7 @@ type
 implementation
 
 uses
+  Builder.Consts,
   Builder.Exception,
   Builder.Chain,
   Builder.Storage.Default;
@@ -150,6 +156,42 @@ begin
   Result := TPath.GetFileName(AFilePath) = AModel.Files.Main;
 end;
 
+procedure TProjectService.MoveModule(const AModel: TProjectFilesModule;
+  const AModulePath: string);
+begin
+  if AModulePath.IsEmpty() then
+    Exit;
+
+  //Rename the project file
+  var LOldModulePath := AModel.Path;
+  if TFile.Exists(LOldModulePath) then begin
+    if TFile.Exists(AModulePath) then
+      TFile.Delete(AModulePath);
+    TFile.Move(LOldModulePath, AModulePath);
+  end;
+
+  AModel.Path := AModulePath;
+end;
+
+procedure TProjectService.MoveProject(const AProject: TProjectModel;
+  const AProjectPath: string);
+begin
+  if AProjectPath.IsEmpty() then
+    Exit;
+
+  //Rename the project file
+  var LProjectPath := TPath.ChangeExtension(AProjectPath, PYTHON_PROJECT_FILE_EXTENSION);
+  var LOldFilePath := AProject.Defs.Storage;
+  if TFile.Exists(LOldFilePath) then begin
+    if TFile.Exists(LProjectPath) then
+      TFile.Delete(LProjectPath);
+    TFile.Move(LOldFilePath, LProjectPath);
+  end;
+
+  //Update the project file name
+  AProject.Defs.Storage := LProjectPath;
+end;
+
 procedure TProjectService.CheckActiveProject;
 begin
   if not Assigned(GetActiveProject()) then
@@ -181,12 +223,12 @@ begin
   AModel.Files.Packages.Clear();
 end;
 
-function TProjectService.CreateProject(const AProjectName,
+function TProjectService.CreateProject(const AProjectName: string;
   AMainModuleName: string): TProjectModel;
 begin
   Result := TProjectModel.Create(AProjectName);
   //Must be saved by user
-  Result.Defs.Untitled := true;
+  Result.Defs.Untracked := true;
 
   if not TDirectory.Exists(TPath.GetDirectoryName(AProjectName)) then
     TDirectory.CreateDirectory(TPath.GetDirectoryName(AProjectName));
@@ -254,7 +296,7 @@ begin
   //Save the script file in the model files
   var LModule := AddModule(AModel, AFilePath);
   //Must be saved by user
-  LModule.Defs.Untitled := true;
+  LModule.Defs.Untracked := true;
   //Once we add the main file, we automatically set it as the main file
   SetMainModule(AModel, AFilePath);
 end;
@@ -386,29 +428,49 @@ begin
 end;
 
 procedure TProjectService.RenameModule(const AProject: TProjectModel;
-  const AProjectModule: TProjectFilesModule; const AFilePath: string);
+  const AProjectModule: TProjectFilesModule; const AModuleName: string);
 begin
-  //Rename Main
-  if AProject.Files.Main = AProjectModule.Name then
-    AProject.Files.Main := TPath.GetFileName(AFilePath);
+  var LNewModule := TProjectFilesModule.Create(AModuleName);
+  try
+    var LErrors := TStringList.Create();
+    try
+      if not LNewModule.ValidateName(LErrors) then
+        raise EModelValidationError.Create(LErrors.Text);
+    finally
+      LErrors.Free();
+    end;
 
-  AProjectModule.Name := TPath.GetFileName(AFilePath);
-  AProjectModule.Path := AFilePath;
+    //Rename Main
+    if AProject.Files.Main = AProjectModule.Name then
+      AProject.Files.Main := AModuleName;
+
+    AProjectModule.Name := AModuleName;
+  finally
+    LNewModule.Free();
+  end;
 end;
 
-procedure TProjectService.RenameProject(const AModel: TProjectModel;
+procedure TProjectService.RenameProject(const AProject: TProjectModel;
   const AProjectName: string);
 begin
-  var LNewProject := TProjectModel.Create(TPath.GetFileName(AProjectName));
+  var LNewProject := TProjectModel.Create(AProjectName);
   try
-    AModel.Merge(LNewProject);
+    var LErrors := TStringList.Create();
+    try
+      if not LNewProject.ValidateName(LErrors) then
+        raise EModelValidationError.Create(LErrors.Text);
+    finally
+      LErrors.Free();
+    end;
+
+    AProject.Merge(LNewProject);
   finally
     LNewProject.Free();
   end;
 end;
 
-procedure TProjectService.SaveProject(const AProjectPath: string;
-  const AProject: TProjectModel);
+procedure TProjectService.SaveProject(const AProject: TProjectModel;
+  const AProjectPath: string);
 begin
   var LStorage := TDefaultStorage<TProjectModel>.Make();
   LStorage.SaveModel(AProject, AProjectPath);
