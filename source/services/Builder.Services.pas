@@ -67,14 +67,18 @@ type
 
   IProjectServices = interface
     ['{4C39B307-4536-4832-972D-0DEB0319509A}']
-    function CreateProject(const AProjectName,
-      AMainModuleName: string): TProjectModel;
-    procedure SaveProject(const AProjectPath: string; const AProject: TProjectModel);
+    function CreateProject(const AProjectName: string;
+      AMainModuleName: string = ''): TProjectModel;
+    procedure SaveProject(const AProject: TProjectModel;
+      const AProjectPath: string = '');
     function RemoveProject(const AProjectName: string): boolean;
     procedure OpenProject(const AProject: TProjectModel); overload;
     function OpenProject(const AProjectPath: string): TProjectModel; overload;
     procedure CloseProject();
-    procedure RenameProject(const AModel: TProjectModel; const AProjectName: string);
+    procedure RenameProject(const AProject: TProjectModel;
+      const AProjectName: string);
+    procedure MoveProject(const AProject: TProjectModel;
+      const AProjectPath: string);
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
     procedure CheckActiveProject();
@@ -97,7 +101,9 @@ type
     procedure CheckModuleExists(const AModel: TProjectModel;
       const AFilePath: string);
     procedure RenameModule(const AProject: TProjectModel;
-      const AProjectModule: TProjectFilesModule; const AFilePath: string);
+      const AProjectModule: TProjectFilesModule; const AModuleName: string);
+    procedure MoveModule(const AModel: TProjectFilesModule;
+      const AModulePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
