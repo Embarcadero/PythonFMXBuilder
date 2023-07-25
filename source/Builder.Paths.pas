@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils,
+  Builder.Consts,
   Builder.Types;
 
 type
@@ -237,7 +238,7 @@ begin
   repeat
     Result := TPath.Combine(
       TBuilderPaths.WorkspaceFolder(),
-      'Project' + I.ToString() + '.pyfmxproj');
+      'Project' + I.ToString() + PYTHON_PROJECT_FILE_EXTENSION);
     Inc(I);
   until not TFile.Exists(Result);
 end;
@@ -254,7 +255,7 @@ begin
   repeat
     Result := TPath.Combine(
       TPath.GetDirectoryName(AProjectName),
-      'module' + I.ToString() + '.py');
+      'module' + I.ToString() + PYTHON_MODULE_FILE_EXTENSION);
     Inc(I);
   until not TFile.Exists(Result) and APredicate(Result);
 end;
@@ -269,7 +270,7 @@ begin
     Result := TPath.Combine(TBuilderPaths.WorkspaceFolder(), LProjectName);
     Inc(I);
   until not TDirectory.Exists(Result);
-  Result := TPath.Combine(Result, LProjectName + '.pyfmxproj');
+  Result := TPath.Combine(Result, LProjectName + PYTHON_PROJECT_FILE_EXTENSION);
 end;
 
 class function TBuilderPaths.WorkspaceFolder: string;
