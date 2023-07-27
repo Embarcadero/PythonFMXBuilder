@@ -1,6 +1,6 @@
 inherited ProjectForm: TProjectForm
   Caption = 'Project'
-  ClientHeight = 1210
+  ClientHeight = 1106
   ClientWidth = 482
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook
@@ -12,13 +12,13 @@ inherited ProjectForm: TProjectForm
   end
   inherited loBody: TLayout
     Size.Width = 482.000000000000000000
-    Size.Height = 1110.000000000000000000
+    Size.Height = 1006.000000000000000000
     TabOrder = 3
     inherited lbProject: TListBox
       Size.Width = 482.000000000000000000
-      Size.Height = 1110.000000000000000000
+      Size.Height = 1006.000000000000000000
       Viewport.Width = 478.000000000000000000
-      Viewport.Height = 1106.000000000000000000
+      Viewport.Height = 1002.000000000000000000
       object ListBoxGroupHeader5: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
@@ -185,7 +185,7 @@ inherited ProjectForm: TProjectForm
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 20
-        Text = 'Initialization Script Setting:'
+        Text = 'Initialization Script Settings:'
       end
       object lbiSetMainFile: TListBoxItem
         Position.Y = 314.000000000000000000
@@ -662,7 +662,7 @@ inherited ProjectForm: TProjectForm
     end
   end
   inherited loFooter: TLayout
-    Position.Y = 1160.000000000000000000
+    Position.Y = 1056.000000000000000000
     Size.Width = 482.000000000000000000
     TabOrder = 4
     inherited loLeftActions: TLayout
