@@ -1,12 +1,12 @@
 object MenuActionsContainer: TMenuActionsContainer
-  Height = 406
-  Width = 874
-  PixelsPerInch = 192
+  Height = 305
+  Width = 656
+  PixelsPerInch = 144
   object actlMenu: TActionList
     Images = ImageContainer.images
     OnUpdate = actlMenuUpdate
-    Left = 104
-    Top = 16
+    Left = 78
+    Top = 12
     object actUpdateEnvironment: TAction
       Tag = 1
       Category = 'Entities'
@@ -174,6 +174,7 @@ object MenuActionsContainer: TMenuActionsContainer
       Text = 'Save'
       Hint = 'Save'
       ImageIndex = 2
+      ShortCut = 16467
       OnExecute = actSaveStateExecute
       ImageIndex = 2
     end
@@ -182,6 +183,7 @@ object MenuActionsContainer: TMenuActionsContainer
       Text = 'Save All'
       Hint = 'Save All'
       ImageIndex = 22
+      ShortCut = 49235
       OnExecute = actSaveAllStateExecute
       ImageIndex = 22
     end
@@ -224,48 +226,48 @@ object MenuActionsContainer: TMenuActionsContainer
     DefaultExt = '.pyfmxproj'
     Filter = 'Python FMX Project|*.pyfmxproj'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 104
-    Top = 152
+    Left = 78
+    Top = 114
   end
   object sdModule: TSaveDialog
     DefaultExt = '.py'
     Filter = 'Python Module|*.py'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 248
-    Top = 152
+    Left = 186
+    Top = 114
   end
   object odProject: TOpenDialog
     DefaultExt = '.pyfmxproj'
     Filter = 'Python FMX Project|*.pyfmxproj'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 104
-    Top = 264
+    Left = 78
+    Top = 198
   end
   object odModule: TOpenDialog
     DefaultExt = '.py'
     Filter = 'Python Module|*.py'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 248
-    Top = 264
+    Left = 186
+    Top = 198
   end
   object odPackage: TOpenDialog
     DefaultExt = '.whl'
     Filter = 'Zip imports|*.zip|PIP wheel|*.whl'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 584
-    Top = 264
+    Left = 438
+    Top = 198
   end
   object odOther: TOpenDialog
     Filter = '*.*'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 720
-    Top = 264
+    Left = 540
+    Top = 198
   end
   object odFMXModule: TOpenDialog
     DefaultExt = '.py'
     Filter = 'Python Module|*.py|Delphi FMX File|*.pyfmx'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 416
-    Top = 264
+    Left = 312
+    Top = 198
   end
 end
