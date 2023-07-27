@@ -5,7 +5,8 @@ interface
 uses
   System.IOUtils, System.Classes, System.SysUtils,
   System.Generics.Collections,
-  Builder.Services, Builder.Model.Project, Builder.Model.Project.Files;
+  Builder.Types, Builder.Services,
+  Builder.Model.Project, Builder.Model.Project.Files;
 
 type
   TProjectService = class(TInterfacedObject, IProjectServices)
@@ -13,22 +14,19 @@ type
     class var FActiveProject: TProjectModel;
   private
     class destructor Destroy();
-  private
-    function GetBasePath(): string;
-    function GetProjectFilesPath(const AProjectName: string): string;
   public
-    function CreateProject(const AProjectName: string;
-      AMainModuleName: string = ''): TProjectModel;
+    function CreateProject(const AProjectPath: string;
+      AMainModulePath: string = ''): TProjectModel;
+    procedure SaveProject(const AProject: TProjectModel); overload;
+    //Save untracked project
     procedure SaveProject(const AProject: TProjectModel;
-      const AProjectPath: string = '');
-    function RemoveProject(const AProjectName: string): boolean;
+      const ASaveRequest: TSaveRequest;
+      const ACheckUntracked: boolean = true); overload;
     //Open/close project in editor
     procedure OpenProject(const AProject: TProjectModel); overload;
     function OpenProject(const AProjectPath: string): TProjectModel; overload;
     procedure CloseProject();
     procedure RenameProject(const AProject: TProjectModel;
-      const AProjectName: string);
-    procedure MoveProject(const AProject: TProjectModel;
       const AProjectPath: string);
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
@@ -45,16 +43,19 @@ type
     //Modules
     function AddModule(const AModel: TProjectModel;
       const AFilePath: string): TProjectFilesModule;
+    //Save untracked module
+    procedure SaveModule(const AProject: TProjectModel; const AModel: TProjectFilesModule;
+      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
+    procedure SaveModules(const AProject: TProjectModel;
+      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
     function GetModule(const AModel: TProjectModel;
       const AFilePath: string): TProjectFilesModule;
     procedure RemoveModule(const AModel: TProjectModel; const AFilePath: string);
     function GetModules(const AModel: TProjectModel): TProjectFilesModules;
+    procedure RenameModule(const AProject: TProjectModel;
+      const AModule: TProjectFilesModule; const AFilePath: string);
     procedure CheckModuleExists(const AModel: TProjectModel;
       const AFilePath: string);
-    procedure RenameModule(const AProject: TProjectModel;
-      const AProjectModule: TProjectFilesModule; const AModuleName: string);
-    procedure MoveModule(const AModel: TProjectFilesModule;
-      const AModulePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
@@ -101,14 +102,11 @@ begin
   Result := FActiveProject;
 end;
 
-function TProjectService.GetBasePath: string;
-begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'files');
-end;
-
 function TProjectService.GetModule(const AModel: TProjectModel;
   const AFilePath: string): TProjectFilesModule;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   for var LModule in AModel.Files.Modules do begin
     if (LModule.Path = AFilePath) then
       Exit(LModule);
@@ -119,30 +117,33 @@ end;
 
 function TProjectService.GetModules(const AModel: TProjectModel): TProjectFilesModules;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   Result := AModel.Files.Modules;
 end;
 
 function TProjectService.GetDependencies(
   const AModel: TProjectModel): TProjectFilesDependencies;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   Result := AModel.Files.Dependencies;
 end;
 
 function TProjectService.GetOtherFiles(
   const AModel: TProjectModel): TProjectFilesOthers;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   Result := AModel.Files.Others;
 end;
 
 function TProjectService.GetPackages(
   const AModel: TProjectModel): TProjectFilesPackages;
 begin
-  Result := AModel.Files.Packages;
-end;
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
 
-function TProjectService.GetProjectFilesPath(const AProjectName: string): string;
-begin
-  Result := TPath.Combine(GetBasePath(), AProjectName);
+  Result := AModel.Files.Packages;
 end;
 
 function TProjectService.HasActiveProject: boolean;
@@ -153,43 +154,9 @@ end;
 function TProjectService.IsMainModule(const AModel: TProjectModel;
   const AFilePath: string): boolean;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   Result := TPath.GetFileName(AFilePath) = AModel.Files.Main;
-end;
-
-procedure TProjectService.MoveModule(const AModel: TProjectFilesModule;
-  const AModulePath: string);
-begin
-  if AModulePath.IsEmpty() then
-    Exit;
-
-  //Rename the project file
-  var LOldModulePath := AModel.Path;
-  if TFile.Exists(LOldModulePath) then begin
-    if TFile.Exists(AModulePath) then
-      TFile.Delete(AModulePath);
-    TFile.Move(LOldModulePath, AModulePath);
-  end;
-
-  AModel.Path := AModulePath;
-end;
-
-procedure TProjectService.MoveProject(const AProject: TProjectModel;
-  const AProjectPath: string);
-begin
-  if AProjectPath.IsEmpty() then
-    Exit;
-
-  //Rename the project file
-  var LProjectPath := TPath.ChangeExtension(AProjectPath, PYTHON_PROJECT_FILE_EXTENSION);
-  var LOldFilePath := AProject.Defs.Storage;
-  if TFile.Exists(LOldFilePath) then begin
-    if TFile.Exists(LProjectPath) then
-      TFile.Delete(LProjectPath);
-    TFile.Move(LOldFilePath, LProjectPath);
-  end;
-
-  //Update the project file name
-  AProject.Defs.Storage := LProjectPath;
 end;
 
 procedure TProjectService.CheckActiveProject;
@@ -201,6 +168,8 @@ end;
 procedure TProjectService.CheckModuleExists(const AModel: TProjectModel;
   const AFilePath: string);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   var LModule := GetModule(AModel, AFilePath);
   if Assigned(LModule) then
     raise EModuleAlreadyExists.CreateFmt(
@@ -210,35 +179,45 @@ end;
 
 procedure TProjectService.ClearDependencies(const AModel: TProjectModel);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   AModel.Files.Dependencies.Clear();
 end;
 
 procedure TProjectService.ClearOtherFiles(const AModel: TProjectModel);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   AModel.Files.Others.Clear();
 end;
 
 procedure TProjectService.ClearPackages(const AModel: TProjectModel);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   AModel.Files.Packages.Clear();
 end;
 
-function TProjectService.CreateProject(const AProjectName: string;
-  AMainModuleName: string): TProjectModel;
+function TProjectService.CreateProject(const AProjectPath: string;
+  AMainModulePath: string): TProjectModel;
 begin
-  Result := TProjectModel.Create(AProjectName);
+  Result := TProjectModel.Create(AProjectPath);
+
+  if not TDirectory.Exists(TPath.GetDirectoryName(AProjectPath)) then
+    TDirectory.CreateDirectory(TPath.GetDirectoryName(AProjectPath));
+
+  if not AMainModulePath.IsEmpty() then
+    CreateMainModule(Result, AMainModulePath);
+
   //Must be saved by user
+  Result.Defs.Storage := AProjectPath;
   Result.Defs.Untracked := true;
-
-  if not TDirectory.Exists(TPath.GetDirectoryName(AProjectName)) then
-    TDirectory.CreateDirectory(TPath.GetDirectoryName(AProjectName));
-
-  if not AMainModuleName.IsEmpty() then
-    CreateMainModule(Result, AMainModuleName);
 end;
 
 procedure TProjectService.OpenProject(const AProject: TProjectModel);
 begin
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
+
   CloseProject();
   FActiveProject := AProject;
   TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(AProject));
@@ -283,6 +262,8 @@ const
     + #13#10
     + 'MainForm.Show()';
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   if not TFile.Exists(AFilePath) then
     with TFile.Create(AFilePath) do
       try
@@ -304,6 +285,8 @@ end;
 function TProjectService.AddDependency(const AModel: TProjectModel;
   const AFilePath: string): TProjectFilesDependency;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   //We are not accepting duplicated file names
   for var LDependency in AModel.Files.Dependencies do begin
     if TPath.GetFileName(LDependency.Path) = TPath.GetFileName(AFilePath) then
@@ -322,6 +305,8 @@ end;
 function TProjectService.AddOtherFile(const AModel: TProjectModel;
   const AFilePath: string): TProjectFilesOther;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   //We are not accepting duplicated file names
   for var LOther in AModel.Files.Others do begin
     if TPath.GetFileName(LOther.Path) = TPath.GetFileName(AFilePath) then
@@ -336,6 +321,8 @@ end;
 function TProjectService.AddPackage(const AModel: TProjectModel;
   const AFilePath: string): TProjectFilesPackage;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   //We are not accepting duplicated file names
   for var LPackage in AModel.Files.Packages do begin
     if LPackage.Path = TPath.GetFileName(AFilePath) then
@@ -355,6 +342,8 @@ end;
 function TProjectService.AddModule(const AModel: TProjectModel;
   const AFilePath: string): TProjectFilesModule;
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   //We are not accepting duplicated file names
   for var LModule in AModel.Files.Modules do begin
     if TPath.GetFileName(LModule.Path) = TPath.GetFileName(AFilePath) then
@@ -369,6 +358,8 @@ end;
 procedure TProjectService.RemoveModule(const AModel: TProjectModel;
   const AFilePath: string);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   for var LModule in AModel.Files.Modules do
     if (LModule.Path = AFilePath) then begin
       AModel.Files.Modules.Remove(LModule);
@@ -383,6 +374,8 @@ end;
 procedure TProjectService.RemoveDependency(const AModel: TProjectModel;
   const AFilePath: string);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   for var LDependency in AModel.Files.Dependencies do
     if (LDependency.Path = AFilePath) then begin
       AModel.Files.Dependencies.Remove(LDependency);
@@ -393,6 +386,8 @@ end;
 procedure TProjectService.RemoveOtherFile(const AModel: TProjectModel;
   const AFilePath: string);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   for var LOther in AModel.Files.Others do
     if (LOther.Path = AFilePath) then begin
       AModel.Files.Others.Remove(LOther);
@@ -403,6 +398,8 @@ end;
 procedure TProjectService.RemovePackage(const AModel: TProjectModel;
   const AFilePath: string);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+
   for var LPackage in AModel.Files.Packages do
     if (LPackage.Path = AFilePath) then begin
       AModel.Files.Packages.Remove(LPackage);
@@ -410,50 +407,17 @@ begin
     end;
 end;
 
-function TProjectService.RemoveProject(const AProjectName: string): boolean;
+procedure TProjectService.RenameProject(const AProject: TProjectModel;
+  const AProjectPath: string);
 begin
-  var LProjectModel := OpenProject(AProjectName);
-  var LStorage := TDefaultStorage<TProjectModel>.Make();
-  Result := LStorage.DeleteModel(LProjectModel);
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
 
-  if not Result then
+  if AProjectPath.IsEmpty() then
     Exit;
 
-  var LProjectFilesFolder := GetProjectFilesPath(LProjectModel.ProjectName);
-  if TDirectory.Exists(LProjectFilesFolder) then
-    TDirectory.Delete(LProjectFilesFolder, true);
-
-  if Assigned(FActiveProject) and (FActiveProject.ProjectName = AProjectName) then
-    CloseProject();
-end;
-
-procedure TProjectService.RenameModule(const AProject: TProjectModel;
-  const AProjectModule: TProjectFilesModule; const AModuleName: string);
-begin
-  var LNewModule := TProjectFilesModule.Create(AModuleName);
-  try
-    var LErrors := TStringList.Create();
-    try
-      if not LNewModule.ValidateName(LErrors) then
-        raise EModelValidationError.Create(LErrors.Text);
-    finally
-      LErrors.Free();
-    end;
-
-    //Rename Main
-    if AProject.Files.Main = AProjectModule.Name then
-      AProject.Files.Main := AModuleName;
-
-    AProjectModule.Name := AModuleName;
-  finally
-    LNewModule.Free();
-  end;
-end;
-
-procedure TProjectService.RenameProject(const AProject: TProjectModel;
-  const AProjectName: string);
-begin
-  var LNewProject := TProjectModel.Create(AProjectName);
+  var LOldFilePath := AProject.Defs.Storage;
+  var LNewFilePath := TPath.ChangeExtension(AProjectPath, PYTHON_PROJECT_FILE_EXTENSION);
+  var LNewProject := TProjectModel.Create(LNewFilePath);
   try
     var LErrors := TStringList.Create();
     try
@@ -463,23 +427,133 @@ begin
       LErrors.Free();
     end;
 
+    //Skip moving to the same place
+    if (AProject.Defs.Storage <> LNewFilePath) then begin
+      //Rename the project file
+      if TFile.Exists(LOldFilePath) then begin
+        if TFile.Exists(LNewFilePath) then
+          TFile.Delete(LNewFilePath);
+        TFile.Move(LOldFilePath, LNewFilePath);
+      end;
+    end;
+
     AProject.Merge(LNewProject);
+    AProject.Defs.Storage := LNewFilePath;
   finally
     LNewProject.Free();
   end;
+
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TRenameFileEvent.Create(LOldFilePath, LNewFilePath));
+end;
+
+procedure TProjectService.SaveProject(const AProject: TProjectModel);
+begin
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
+
+  var LStorage := TDefaultStorage<TProjectModel>.Make();
+  LStorage.SaveModel(AProject);
+end;
+
+procedure TProjectService.SaveModule(const AProject: TProjectModel;
+  const AModel: TProjectFilesModule;
+  const ASaveRequest: TSaveRequest;
+  const ACheckUntracked: boolean);
+begin
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
+  Assert(Assigned(ASaveRequest), 'Argument "ASaveRequest" not assigned.');
+
+  if ACheckUntracked and not AModel.Defs.Untracked then
+    Exit;
+
+  var LFileName := ASaveRequest(AModel.Name);
+  if LFileName.IsEmpty() then
+    Exit;
+
+  RenameModule(AProject, AModel, LFileName);
+
+  AModel.Defs.Untracked := false;
+end;
+
+procedure TProjectService.SaveModules(const AProject: TProjectModel;
+  const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean);
+begin
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
+  Assert(Assigned(ASaveRequest), 'Argument "ASaveRequest" not assigned.');
+
+  for var LModule in AProject.Files.Modules do
+    SaveModule(AProject, LModule, ASaveRequest, ACheckUntracked);
 end;
 
 procedure TProjectService.SaveProject(const AProject: TProjectModel;
-  const AProjectPath: string);
+  const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean);
 begin
-  var LStorage := TDefaultStorage<TProjectModel>.Make();
-  LStorage.SaveModel(AProject, AProjectPath);
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
+  Assert(Assigned(ASaveRequest), 'Argument "ASaveRequest" not assigned.');
+
+  if ACheckUntracked and not AProject.Defs.Untracked then
+    Exit;
+
+  var LFileName := ASaveRequest(AProject.ProjectName);
+  if LFileName.IsEmpty() then
+    Exit;
+
+  RenameProject(AProject, LFileName);
+  SaveProject(AProject);
+
+  AProject.Defs.Untracked := false;
 end;
 
 procedure TProjectService.SetMainModule(const AModel: TProjectModel;
   const AFilePath: string);
 begin
+  Assert(Assigned(AModel), 'Argument "AModel" not assigned.');
   AModel.Files.Main := TPath.GetFileName(AFilePath);
+end;
+
+procedure TProjectService.RenameModule(const AProject: TProjectModel;
+  const AModule: TProjectFilesModule; const AFilePath: string);
+begin
+  Assert(Assigned(AProject), 'Argument "AProject" not assigned.');
+  Assert(Assigned(AProject), 'Argument "AModule" not assigned.');
+
+  if AFilePath.IsEmpty() then
+    Exit;
+
+  var LOldFilePath := AModule.Path;
+  var LNewModule := TProjectFilesModule.Create(AFilePath);
+  try
+    var LErrors := TStringList.Create();
+    try
+      if not LNewModule.ValidateName(LErrors) then
+        raise EModelValidationError.Create(LErrors.Text);
+    finally
+      LErrors.Free();
+    end;
+
+    //Skip moving to the same place
+    if (LOldFilePath <> AFilePath) then begin
+      //Rename the project file
+      if TFile.Exists(LOldFilePath) then begin
+        if TFile.Exists(AFilePath) then
+          TFile.Delete(AFilePath);
+        TFile.Move(LOldFilePath, AFilePath);
+      end;
+    end;
+
+    //Rename Main
+    if AProject.Files.Main = AModule.Name then
+      SetMainModule(AProject, AFilePath);
+
+    AModule.Name := TPath.GetFileName(AFilePath);
+    AModule.Path := AFilePath;
+  finally
+    LNewModule.Free();
+  end;
+
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TRenameFileEvent.Create(LOldFilePath, AFilePath));
 end;
 
 end.

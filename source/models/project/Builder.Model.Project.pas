@@ -42,7 +42,7 @@ type
     function GetIcons: TProjectIconModel;
   public
     constructor Create(); overload; override;
-    constructor Create(const AProjectName: string); reintroduce; overload;
+    constructor Create(const AProjectPath: string); reintroduce; overload;
     constructor Create(const AProjectName, AApplicationName: string); reintroduce; overload;
     destructor Destroy(); override;
 
@@ -89,9 +89,11 @@ begin
   FBuildConfiguration := TBuildConfiguration.debug;
 end;
 
-constructor TProjectModel.Create(const AProjectName: string);
+constructor TProjectModel.Create(const AProjectPath: string);
 begin
-  Create(AProjectName, TPath.GetFileNameWithoutExtension(AProjectName));
+  Create(
+    TPath.GetFileName(AProjectPath),
+    TPath.GetFileNameWithoutExtension(AProjectPath));
 end;
 
 destructor TProjectModel.Destroy;
