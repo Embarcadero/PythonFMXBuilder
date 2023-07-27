@@ -11,6 +11,7 @@ type
     class function CreateEnvironment(): IEnvironmentServices;
     class function CreateAdb(): IADBServices;
     class function CreateProject(): IProjectServices;
+    class function CreateEditor(): IEditorServices;
     class function CreateApp(): IAppServices;
     class function CreateDebug(): IDebugServices;
     class function CreateBuild(): IBuildServices;
@@ -23,6 +24,7 @@ uses
   Builder.Services.Environment,
   Builder.Services.ADB,
   Builder.Services.Project,
+  Builder.Services.Editor,
   Builder.Services.App,
   Builder.Services.Debug,
   Builder.Services.Build,
@@ -38,6 +40,11 @@ end;
 class function TServiceSimpleFactory.CreateProject: IProjectServices;
 begin
   Result := TProjectService.Create();
+end;
+
+class function TServiceSimpleFactory.CreateEditor: IEditorServices;
+begin
+  Result := TEditorService.Create();
 end;
 
 class function TServiceSimpleFactory.CreateUnboundPy: IUnboundPythonServices;

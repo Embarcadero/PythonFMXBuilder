@@ -67,17 +67,16 @@ type
 
   IProjectServices = interface
     ['{4C39B307-4536-4832-972D-0DEB0319509A}']
-    function CreateProject(const AProjectName: string;
-      AMainModuleName: string = ''): TProjectModel;
+    function CreateProject(const AProjectPath: string;
+      AMainModulePath: string = ''): TProjectModel;
+    procedure SaveProject(const AProject: TProjectModel); overload;
     procedure SaveProject(const AProject: TProjectModel;
-      const AProjectPath: string = '');
-    function RemoveProject(const AProjectName: string): boolean;
+      const ASaveRequest: TSaveRequest;
+      const ACheckUntracked: boolean = true); overload;
     procedure OpenProject(const AProject: TProjectModel); overload;
     function OpenProject(const AProjectPath: string): TProjectModel; overload;
     procedure CloseProject();
     procedure RenameProject(const AProject: TProjectModel;
-      const AProjectName: string);
-    procedure MoveProject(const AProject: TProjectModel;
       const AProjectPath: string);
     function HasActiveProject(): boolean;
     function GetActiveProject(): TProjectModel;
@@ -94,6 +93,10 @@ type
     //Modules
     function AddModule(const AModel: TProjectModel;
       const AFilePath: string): TProjectFilesModule;
+    procedure SaveModule(const AProject: TProjectModel; const AModel: TProjectFilesModule;
+      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
+    procedure SaveModules(const AProject: TProjectModel;
+      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
     function GetModule(const AModel: TProjectModel;
       const AFilePath: string): TProjectFilesModule;
     procedure RemoveModule(const AModel: TProjectModel; const AFilePath: string);
@@ -101,9 +104,7 @@ type
     procedure CheckModuleExists(const AModel: TProjectModel;
       const AFilePath: string);
     procedure RenameModule(const AProject: TProjectModel;
-      const AProjectModule: TProjectFilesModule; const AModuleName: string);
-    procedure MoveModule(const AModel: TProjectFilesModule;
-      const AModulePath: string);
+      const AModule: TProjectFilesModule; const AFilePath: string);
 
     //Dependencies
     function AddDependency(const AModel: TProjectModel;
@@ -164,6 +165,17 @@ type
     //Check if app is running
     function IsAppRunning(const AProjectModel: TProjectModel;
       const AEnvironmentModel: TEnvironmentModel; const ADevice: string): boolean;
+  end;
+
+  IEditorServices = interface
+    ['{33AE075A-E004-4196-98B0-A24F567539F3}']
+    procedure SetActiveTextEditor(ATextEditor: ITextEditor);
+    function GetActiveTextEditor(): ITextEditor;
+
+    procedure SaveEditor(const ATextEditor: ITextEditor;
+      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
+
+    property ActiveTextEditor: ITextEditor read GetActiveTextEditor write SetActiveTextEditor;
   end;
 
   IDebugServices = interface
