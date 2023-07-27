@@ -8,8 +8,7 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.ListView, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Objects,
   FMX.Layouts, FMX.Edit, FMX.ListBox, FMX.ImgList, System.Actions,
-  FMX.ActnList, Form.Data, Builder.Model.Project, FMX.Ani,
-  Builder.Services, Builder.Services.Factory;
+  FMX.ActnList, Form.Data, Builder.Model.Project, FMX.Ani;
 
 type
   [Entity(TProjectModel)]
@@ -75,10 +74,6 @@ type
     cbMainFile: TComboBox;
     lblMainFile: TLabel;
     procedure sebDrawableClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure actSaveExecute(Sender: TObject);
-  private
-    FProjectServices: IProjectServices;
   protected
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
@@ -97,18 +92,6 @@ uses
 {$R *.fmx}
 
 { TProjectForm }
-
-procedure TProjectForm.actSaveExecute(Sender: TObject);
-begin
-  inherited;
-  FProjectServices.OpenProject(TProjectModel(Model).ProjectName);
-end;
-
-procedure TProjectForm.FormCreate(Sender: TObject);
-begin
-  inherited;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-end;
 
 procedure TProjectForm.FormUpdate;
 begin
