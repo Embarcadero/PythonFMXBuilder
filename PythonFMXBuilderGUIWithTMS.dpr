@@ -15,7 +15,6 @@ uses
   Frame.ProjectButtons in 'source\views\frame\Frame.ProjectButtons.pas' {ProjectButtonsFrame: TFrame},
   Frame.Loading in 'source\views\frame\Frame.Loading.pas' {LoadingFrame: TFrame},
   Form.SelectProject in 'source\views\Form.SelectProject.pas' {SelectProjectForm},
-  Form.Project.Create in 'source\views\Form.Project.Create.pas' {ProjectCreateForm},
   Frame.Device in 'source\views\frame\Frame.Device.pas' {DeviceFrame: TFrame},
   Container.Menu.Actions in 'source\containers\Container.Menu.Actions.pas' {MenuActionsContainer: TDataModule},
   Frame.LeftMenu in 'source\views\frame\Frame.LeftMenu.pas' {LeftMenuFrame: TFrame},
