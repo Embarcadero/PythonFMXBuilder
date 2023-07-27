@@ -3,6 +3,9 @@
         <ProjectGuid>{45C8994C-F369-4F39-AD70-4FABFE025F2E}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
+        <Projects Include="packages\PythonFMXBuilderTabControl.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="packages\PythonFMXBuilderTreeView.dproj">
             <Dependencies/>
         </Projects>
@@ -35,6 +38,15 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
+    <Target Name="PythonFMXBuilderTabControl">
+        <MSBuild Projects="packages\PythonFMXBuilderTabControl.dproj"/>
+    </Target>
+    <Target Name="PythonFMXBuilderTabControl:Clean">
+        <MSBuild Projects="packages\PythonFMXBuilderTabControl.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PythonFMXBuilderTabControl:Make">
+        <MSBuild Projects="packages\PythonFMXBuilderTabControl.dproj" Targets="Make"/>
+    </Target>
     <Target Name="PythonFMXBuilderTreeView">
         <MSBuild Projects="packages\PythonFMXBuilderTreeView.dproj"/>
     </Target>
@@ -108,13 +120,13 @@
         <MSBuild Projects="android\PyApp\PyApp.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="PythonFMXBuilderTreeView;PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderGUIWithTMS;PythonFMXBuilderCLI;PythonFMXBuilderEntityEditor;PythonFMXBuilderCLITest;PyApp"/>
+        <CallTarget Targets="PythonFMXBuilderTabControl;PythonFMXBuilderTreeView;PythonFMXBuilder;PythonFMXBuilderGUI;PythonFMXBuilderGUIWithTMS;PythonFMXBuilderCLI;PythonFMXBuilderEntityEditor;PythonFMXBuilderCLITest;PyApp"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PythonFMXBuilderTreeView:Clean;PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderGUIWithTMS:Clean;PythonFMXBuilderCLI:Clean;PythonFMXBuilderEntityEditor:Clean;PythonFMXBuilderCLITest:Clean;PyApp:Clean"/>
+        <CallTarget Targets="PythonFMXBuilderTabControl:Clean;PythonFMXBuilderTreeView:Clean;PythonFMXBuilder:Clean;PythonFMXBuilderGUI:Clean;PythonFMXBuilderGUIWithTMS:Clean;PythonFMXBuilderCLI:Clean;PythonFMXBuilderEntityEditor:Clean;PythonFMXBuilderCLITest:Clean;PyApp:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PythonFMXBuilderTreeView:Make;PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderGUIWithTMS:Make;PythonFMXBuilderCLI:Make;PythonFMXBuilderEntityEditor:Make;PythonFMXBuilderCLITest:Make;PyApp:Make"/>
+        <CallTarget Targets="PythonFMXBuilderTabControl:Make;PythonFMXBuilderTreeView:Make;PythonFMXBuilder:Make;PythonFMXBuilderGUI:Make;PythonFMXBuilderGUIWithTMS:Make;PythonFMXBuilderCLI:Make;PythonFMXBuilderEntityEditor:Make;PythonFMXBuilderCLITest:Make;PyApp:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

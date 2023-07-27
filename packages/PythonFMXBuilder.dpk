@@ -56,7 +56,9 @@ contains
   Builder.Paths in '..\source\Builder.Paths.pas',
   Builder.Types in '..\source\Builder.Types.pas',
   Builder.Services.UnboundPython in '..\source\services\Builder.Services.UnboundPython.pas',
-  Builder.Services.Environment in '..\source\services\Builder.Services.Environment.pas';
+  Builder.Services.Environment in '..\source\services\Builder.Services.Environment.pas',
+  Builder.Consts in '..\source\Builder.Consts.pas',
+  Builder.Services.Editor in '..\source\services\Builder.Services.Editor.pas';
 
 end.
 
