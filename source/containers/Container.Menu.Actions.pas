@@ -83,14 +83,17 @@ type
   private
     //Async control
     FLoadingProject: integer;
+    //Events
     FAsyncOperationStartedEvent: IDisconnectable;
     FAsyncOperationEndedEvent: IDisconnectable;
+    FSaveStateEvent: IDisconnectable;
     //Models
     FProjectModel: TProjectModel;
     //Services
     FEnvironmentServices: IEnvironmentServices;
     FProjectServices: IProjectServices;
     FAppServices: IAppServices;
+    FEditorServices: IEditorServices;
     //Builder
     FBuilderServices: IBuildServices;
     //Debugger
@@ -98,6 +101,8 @@ type
     function IsLoadingProject(): boolean; inline;
     function HasActiveProject(): boolean; inline;
     function GetActionEnabledByTag(AAction: TBasicAction): boolean;
+    procedure SaveProjectAndModules();
+    procedure SaveEditor();
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -118,6 +123,7 @@ uses
   System.SyncObjs,
   System.Net.Socket,
   System.DateUtils,
+  System.IOUtils,
   FMX.DialogService,
   Container.Images,
   Form.Factory,
@@ -132,6 +138,7 @@ begin
   FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
   FBuilderServices := TServiceSimpleFactory.CreateBuild();
   FDebuggerServices := TServiceSimpleFactory.CreateDebug();
+  FEditorServices := TServiceSimpleFactory.CreateEditor();
 
   FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
     procedure(const AEventNotification: TAsyncOperationStartedEvent)
@@ -148,10 +155,20 @@ begin
         TAsyncOperation.OpenProject: TInterlocked.Add(FLoadingProject, -1);
       end;
     end);
+
+  FSaveStateEvent := TGlobalBuilderChain.SubscribeToEvent<TSaveStateEvent>(
+    procedure(const AEventNotification: TSaveStateEvent)
+    begin
+      case AEventNotification.Body.SaveState of
+        TSaveState.Save:
+          SaveEditor();
+      end;
+    end);
 end;
 
 destructor TMenuActionsContainer.Destroy;
 begin
+  FSaveStateEvent.Disconnect();
   FAsyncOperationEndedEvent.Disconnect();
   FAsyncOperationStartedEvent.Disconnect();
   inherited;
@@ -221,7 +238,7 @@ begin
     TBuilderPaths.WorkspaceFolder());
   FProjectModel := FProjectServices.CreateProject(
     LUntitledProject, String.Empty);
-  FProjectServices.SaveProject(FProjectModel, LUntitledProject);
+  FProjectServices.SaveProject(FProjectModel);
   FProjectServices.OpenProject(FProjectModel);
 end;
 
@@ -233,7 +250,7 @@ begin
     LUntitledProject);
   FProjectModel := FProjectServices.CreateProject(
     LUntitledProject, LUntitledModuleName);
-  FProjectServices.SaveProject(FProjectModel, LUntitledProject);
+  FProjectServices.SaveProject(FProjectModel);
   FProjectServices.OpenProject(FProjectModel);
 end;
 
@@ -244,7 +261,7 @@ var
 begin
   if TProjectCreateForm.CreateProject(LProjectName, LMainModuleName) then begin
     FProjectModel := FProjectServices.CreateProject(LProjectName, LMainModuleName);
-    FProjectServices.SaveProject(FProjectModel, LProjectName);
+    FProjectServices.SaveProject(FProjectModel);
     FProjectModel := FProjectServices.OpenProject(LProjectName);
   end;
 end;
@@ -296,12 +313,17 @@ end;
 
 procedure TMenuActionsContainer.actSaveAllStateExecute(Sender: TObject);
 begin
+  SaveProjectAndModules();
+  SaveEditor();
+
   TGlobalBuilderChain.BroadcastEventAsync(
     TSaveStateEvent.Create(TSaveState.SaveAll));
 end;
 
 procedure TMenuActionsContainer.actSaveStateExecute(Sender: TObject);
 begin
+  SaveEditor();
+
   TGlobalBuilderChain.BroadcastEventAsync(
     TSaveStateEvent.Create(TSaveState.Save));
 end;
@@ -331,7 +353,7 @@ begin
   FProjectServices.CheckActiveProject();
   var LForm := TFormSimpleFactory.CreateProject();
   try
-    LForm.Storage := FProjectServices.GetActiveProject().Defs.Storage;
+    LForm.LoadModel(FProjectServices.GetActiveProject());
     TFormSlider.ShowModal(Application.MainForm, LForm);
   finally
     LForm.Free();
@@ -342,6 +364,7 @@ procedure TMenuActionsContainer.actUpdateEnvironmentExecute(Sender: TObject);
 begin
   var LForm := TFormSimpleFactory.CreateEnvironment();
   try
+    LForm.LoadModel(FEnvironmentServices.GetActiveEnvironment());
     TFormSlider.ShowModal(Application.MainForm, LForm);
   finally
     LForm.Free();
@@ -436,6 +459,63 @@ end;
 function TMenuActionsContainer.IsLoadingProject: boolean;
 begin
   Result := (FLoadingProject <> 0);
+end;
+
+procedure TMenuActionsContainer.SaveProjectAndModules;
+begin
+  var LProject := FProjectServices.GetActiveProject();
+  if not Assigned(LProject) then
+    Exit;
+
+  //Save untracked project only
+  FProjectServices.SaveProject(LProject,
+    function(AProjectName: string): string begin
+      sdProject.InitialDir := TBuilderPaths.WorkspaceFolder();
+      sdProject.FileName := AProjectName;
+      if not sdProject.Execute then
+        Result := String.Empty
+      else
+        Result := sdProject.FileName;
+    end,
+    true);
+
+  //Save untracked modules only
+  FProjectServices.SaveModules(LProject,
+    function(AFileName: string): string begin
+      sdModule.InitialDir := TPath.GetDirectoryName(
+        LProject.Defs.Storage);
+      sdModule.FileName := AFileName;
+      if not sdModule.Execute then
+        Result := String.Empty
+      else
+        Result := sdModule.FileName;
+    end,
+    true);
+
+  FProjectServices.SaveProject(LProject);
+end;
+
+procedure TMenuActionsContainer.SaveEditor;
+begin
+  var LProject := FProjectServices.GetActiveProject();
+  var LEditor := FEditorServices.ActiveTextEditor;
+
+  if not Assigned(LProject) or not Assigned(LEditor) then
+    Exit;
+
+  FEditorServices.SaveEditor(LEditor,
+    function(AFileName: string): string begin
+      sdModule.InitialDir := TPath.GetDirectoryName(
+        LProject.Defs.Storage);
+      sdModule.FileName := AFileName;
+      if not sdModule.Execute then
+        Result := String.Empty
+      else
+        Result := sdModule.FileName;
+    end,
+    true);
+
+  FProjectServices.SaveProject(LProject);
 end;
 
 end.
