@@ -8,9 +8,11 @@ uses
   System.Threading,
   System.SyncObjs,
   System.Generics.Collections,
+  Builder.Types,
   Builder.Model.Project,
   BaseProtocol.Requests,
-  BaseProtocol.Client, BaseProtocol.Types;
+  BaseProtocol.Client,
+  BaseProtocol.Types;
 
 type
   {$SCOPEDENUMS ON}
@@ -26,17 +28,19 @@ type
     OpenFile,
     CloseFile,
     RenameFile,
+    SaveState,
     //Debugger events
     DebugSessionStarted,
     DebugSessionStopped,
     SetupDebugger,
     SetupDebuggerDone,
     DebugAction,
+    //Editor events
+    EditorChanged,
     //App can keep track of async ops for thread safety
     AsyncOperationStarted,
     AsyncOperationEnded,
-    AsyncException,
-    SaveState);
+    AsyncException);
 
   TAsyncOperation = (
     OpenProject,
@@ -236,12 +240,14 @@ type
   private
     FFilePath: string;
     FFileName: string;
+    FNew: boolean;
     FBreakpoints: TArray<integer>;
     FActiveLine: integer;
     FShowActiveLineIndicator: boolean;
   public
     property FilePath: string read FFilePath write FFilePath;
     property FileName: string read FFileName write FFileName;
+    property New: boolean read FNew write FNew;
     property Breakpoints: TArray<integer> read FBreakpoints write FBreakpoints;
     property ActiveLine: integer read FActiveLine write FActiveLine;
     property ShowActiveLineIndicator: boolean read FShowActiveLineIndicator write FShowActiveLineIndicator;
@@ -251,8 +257,11 @@ type
   TOpenFileEvent = class(TChainEvent<TOpenFileBody>)
   public
     constructor Create(const AFilePath: string; const AActiveLine: integer;
+      const AShowActiveLineIndicator: boolean; const ANew: boolean); reintroduce; overload;
+    constructor Create(const AFilePath: string; const AActiveLine: integer;
       const AShowActiveLineIndicator: boolean); reintroduce; overload;
     constructor Create(const AFilePath: string); reintroduce; overload;
+    constructor Create(const AFilePath: string; const ANew: boolean); reintroduce; overload;
   end;
 
   TCloseFileBody = class
@@ -281,6 +290,23 @@ type
   TRenameFileEvent = class(TChainEvent<TRenameFileBody>)
   public
     constructor Create(const AOldFilePath, ANewFilePath: string); reintroduce;
+  end;
+
+  TEditorChangedBody = class
+  private
+    FTextEditor: ITextEditor;
+    FModified: boolean;
+  public
+    property TextEditor: ITextEditor read FTextEditor write FTextEditor;
+    property Modified: boolean read FModified write FModified;
+  end;
+
+  [EventType(TBuilderEvent.EditorChanged)]
+  TEditorChangedEvent = class(TChainEvent<TEditorChangedBody>)
+  public
+    constructor Create(const ATextEditor: ITextEditor;
+      const AModified: boolean); reintroduce; overload;
+    constructor Create(const ATextEditor: ITextEditor); reintroduce; overload;
   end;
 
   TAsyncOperationStartedBody = class
@@ -773,23 +799,20 @@ begin
 end;
 
 procedure TBuilderChain.NotifyListeners(const AEventInfo: TQueuedEventInfo);
-var
-  LSubscribers: TArray<TChainEventNotification>;
 begin
   try
     var LList := FEventSubscribers.LockList();
     try
-      LSubscribers := LList.ToArray();
-    finally
-      FEventSubscribers.UnlockList();
-    end;
-
-    for var LSubscriber in LSubscribers do begin
+      //Listeners can't disconnect while notifications
+      //It would cause notifications to invalid references
+      for var LSubscriber in LList do
       try
         LSubscriber(AEventInfo.Event);
       except
         //
       end;
+    finally
+      FEventSubscribers.UnlockList();
     end;
 
     if Assigned(AEventInfo.Callback) then
@@ -804,31 +827,29 @@ end;
 procedure TBuilderChain.SendRequest<T>(const ARequest: TChainRequest;
   const AResolve: TChainResolve<T>; const AReject: TChainReject;
   const AOwned: boolean);
-var
-  LHandlers: TArray<TRequestHandlerInfo>;
 begin
+  var LHandled := false;
   try
     var LList := FRequestHandlers.LockList();
     try
-      LHandlers := LList.ToArray();
+      //Responders can't disconnect while notifications
+      //It would cause requests to invalid references
+      for var LHandler in LList do begin
+        if not (ARequest is LHandler.RequestType) then
+          Continue;
+
+        var LResponse := LHandler.Notification(ARequest, LHandled);
+        if LHandled then begin
+          if LResponse.Success then
+            AResolve(LResponse as T)
+          else
+            AReject(LResponse.Message);
+
+          Break;
+        end;
+      end;
     finally
       FRequestHandlers.UnlockList();
-    end;
-
-    var LHandled := false;
-    for var LHandler in LHandlers do begin
-      if not (ARequest is LHandler.RequestType) then
-        Continue;
-
-      var LResponse := LHandler.Notification(ARequest, LHandled);
-      if LHandled then begin
-        if LResponse.Success then
-          AResolve(LResponse as T)
-        else
-          AReject(LResponse.Message);
-
-        Break;
-      end;
     end;
 
     if not LHandled then
@@ -1091,17 +1112,29 @@ end;
 { TOpenFileEvent }
 
 constructor TOpenFileEvent.Create(const AFilePath: string;
-  const AActiveLine: integer; const AShowActiveLineIndicator: boolean);
+  const AActiveLine: integer; const AShowActiveLineIndicator, ANew: boolean);
 begin
   inherited Create();
   Body.FilePath := AFilePath;
   Body.ActiveLine := AActiveLine;
   Body.ShowActiveLineIndicator := AShowActiveLineIndicator;
+  Body.New := ANew;
+end;
+
+constructor TOpenFileEvent.Create(const AFilePath: string;
+  const AActiveLine: integer; const AShowActiveLineIndicator: boolean);
+begin
+  Create(AFilePath, AActiveLine, AShowActiveLineIndicator, false);
+end;
+
+constructor TOpenFileEvent.Create(const AFilePath: string; const ANew: boolean);
+begin
+  Create(AFilePath, 0, false, ANew);
 end;
 
 constructor TOpenFileEvent.Create(const AFilePath: string);
 begin
-  Create(AFilePath, 0, false);
+  Create(AFilePath, false);
 end;
 
 { TCloseFileEvent }
@@ -1214,6 +1247,21 @@ begin
   inherited Create();
   Body.OldFilePath := AOldFilePath;
   Body.NewFilePath := ANewFilePath;
+end;
+
+{ TEditorChangedEvent }
+
+constructor TEditorChangedEvent.Create(const ATextEditor: ITextEditor;
+  const AModified: boolean);
+begin
+  inherited Create();
+  Body.TextEditor := ATextEditor;
+  Body.Modified := AModified;
+end;
+
+constructor TEditorChangedEvent.Create(const ATextEditor: ITextEditor);
+begin
+  Create(ATextEditor, false);
 end;
 
 end.
