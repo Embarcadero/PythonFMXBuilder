@@ -13,7 +13,6 @@ uses
   FMX.Dialogs,
   FMX.Menus,
   Form.Slider,
-  Form.Project.Create,
   Form.SelectProject,
   Builder.Chain,
   Builder.Types,
@@ -29,7 +28,6 @@ type
     actUpdateCurrentProject: TAction;
     actBuildCurrentProject: TAction;
     actDeployCurrentProject: TAction;
-    actCreateProject: TAction;
     actOpenProject: TAction;
     actCloseCurrentProject: TAction;
     actRunCurrentProject: TAction;
@@ -62,7 +60,6 @@ type
     procedure actBuildCurrentProjectExecute(Sender: TObject);
     procedure actDeployCurrentProjectExecute(Sender: TObject);
     procedure actRunCurrentProjectExecute(Sender: TObject);
-    procedure actCreateProjectExecute(Sender: TObject);
     procedure actOpenProjectExecute(Sender: TObject);
     procedure actCloseCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectAsyncExecute(Sender: TObject);
@@ -252,18 +249,6 @@ begin
     LUntitledProject, LUntitledModuleName);
   FProjectServices.SaveProject(FProjectModel);
   FProjectServices.OpenProject(FProjectModel);
-end;
-
-procedure TMenuActionsContainer.actCreateProjectExecute(Sender: TObject);
-var
-  LProjectName: string;
-  LMainModuleName: string;
-begin
-  if TProjectCreateForm.CreateProject(LProjectName, LMainModuleName) then begin
-    FProjectModel := FProjectServices.CreateProject(LProjectName, LMainModuleName);
-    FProjectServices.SaveProject(FProjectModel);
-    FProjectModel := FProjectServices.OpenProject(LProjectName);
-  end;
 end;
 
 procedure TMenuActionsContainer.actOpenProjectExecute(Sender: TObject);

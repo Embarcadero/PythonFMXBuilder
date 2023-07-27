@@ -43,15 +43,6 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actDeployCurrentProjectExecute
       ImageIndex = 12
     end
-    object actCreateProject: TAction
-      Tag = 1
-      Category = 'Project'
-      Text = 'Create Project'
-      Hint = 'Create Project'
-      ImageIndex = 8
-      OnExecute = actCreateProjectExecute
-      ImageIndex = 8
-    end
     object actOpenProject: TAction
       Tag = 1
       Category = 'Project'
