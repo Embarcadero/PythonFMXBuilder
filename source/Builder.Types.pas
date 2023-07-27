@@ -2,6 +2,9 @@ unit Builder.Types;
 
 interface
 
+uses
+  System.SysUtils;
+
 type
   {$SCOPEDENUMS ON}
   TPythonVersion = (
@@ -33,6 +36,8 @@ type
   );
   {$SCOPEDENUMS OFF}
 
+  TSaveRequest = TFunc<string, string>;
+
   TArchitectureHelper = record helper for TArchitecture
     function AsString(): string;
     function ToTargetPlatform(): string;
@@ -58,10 +63,31 @@ type
     class function FromString(const AValue: string): TDebugger; static;
   end;
 
+  ITextEditor = interface
+    ['{52EDE988-F0AF-44B2-8445-1BD8960DD3C2}']
+    function GetFileName(): string;
+    function GetModified(): boolean;
+    function GetBreakpoints(): TArray<integer>;
+    procedure SetBreakpoints(ABreakpoints: TArray<integer>);
+    function GetActiveLine(): integer;
+    procedure SetActiveLine(AActiveLine: integer);
+    function GetShowActiveLine(): boolean;
+    procedure SetShowActiveLine(AShowActiveLine: boolean);
+
+    procedure Open(const AFileName: string; const AEditing: boolean = false);
+    procedure Save();
+    procedure SaveTo(const AFileName: string);
+
+    property FileName: string read GetFileName;
+    property Modified: boolean read GetModified;
+    property Breakpoints: TArray<integer> read GetBreakpoints write SetBreakpoints;
+    property ActiveLine: integer read GetActiveLine write SetActiveLine;
+    property ShowActiveLine: boolean read GetShowActiveLine write SetShowActiveLine;
+  end;
+
 implementation
 
 uses
-  System.SysUtils,
   Builder.Exception;
 
 { TPythonVersionHelper }
