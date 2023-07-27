@@ -25,13 +25,14 @@ type
     actCancel: TAction;
     procedure actSaveExecute(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     FModel: TModel;
+    FModelOwned: boolean;
     FHasLoaded: boolean;
     FStorage: string;
+    function GetModel: TModel;
   protected
     //Create the model that represents the form data
     function CreateModel(): TModel; virtual;
@@ -46,8 +47,9 @@ type
     procedure Save(); virtual;
     procedure Cancel(); virtual;
 
-    property Model: TModel read FModel;
+    property Model: TModel read GetModel;
   public
+    procedure LoadModel(const AModel: TModel; const AOwned: boolean = false);
     //Model storage details for autoload
     property Storage: string read FStorage write FStorage;
     //Loading status
@@ -77,19 +79,16 @@ uses
 
 {$R *.fmx}
 
-procedure TDataForm.FormCreate(Sender: TObject);
-begin
-  FModel := CreateModel();
-end;
-
 procedure TDataForm.FormDestroy(Sender: TObject);
 begin
-  FModel.Free();
+  if FModelOwned then
+    FModel.Free();
 end;
 
 procedure TDataForm.FormShow(Sender: TObject);
 begin
-  Load();
+  if not FHasLoaded then
+    Load();
 end;
 
 function TDataForm.GetEntityType: TClass;
@@ -106,6 +105,15 @@ begin
   finally
     LRttiCtx.Free();
   end;
+end;
+
+function TDataForm.GetModel: TModel;
+begin
+  if not Assigned(FModel) then begin
+    FModelOwned := true;
+    FModel := CreateModel();
+  end;
+  Result := FModel;
 end;
 
 function TDataForm.CreateModel: TModel;
@@ -144,11 +152,23 @@ begin
   end;
 end;
 
+procedure TDataForm.LoadModel(const AModel: TModel; const AOwned: boolean);
+begin
+  if Assigned(FModel) and FModelOwned then
+    FModel.Free();
+
+  FModel := AModel;
+  FModelOwned := AOwned;
+
+  FormUpdate();
+  FHasLoaded := true;
+end;
+
 procedure TDataForm.ModelValidate;
 begin
   var LErrors := TStringList.Create();
   try
-    if not FModel.Validate(LErrors) then
+    if not Model.Validate(LErrors) then
       raise EModelValidationError.Create(LErrors.Text);
   finally
     LErrors.Free();
@@ -160,7 +180,7 @@ begin
   ModelUpdate();
   ModelValidate();
   var LStorage: IStorage := TDefaultStorage<TObject>.Make();
-  LStorage.SaveModel(FModel, FStorage);
+  LStorage.SaveModel(Model, FStorage);
   Close();
 end;
 
