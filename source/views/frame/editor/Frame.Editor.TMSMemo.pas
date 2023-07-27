@@ -8,23 +8,25 @@ uses
   FMX.Dialogs, FMX.StdCtrls, FMX.TMSBaseControl, FMX.TMSMemo, FMX.Controls.Presentation,
   Frame.Editor.TabItem, Builder.Chain, BaseProtocol, BaseProtocol.Types,
   BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client,
-  Builder.Model.Environment, Builder.Services, FMX.TabControl;
+  Builder.Types, Builder.Model.Environment, Builder.Services;
 
 type
   TTMSMemoEditorFrame = class(TFrame, ITextEditor)
     mmEditor: TTMSFMXMemo;
     procedure mmEditorGutterClick(Sender: TObject; LineNo: Integer);
+    procedure mmEditorChangeTracking(Sender: TObject);
   private
     FFileName: string;
+    FModified: boolean;
     FEnvironmentServices: IEnvironmentServices;
     FProjectServices: IProjectServices;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
     FSetupDebugger: IDisconnectable;
     FStoppedEvent: IUnsubscribable;
-    procedure LoadFromFile(const AFileName: string);
-    procedure Save();
-    procedure SaveTo(const AFileName: string);
+    function GetFileName(): string;
+    function GetModified(): boolean;
+    procedure SetModified(const AModified: boolean);
     function GetBreakpoints(): TArray<integer>;
     procedure SetBreakpoints(ABreakpoints: TArray<integer>);
     function GetActiveLine(): integer;
@@ -32,6 +34,9 @@ type
     function GetShowActiveLine(): boolean;
     procedure SetShowActiveLine(AShowActiveLine: boolean);
     function GetRemoteRootPath(const AFileName: string): string;
+    procedure Open(const AFileName: string; const AEditing: boolean = false);
+    procedure Save();
+    procedure SaveTo(const AFileName: string);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -100,6 +105,16 @@ begin
   end;
 end;
 
+function TTMSMemoEditorFrame.GetFileName: string;
+begin
+  Result := FFileName;
+end;
+
+function TTMSMemoEditorFrame.GetModified: boolean;
+begin
+  Result := FModified;
+end;
+
 function TTMSMemoEditorFrame.GetRemoteRootPath(const AFileName: string): string;
 begin
   if FEnvironmentServices.HasActiveEnvironment() then begin
@@ -124,21 +139,18 @@ begin
   end;
 end;
 
+procedure TTMSMemoEditorFrame.SetModified(const AModified: boolean);
+begin
+  if (FModified <> AModified) then begin
+    FModified := AModified;
+    TGlobalBuilderChain.BroadcastEventAsync(
+      TEditorChangedEvent.Create(Self, AModified));
+  end;
+end;
+
 function TTMSMemoEditorFrame.GetActiveLine: integer;
 begin
   Result := mmEditor.ActiveLine;
-end;
-
-procedure TTMSMemoEditorFrame.Save;
-begin
-  if not FFileName.IsEmpty() and TFile.Exists(FFileName) then
-    mmEditor.Lines.SaveToFile(FFileName);
-end;
-
-procedure TTMSMemoEditorFrame.SaveTo(const AFileName: string);
-begin
-  if not AFileName.IsEmpty() and TFile.Exists(AFileName) then
-    mmEditor.Lines.SaveToFile(AFileName);
 end;
 
 procedure TTMSMemoEditorFrame.SetActiveLine(AActiveLine: integer);
@@ -163,15 +175,38 @@ begin
   mmEditor.ActiveLineSettings.ShowActiveLineIndicator := AShowActiveLine;
 end;
 
-procedure TTMSMemoEditorFrame.LoadFromFile(const AFileName: string);
+procedure TTMSMemoEditorFrame.Open(const AFileName: string; const AEditing: boolean);
 begin
   FFileName := AFileName;
-  mmEditor.Lines.LoadFromFile(AFileName);
+  if TFile.Exists(AFileName) then
+    mmEditor.Lines.LoadFromFile(AFileName);
+
   { TODO : REMOVE ALL OLD SETTINGS }
   DebuggerDataSetContainer.AddSource(
     TPath.GetFileName(AFileName),
     AFileName,
     GetRemoteRootPath(AFileName));
+  SetModified(AEditing);
+end;
+
+procedure TTMSMemoEditorFrame.Save;
+begin
+  if TFile.Exists(FFileName) then
+    SaveTo(FFileName);
+end;
+
+procedure TTMSMemoEditorFrame.SaveTo(const AFileName: string);
+begin
+  if TFile.Exists(AFileName) then begin
+    mmEditor.Lines.SaveToFile(AFileName);
+    SetModified(false);
+  end;
+end;
+
+procedure TTMSMemoEditorFrame.mmEditorChangeTracking(Sender: TObject);
+begin
+  if mmEditor.Modified then
+    SetModified(mmEditor.Modified);
 end;
 
 procedure TTMSMemoEditorFrame.mmEditorGutterClick(Sender: TObject;
