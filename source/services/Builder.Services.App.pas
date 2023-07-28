@@ -65,15 +65,14 @@ implementation
 uses
   System.SysUtils,
   Builder.Paths,
-  Builder.Exception,
-  Builder.Services.Factory;
+  Builder.Exception;
 
 { TAppService }
 
 constructor TAppService.Create;
 begin
   inherited;
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
+  FAdbServices := TBuilderService.CreateService<IADBServices>;
 end;
 
 function TAppService.InstallApk(const AProjectModel: TProjectModel;

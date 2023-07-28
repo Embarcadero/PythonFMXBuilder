@@ -38,9 +38,6 @@ type
 
 implementation
 
-uses
-  Builder.Services.Factory;
-
 {$R *.fmx}
 
 { TDeviceFrame }
@@ -50,8 +47,8 @@ begin
   inherited;
   FUpdate := true;
   FDevices := TStringList.Create();
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FAdbServices := TBuilderService.CreateService<IADBServices>;
   StartDevicesMonitor();
 
   FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(

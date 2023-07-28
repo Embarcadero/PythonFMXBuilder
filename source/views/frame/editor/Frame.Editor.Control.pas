@@ -36,8 +36,7 @@ implementation
 
 uses
   System.IOUtils,
-  Container.DataSet.Debugger,
-  Builder.Services.Factory;
+  Container.DataSet.Debugger;
 
 {$R *.fmx}
 
@@ -46,7 +45,7 @@ uses
 constructor TEditorControlFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FEditorServices := TServiceSimpleFactory.CreateEditor();
+  FEditorServices := TBuilderService.CreateService<IEditorServices>;
   FEditorServices.EditorControl := Self;
 end;
 

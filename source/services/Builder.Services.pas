@@ -6,20 +6,15 @@ uses
   System.Classes,
   System.IOUtils,
   System.SysUtils,
+  System.Rtti,
   System.Types,
+  System.Generics.Collections,
   Builder.Types,
   Builder.Model.Project,
   Builder.Model.Project.Files,
   Builder.Model.Environment;
 
 type
-  IRunner<T> = interface
-    ['{8C84D954-BD52-4B33-A6C0-C006B16A9248}']
-    procedure Run(const AProxy: TProc<T>);
-    function RunAsync(const AProxy: TProc<T>;
-      const AAsyncCallback: TAsyncCallback = nil): IAsyncResult;
-  end;
-
   IEnvironmentServices = interface
     ['{2E79F36D-7BD5-4141-A567-066B80BEF012}']
     procedure SaveEnvironment(const AEnvironment: TEnvironmentModel);
@@ -218,6 +213,13 @@ type
     procedure StopActiveProject();
   end;
 
+  IRunner<T> = interface
+    ['{8C84D954-BD52-4B33-A6C0-C006B16A9248}']
+    procedure Run(const AProxy: TProc<T>);
+    function RunAsync(const AProxy: TProc<T>;
+      const AAsyncCallback: TAsyncCallback = nil): IAsyncResult;
+  end;
+
   IBuildServices = interface(IRunner<IBuilderTasks>)
     ['{8BA3AEDE-8E35-42AE-9014-DCBFD0AA197C}']
     function GetIsBuilding(): boolean;
@@ -237,6 +239,100 @@ type
       const ABuildConfiguration: TBuildConfiguration);
   end;
 
+  TBuilderService = class
+  private
+    class var FInstance: TBuilderService;
+    class constructor Create();
+    class destructor Destroy();
+  private
+    FServices: TDictionary<TGUID, TClass>;
+  public
+    constructor Create();
+    destructor Destroy(); override;
+
+    procedure RegisterService<I: IInterface>(const AClass: TClass);
+    procedure UnregisterService<I: IInterface>();
+    function GetServiceImplementor<I: IInterface>: TClass;
+
+    class function CreateService<I: IInterface>(): I;
+
+    class property Instance: TBuilderService read FInstance;
+  end;
+
 implementation
+
+uses
+  System.TypInfo,
+  Builder.Registers;
+
+{ TBuilderService }
+
+class constructor TBuilderService.Create;
+begin
+  FInstance := TBuilderService.Create();
+end;
+
+class destructor TBuilderService.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+constructor TBuilderService.Create;
+begin
+  inherited Create();
+  FServices := TDictionary<TGUID, TClass>.Create();
+end;
+
+destructor TBuilderService.Destroy;
+begin
+  FServices.Free();
+  inherited;
+end;
+
+function TBuilderService.GetServiceImplementor<I>: TClass;
+begin
+  FServices.TryGetValue(PTypeInfo(TypeInfo(I))^.TypeData^.GUID, Result);
+end;
+
+procedure TBuilderService.RegisterService<I>(const AClass: TClass);
+begin
+  FServices.Add(PTypeInfo(TypeInfo(I))^.TypeData^.GUID, AClass);
+end;
+
+procedure TBuilderService.UnregisterService<I>;
+begin
+  FServices.Remove(PTypeInfo(TypeInfo(I))^.TypeData^.GUID);
+end;
+
+class function TBuilderService.CreateService<I>: I;
+var
+  LObj: TObject;
+begin
+  var LClass := FInstance.GetServiceImplementor<I>();
+  if not Assigned(LClass) then
+    Exit(nil);
+
+  var LRttiCtx := TRttiContext.Create();
+  try
+    var LRttiType := LRttiCtx.GetType(LClass);
+    for var LMethod in LRttiType.GetMethods() do begin
+      if not LMethod.IsConstructor then
+        Continue;
+
+      if Length(LMethod.GetParameters) = 0 then
+        Exit(LMethod.Invoke(LClass, []).AsType<I>);
+    end;
+  finally
+    LRttiCtx.Free();
+  end;
+
+  Result := nil;
+end;
+
+initialization
+  RegisterServices();
+
+finalization
+  UnregisterServices();
 
 end.

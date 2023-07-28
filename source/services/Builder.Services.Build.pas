@@ -76,18 +76,17 @@ uses
   System.Threading,
   System.IOUtils,
   Builder.Paths,
-  Builder.Exception,
-  Builder.Services.Factory;
+  Builder.Exception;
 
 { TBuildService }
 
 constructor TBuildService.Create;
 begin
   inherited;
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-  FAppServices := TServiceSimpleFactory.CreateApp();
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FProjectServices := TBuilderService.CreateService<IProjectServices>;
+  FAppServices := TBuilderService.CreateService<IAppServices>;
+  FAdbServices := TBuilderService.CreateService<IADBServices>;
   FDebugSessionEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin

@@ -43,7 +43,6 @@ contains
   Builder.Model.Project in '..\source\models\project\Builder.Model.Project.pas',
   Builder.Services.ADB in '..\source\services\Builder.Services.ADB.pas',
   Builder.Services.App in '..\source\services\Builder.Services.App.pas',
-  Builder.Services.Factory in '..\source\services\Builder.Services.Factory.pas',
   Builder.Services in '..\source\services\Builder.Services.pas',
   Builder.Services.Project in '..\source\services\Builder.Services.Project.pas',
   Builder.Storage.Default in '..\source\storage\Builder.Storage.Default.pas',
@@ -58,7 +57,8 @@ contains
   Builder.Services.UnboundPython in '..\source\services\Builder.Services.UnboundPython.pas',
   Builder.Services.Environment in '..\source\services\Builder.Services.Environment.pas',
   Builder.Consts in '..\source\Builder.Consts.pas',
-  Builder.Services.Editor in '..\source\services\Builder.Services.Editor.pas';
+  Builder.Services.Editor in '..\source\services\Builder.Services.Editor.pas',
+  Builder.Registers in '..\source\Builder.Registers.pas';
 
 end.
 
