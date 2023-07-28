@@ -105,9 +105,6 @@ type
     function GetNodeByProject(const AProject: TProjectModel): TTreeViewItem;
     function GetNodeByModule(const AModule: TProjectFilesModule): TTreeViewItem;
     function GetNodeData<T>(const AItem: TTreeViewItem): T;
-    //Broadcasted events
-    procedure BroadcastOpenFile(const AFilePath: string; const ANew: boolean = false);
-    procedure BroadcastCloseFile(const AFilePath: string);
     //Data updates
     procedure UpdateProjectNode();
     procedure UpdateModulesNode();
@@ -193,7 +190,7 @@ begin
             LoadProject(LProject);
             var LDefaultProjectFilePath := GetDefaultProjectFilePath();
             if not LDefaultProjectFilePath.IsEmpty() then
-              BroadcastOpenFile(LDefaultProjectFilePath);
+              FEditorServices.OpenEditor(LDefaultProjectFilePath);
           finally
             TGlobalBuilderChain.BroadcastEventAsync(
               TAsyncOperationEndedEvent.Create(TAsyncOperation.OpenProject));
@@ -256,7 +253,7 @@ begin
 
     tvProjectFiles.Selected := LItem;
 
-    BroadcastOpenFile(AFileName, ANew);
+    FEditorServices.OpenEditor(AFileName, ANew);
   end;
 end;
 
@@ -474,7 +471,7 @@ procedure TProjectFilesFrame.OnTreeViewItemDblClickModule(Sender: TObject);
 begin
   var LFilePath := GetItemFilePath(TTreeViewItem(Sender));
   if not LFilePath.IsEmpty() then
-    BroadcastOpenFile(LFilePath);
+    FEditorServices.OpenEditor(LFilePath);
 end;
 
 procedure TProjectFilesFrame.OnTreeViewItemRename(Sender: TObject; const AOldName: string;
@@ -533,11 +530,7 @@ end;
 
 procedure TProjectFilesFrame.UnLoadProject(const AProjectModel: TProjectModel);
 begin
-  //Close editors
-  for var LModule in AProjectModel.Files.Modules do
-    TGlobalBuilderChain.BroadcastEvent(
-      TCloseFileEvent.Create(LModule.Path));
-
+  FEditorServices.CloseAll();
   tvProjectFiles.Clear();
   FRoot := nil;
   FProjectModel := nil;
@@ -588,19 +581,6 @@ begin
   LRoot.Text := Format('Target Python (%s)', [
     ASelected.Data.AsType<TNodeInfo>
       .NodeData.AsType<TPythonVersion>.ToTargetPython()]);
-end;
-
-procedure TProjectFilesFrame.BroadcastOpenFile(const AFilePath: string;
-  const ANew: boolean);
-begin
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TOpenFileEvent.Create(AFilePath, ANew));
-end;
-
-procedure TProjectFilesFrame.BroadcastCloseFile(const AFilePath: string);
-begin
-  TGlobalBuilderChain.BroadcastEventAsync(
-    TCloseFileEvent.Create(AFilePath));
 end;
 
 function TProjectFilesFrame.BuildModuleNodeData(
@@ -919,21 +899,21 @@ begin
     Exit;
 
   var LRemove := true;
-  if not IsConsole then
-    TDialogService.MessageDialog('Do you really want to remove this module?',
-      TMsgDlgType.mtConfirmation,
-      [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
-      procedure(const AResult: TModalResult) begin
-        LRemove := AResult = mrYes;
-      end);
+  TDialogService.MessageDialog('Do you really want to remove this module?',
+    TMsgDlgType.mtConfirmation,
+    [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], TMsgDlgBtn.mbNo, -1,
+    procedure(const AResult: TModalResult) begin
+      LRemove := AResult = mrYes;
+    end);
 
   if not LRemove then
     Exit;
 
-  LNode.Free();
+  var LFilePath := GetItemFilePath(LNode);
+  GetProjectServices().RemoveModule(FProjectModel, LFilePath);
+  FEditorServices.CloseEditor(LFilePath);
 
-  GetProjectServices().RemoveModule(FProjectModel, LInfo.NodeData.AsString);
-  BroadcastCloseFile(LInfo.NodeData.AsString);
+  LNode.Free();
 end;
 
 procedure TProjectFilesFrame.actRemoveOtherFileExecute(Sender: TObject);
