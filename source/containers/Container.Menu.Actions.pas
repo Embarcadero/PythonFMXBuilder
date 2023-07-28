@@ -83,7 +83,7 @@ type
     //Events
     FAsyncOperationStartedEvent: IDisconnectable;
     FAsyncOperationEndedEvent: IDisconnectable;
-    FSaveStateEvent: IDisconnectable;
+    FEditorSaveRequest: IDisconnectable;
     //Models
     FProjectModel: TProjectModel;
     //Services
@@ -99,7 +99,8 @@ type
     function HasActiveProject(): boolean; inline;
     function GetActionEnabledByTag(AAction: TBasicAction): boolean;
     procedure SaveProjectAndModules();
-    procedure SaveEditor();
+    function SaveEditor(const ATextEditor: ITextEditor): string; overload;
+    function SaveEditor(): string; overload;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
@@ -153,19 +154,23 @@ begin
       end;
     end);
 
-  FSaveStateEvent := TGlobalBuilderChain.SubscribeToEvent<TSaveStateEvent>(
-    procedure(const AEventNotification: TSaveStateEvent)
+  FEditorSaveRequest := TGlobalBuilderChain.SubscribeToReverseRequest<TEditorSaveRequest>(
+    function(const AReverseRequest: TEditorSaveRequest; var AHandled: boolean): TChainResponse
     begin
-      case AEventNotification.Body.SaveState of
-        TSaveState.Save:
-          SaveEditor();
-      end;
+      var LSavedTo := String.Empty;
+      if Assigned(AReverseRequest.Arguments.TextEditor) then
+        LSavedTo := SaveEditor(AReverseRequest.Arguments.TextEditor);
+
+      AHandled := true;
+      if TFile.Exists(LSavedTo) then
+        Result := TEditorSaveResponse.Create(LSavedTo)
+      else
+        Result := TErrorResponse.Create('File not saved.');
     end);
 end;
 
 destructor TMenuActionsContainer.Destroy;
 begin
-  FSaveStateEvent.Disconnect();
   FAsyncOperationEndedEvent.Disconnect();
   FAsyncOperationStartedEvent.Disconnect();
   inherited;
@@ -480,15 +485,23 @@ begin
   FProjectServices.SaveProject(LProject);
 end;
 
-procedure TMenuActionsContainer.SaveEditor;
+function TMenuActionsContainer.SaveEditor(const ATextEditor: ITextEditor): string;
 begin
+  Assert(Assigned(ATextEditor), 'Argument "ATextEditor" not assigned.');
+
   var LProject := FProjectServices.GetActiveProject();
-  var LEditor := FEditorServices.ActiveTextEditor;
+  if not Assigned(LProject) then
+    Exit(String.Empty);
 
-  if not Assigned(LProject) or not Assigned(LEditor) then
-    Exit;
+  ATextEditor.Save();
 
-  FEditorServices.SaveEditor(LEditor,
+  //Search for the module that represents the editor
+  var LModule := FProjectServices.GetModule(LProject, ATextEditor.FileName);
+  if not Assigned(LModule) then
+    Exit(String.Empty);
+
+  var LResult := ATextEditor.FileName;
+  FProjectServices.SaveModule(LProject, LModule,
     function(AFileName: string): string begin
       sdModule.InitialDir := TPath.GetDirectoryName(
         LProject.Defs.Storage);
@@ -497,10 +510,23 @@ begin
         Result := String.Empty
       else
         Result := sdModule.FileName;
+
+      LResult := Result;
     end,
     true);
 
   FProjectServices.SaveProject(LProject);
+
+  Result := LResult;
+end;
+
+function TMenuActionsContainer.SaveEditor: string;
+begin
+  var LEditor := FEditorServices.ActiveTextEditor;
+  if not Assigned(LEditor) then
+    Exit;
+
+  Result := SaveEditor(LEditor);
 end;
 
 end.
