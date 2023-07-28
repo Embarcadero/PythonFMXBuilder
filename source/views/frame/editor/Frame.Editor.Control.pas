@@ -11,26 +11,25 @@ uses
   Builder.Services, Builder.Types, Builder.Chain, Builder.TabControl;
 
 type
-  TEditorControlFrame = class(TFrame)
+  TEditorControlFrame = class(TFrame, IEditorControl)
     tbScripts: TTabControl;
     dsActiveSource: TDataSource;
     procedure dsActiveSourceDataChange(Sender: TObject; Field: TField);
     procedure tbScriptsChange(Sender: TObject);
   private
     FEditorServices: IEditorServices;
-    FOpenProjectEvent: IDisconnectable;
-    FCloseProjectEvent: IDisconnectable;
-    FOpenFileEvent: IDisconnectable;
-    FCloseFileEvent: IDisconnectable;
     function DoCreateTab(const ACanClose: boolean = true): TTabItem;
     function GetEditorTab(const AFileName: string): TTabItem;
+    function GetActiveTextEditor: ITextEditor;
+    //IEditorControl implementation
+    function OpenEditor(const AFileName: string;
+      const AEditing: boolean = false): ITextEditor;
+    procedure CloseEditor(const AFileName: string);
+    procedure CloseAllEditors();
+    function FindEditor(const AFileName: string): ITextEditor;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy(); override;
-
-    function OpenEditor(const AFileName: string; const AEditing: boolean): ITextEditor;
-    procedure CloseEditor(const AFileName: string);
-    procedure CloseAll();
   end;
 
 implementation
@@ -48,59 +47,13 @@ constructor TEditorControlFrame.Create(AOwner: TComponent);
 begin
   inherited;
   FEditorServices := TServiceSimpleFactory.CreateEditor();
-  FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
-    procedure(const AEventNotification: TOpenProjectEvent)
-    begin
-      //
-    end);
-
-  FCloseProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TCloseProjectEvent>(
-    procedure(const AEventNotification: TCloseProjectEvent)
-    begin
-      //
-    end);
-
-  FOpenFileEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenFileEvent>(
-    procedure(const AEventNotification: TOpenFileEvent)
-    begin
-      var LFilePath := AEventNotification.Body.FilePath;
-      var LActiveLine := AEventNotification.Body.ActiveLine;
-      var LNew := AEventNotification.Body.New;
-      var LShowActiveLine := AEventNotification.Body.ShowActiveLineIndicator;
-      var LBreakpoints := AEventNotification.Body.Breakpoints;
-
-      TThread.Queue(TThread.Current,
-        procedure()
-        begin
-          var LTextEditor := OpenEditor(LFilePath, LNew);
-
-          if (LActiveLine > 0) then begin
-            LTextEditor.ActiveLine := LActiveLine - 1;
-            LTextEditor.ShowActiveLine := LShowActiveLine;
-          end;
-
-          if Assigned(LBreakpoints) then
-            LTextEditor.Breakpoints := LBreakpoints;
-        end);
-    end);
-
-  FCloseFileEvent := TGlobalBuilderChain.SubscribeToEvent<TCloseFileEvent>(
-    procedure(const AEventNotification: TCloseFileEvent)
-    begin
-      var LFilePath := AEventNotification.Body.FilePath;
-      TThread.Queue(TThread.Current, procedure() begin
-        CloseEditor(LFilePath);
-      end);
-    end);
+  FEditorServices.EditorControl := Self;
 end;
 
 destructor TEditorControlFrame.Destroy;
 begin
+  FEditorServices.EditorControl := nil;
   FEditorServices := nil;
-  FCloseFileEvent.Disconnect();
-  FOpenFileEvent.Disconnect();
-  FOpenProjectEvent.Disconnect();
-  FCloseProjectEvent.Disconnect();
   inherited;
 end;
 
@@ -114,9 +67,9 @@ end;
 procedure TEditorControlFrame.dsActiveSourceDataChange(Sender: TObject;
   Field: TField);
 begin
-  var LActiveTab := TEditorTabItem(tbScripts.ActiveTab);
-  if Assigned(LActiveTab) then
-    LActiveTab.TextEditor.ShowActiveLine := false;
+  var LActiveTextEditor := GetActiveTextEditor();
+  if Assigned(LActiveTextEditor) then
+    LActiveTextEditor.ShowActiveLine := false;
 
   if DebuggerDataSetContainer.fdmtActiveSource.IsEmpty() then
     Exit();
@@ -134,10 +87,24 @@ begin
   LTextEditor.ShowActiveLine := DebuggerDataSetContainer.fdmtActiveSourceactive_source_line_indicator.AsBoolean;
 end;
 
+function TEditorControlFrame.FindEditor(const AFileName: string): ITextEditor;
+begin
+  var LTab := GetEditorTab(AFileName);
+  if Assigned(LTab) then
+    Result := LTab as ITextEditor
+  else
+    Result := nil;
+end;
+
+function TEditorControlFrame.GetActiveTextEditor: ITextEditor;
+begin
+  Result := TEditorTabItem(tbScripts.ActiveTab) as ITextEditor;
+end;
+
 function TEditorControlFrame.GetEditorTab(const AFileName: string): TTabItem;
 begin
   for var I := 0 to tbScripts.TabCount - 1 do
-    if (TEditorTabItem(tbScripts.Tabs[I]).TextEditor.FileName = AFileName) then
+    if (tbScripts.Tabs[I] as ITextEditor).FileName = AFileName then
       Exit(tbScripts.Tabs[I] as TEditorTabItem);
   Result := nil;
 end;
@@ -151,21 +118,21 @@ begin
   var LItem := GetEditorTab(AFileName);
   if Assigned(LItem) then begin
     tbScripts.ActiveTab := LItem;
-    Result := TEditorTabItem(LItem).TextEditor;
+    Result := LItem as ITextEditor;
     Exit;
   end;
 
   LItem := DoCreateTab();
-  TEditorTabItem(LItem).LoadFile(AFileName, AEditing);
+  (LItem as ITextEditor).Open(AFileName, AEditing);
   LItem.Height := 26;
   tbScripts.ActiveTab := LItem;
-  Result := TEditorTabItem(LItem).TextEditor;
+  Result := (LItem as ITextEditor);
 end;
 
 procedure TEditorControlFrame.tbScriptsChange(Sender: TObject);
 begin
   if Assigned(tbScripts.ActiveTab) then
-    FEditorServices.ActiveTextEditor := TEditorTabItem(tbScripts.ActiveTab).TextEditor
+    FEditorServices.ActiveTextEditor := GetActiveTextEditor()
   else
     FEditorServices.ActiveTextEditor := nil;
 end;
@@ -174,13 +141,13 @@ procedure TEditorControlFrame.CloseEditor(const AFileName: string);
 begin
   var LItem := GetEditorTab(AFileName);
   if Assigned(LItem) then
-    LItem.Close();
+    (LItem as ITextEditor).Close();
 end;
 
-procedure TEditorControlFrame.CloseAll;
+procedure TEditorControlFrame.CloseAllEditors;
 begin
   for var I := tbScripts.TabCount -1 downto 0 do
-    TTabItem(tbScripts.Tabs[I]).Close();
+    (tbScripts.Tabs[I] as ITextEditor).Close();
 end;
 
 end.
