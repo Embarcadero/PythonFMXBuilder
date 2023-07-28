@@ -35,6 +35,7 @@ type
     procedure SetShowActiveLine(AShowActiveLine: boolean);
     function GetRemoteRootPath(const AFileName: string): string;
     procedure Open(const AFileName: string; const AEditing: boolean = false);
+    procedure Close();
     procedure Save();
     procedure SaveTo(const AFileName: string);
   public
@@ -94,6 +95,11 @@ begin
   FSetupDebugger.Disconnect();
   FDebugSessionStopped.Disconnect();
   FDebugSessionStarted.Disconnect();
+end;
+
+procedure TTMSMemoEditorFrame.Close;
+begin
+  //
 end;
 
 function TTMSMemoEditorFrame.GetBreakpoints: TArray<integer>;
