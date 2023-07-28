@@ -3,7 +3,7 @@ unit Builder.Types;
 interface
 
 uses
-  System.SysUtils;
+  System.SysUtils, System.Rtti;
 
 type
   {$SCOPEDENUMS ON}
@@ -63,6 +63,17 @@ type
     class function FromString(const AValue: string): TDebugger; static;
   end;
 
+  ITextEditor = interface;
+
+  IEditorControl = interface
+    ['{9DD9962C-6F91-4C4D-AB83-8D862966E88E}']
+    function OpenEditor(const AFileName: string;
+      const AEditing: boolean = false): ITextEditor;
+    procedure CloseEditor(const AFileName: string);
+    procedure CloseAllEditors();
+    function FindEditor(const AFileName: string): ITextEditor;
+  end;
+
   ITextEditor = interface
     ['{52EDE988-F0AF-44B2-8445-1BD8960DD3C2}']
     function GetFileName(): string;
@@ -75,6 +86,7 @@ type
     procedure SetShowActiveLine(AShowActiveLine: boolean);
 
     procedure Open(const AFileName: string; const AEditing: boolean = false);
+    procedure Close();
     procedure Save();
     procedure SaveTo(const AFileName: string);
 
