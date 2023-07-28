@@ -1,7 +1,8 @@
 inherited EnvironmentForm: TEnvironmentForm
   Caption = 'Environment'
-  ClientHeight = 897
-  ClientWidth = 449
+  ClientHeight = 898
+  ClientWidth = 450
+  OnCreate = FormCreate
   OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
   inherited StyleBook1: TStyleBook
@@ -12,18 +13,19 @@ inherited EnvironmentForm: TEnvironmentForm
     Size.Width = 449.000000000000000000
   end
   inherited loBody: TLayout
-    Size.Width = 449.000000000000000000
-    Size.Height = 797.000000000000000000
+    Size.Width = 450.000000000000000000
+    Size.Height = 798.000000000000000000
+    TabOrder = 7
     inherited lbProject: TListBox
-      Size.Width = 449.000000000000000000
-      Size.Height = 797.000000000000000000
-      Viewport.Width = 445.000000000000000000
-      Viewport.Height = 793.000000000000000000
+      Size.Width = 450.000000000000000000
+      Size.Height = 798.000000000000000000
+      Viewport.Width = 446.000000000000000000
+      Viewport.Height = 794.000000000000000000
       object lbghSdkttings: TListBoxGroupHeader
         TextSettings.Font.Size = 13.000000000000000000
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         StyledSettings = [Family, Other]
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
@@ -32,7 +34,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiSdkBasePath: TListBoxItem
         Position.Y = 24.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
@@ -45,7 +47,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'SDK base path'
@@ -58,7 +60,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'SDK base path:'
@@ -67,7 +69,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiApkSignerLocation: TListBoxItem
         Position.Y = 84.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
@@ -80,7 +82,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'apksigner.jar location'
@@ -92,7 +94,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'APKSigner location:'
@@ -101,7 +103,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiAdbLocation: TListBoxItem
         Position.Y = 144.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 3
@@ -114,7 +116,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'adb(.exe) location'
@@ -126,7 +128,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'ADB location:'
@@ -135,7 +137,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiAaptLocation: TListBoxItem
         Position.Y = 204.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 4
@@ -148,7 +150,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'aapt(.exe) location'
@@ -160,7 +162,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'AAPT location:'
@@ -169,7 +171,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiSdkApiLocation: TListBoxItem
         Position.Y = 264.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 5
@@ -180,7 +182,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'SDK API location:'
@@ -195,7 +197,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'SDK API location'
@@ -203,7 +205,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiZipAlign: TListBoxItem
         Position.Y = 324.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 6
@@ -216,7 +218,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'zipalign(.exe) location'
@@ -228,7 +230,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'ZipAlign location:'
@@ -240,7 +242,7 @@ inherited EnvironmentForm: TEnvironmentForm
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         StyledSettings = [Family, Other]
         Position.Y = 384.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
@@ -249,7 +251,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiJdkBasePath: TListBoxItem
         Position.Y = 408.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 8
@@ -262,7 +264,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'JDK base path'
@@ -275,7 +277,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'JDK base path:'
@@ -284,7 +286,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiKeytoolLocation: TListBoxItem
         Position.Y = 468.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 9
@@ -297,7 +299,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'keytool(.exe) location'
@@ -309,7 +311,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'KeyTool location:'
@@ -318,7 +320,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiJarSigner: TListBoxItem
         Position.Y = 528.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 10
@@ -331,7 +333,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = 'jarsigner(.exe) location'
@@ -343,7 +345,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'JARSigner location:'
@@ -355,7 +357,7 @@ inherited EnvironmentForm: TEnvironmentForm
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         StyledSettings = [Family, Other]
         Position.Y = 588.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'listboxplainheader'
@@ -364,7 +366,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiRemoteDebuggerHost: TListBoxItem
         Position.Y = 612.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 12
@@ -377,7 +379,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = '127.0.0.1'
@@ -390,7 +392,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Remote debugger host:'
@@ -399,7 +401,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiRemoteDebuggerPort: TListBoxItem
         Position.Y = 672.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 13
@@ -412,7 +414,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = '5678'
@@ -424,7 +426,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Remote debugger port:'
@@ -433,7 +435,7 @@ inherited EnvironmentForm: TEnvironmentForm
       end
       object lbiRemoteDebuggerRoot: TListBoxItem
         Position.Y = 732.000000000000000000
-        Size.Width = 445.000000000000000000
+        Size.Width = 446.000000000000000000
         Size.Height = 60.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 14
@@ -446,7 +448,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Top = 5.000000000000000000
           Margins.Right = 5.000000000000000000
           Margins.Bottom = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 28.000000000000000000
           Size.PlatformDefault = False
           TextPrompt = '/data/data/$(package_name)/files/'
@@ -458,7 +460,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Margins.Right = 5.000000000000000000
           Position.X = 5.000000000000000000
           Position.Y = 5.000000000000000000
-          Size.Width = 435.000000000000000000
+          Size.Width = 436.000000000000000000
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Remote root:'
@@ -468,8 +470,9 @@ inherited EnvironmentForm: TEnvironmentForm
     end
   end
   inherited loFooter: TLayout
-    Position.Y = 847.000000000000000000
-    Size.Width = 449.000000000000000000
+    Position.Y = 848.000000000000000000
+    Size.Width = 450.000000000000000000
+    TabOrder = 8
     inherited loLeftActions: TLayout
       inherited btnSave: TButton
         TabOrder = 0
@@ -480,7 +483,7 @@ inherited EnvironmentForm: TEnvironmentForm
     end
   end
   inherited loHeader: TLayout
-    Size.Width = 449.000000000000000000
+    Size.Width = 450.000000000000000000
     inherited lblProject: TLabel
       TextSettings.Font.StyleExt = {00070000000000000004000000}
     end
