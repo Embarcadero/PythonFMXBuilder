@@ -108,8 +108,7 @@ implementation
 
 uses
   System.DateUtils, System.Net.Socket, System.IOUtils,
-  Builder.Exception,
-  Builder.Services.Factory;
+  Builder.Exception;
 
 { TDebugService }
 
@@ -119,10 +118,10 @@ begin
   FStopped := false;
   FCurrentStoppedThreadId := 0;
   FConnectionStatus := TDebuggerConnectionStatus.OutOfWork;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
-  FAppServices := TServiceSimpleFactory.CreateApp();
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
+  FProjectServices := TBuilderService.CreateService<IProjectServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FAppServices := TBuilderService.CreateService<IAppServices>;
+  FAdbServices := TBuilderService.CreateService<IADBServices>;
   TEventsRegistration.RegisterAll();
   TRequestsRegistration.RegisterAll();
   FDebugger := TBaseProtocolClientSocket.Create();

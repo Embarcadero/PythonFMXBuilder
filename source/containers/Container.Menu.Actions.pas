@@ -125,18 +125,17 @@ uses
   FMX.DialogService,
   Container.Images,
   Form.Factory,
-  Builder.Paths,
-  Builder.Services.Factory;
+  Builder.Paths;
 
 constructor TMenuActionsContainer.Create(AOwner: TComponent);
 begin
   inherited;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-  FAppServices := TServiceSimpleFactory.CreateApp();
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
-  FBuilderServices := TServiceSimpleFactory.CreateBuild();
-  FDebuggerServices := TServiceSimpleFactory.CreateDebug();
-  FEditorServices := TServiceSimpleFactory.CreateEditor();
+  FProjectServices := TBuilderService.CreateService<IProjectServices>;
+  FAppServices := TBuilderService.CreateService<IAppServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FBuilderServices := TBuilderService.CreateService<IBuildServices>;
+  FDebuggerServices := TBuilderService.CreateService<IDebugServices>;
+  FEditorServices := TBuilderService.CreateService<IEditorServices>;
 
   FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
     procedure(const AEventNotification: TAsyncOperationStartedEvent)

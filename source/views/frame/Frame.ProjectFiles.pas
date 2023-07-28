@@ -146,8 +146,7 @@ uses
   ShellApi, WinAPI.Windows,
   {$ENDIF MSWINDOWS}
   Container.Menu.Actions,
-  Builder.Paths,
-  Builder.Services.Factory;
+  Builder.Paths;
 
 {$R *.fmx}
 
@@ -175,7 +174,7 @@ end;
 constructor TProjectFilesFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FEditorServices := TServiceSimpleFactory.CreateEditor();
+  FEditorServices := TBuilderService.CreateService<IEditorServices>;
   FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
     procedure(const AEventNotification: TOpenProjectEvent)
     begin
@@ -362,7 +361,7 @@ end;
 function TProjectFilesFrame.GetProjectServices: IProjectServices;
 begin
   if not Assigned(FProjectServices) then
-    FProjectServices := TServiceSimpleFactory.CreateProject();
+    FProjectServices := TBuilderService.CreateService<IProjectServices>;
   Result := FProjectServices;
 end;
 

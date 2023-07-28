@@ -9,7 +9,7 @@ uses
   Builder.Model.Environment;
 
 type
-  TUnboundPythonServices = class(TInterfacedObject, IUnboundPythonServices)
+  TUnboundPythonService = class(TInterfacedObject, IUnboundPythonServices)
   private
     FAdbServices: IAdbServices;
     FEnvironmentServices: IEnvironmentServices;
@@ -34,26 +34,25 @@ implementation
 uses
   System.IOUtils,
   Builder.Paths,
-  Builder.Exception,
-  Builder.Services.Factory;
+  Builder.Exception;
 
-{ TUnboundPythonServices }
+{ TUnboundPythonService }
 
-constructor TUnboundPythonServices.Create;
+constructor TUnboundPythonService.Create;
 begin
   inherited;
-  FAdbServices := TServiceSimpleFactory.CreateAdb();
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
+  FAdbServices := TBuilderService.CreateService<IADBServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
   FEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
 end;
 
-destructor TUnboundPythonServices.Destroy;
+destructor TUnboundPythonService.Destroy;
 begin
   FEnvironmentModel.Free();
   inherited;
 end;
 
-procedure TUnboundPythonServices.Make(const APythonVersion: TPythonVersion;
+procedure TUnboundPythonService.Make(const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture);
 var
   LLocalZipFile: string;
@@ -75,7 +74,7 @@ begin
   end;
 end;
 
-procedure TUnboundPythonServices.Remove(const APythonVersion: TPythonVersion;
+procedure TUnboundPythonService.Remove(const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture);
 var
   LRemotePythonHome: string;
@@ -84,7 +83,7 @@ begin
   FAdbServices.DeleteDirectory(LRemotePythonHome);
 end;
 
-procedure TUnboundPythonServices.Run(const APythonVersion: TPythonVersion;
+procedure TUnboundPythonService.Run(const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture; const ADebugger: TDebugger;
   const ABuildConfiguration: TBuildConfiguration);
 var
@@ -138,7 +137,7 @@ begin
   end;
 end;
 
-function TUnboundPythonServices.Exists(const APythonVersion: TPythonVersion;
+function TUnboundPythonService.Exists(const APythonVersion: TPythonVersion;
   const AArchitecture: TArchitecture): boolean;
 var
   LRemotePythonHome: string;

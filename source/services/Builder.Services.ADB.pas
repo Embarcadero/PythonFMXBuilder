@@ -71,15 +71,14 @@ implementation
 uses
   System.SyncObjs,
   Builder.Chain,
-  Builder.Exception,
-  Builder.Services.Factory;
+  Builder.Exception;
 
 { TADBService }
 
 constructor TADBService.Create;
 begin
   inherited;
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
 end;
 
 destructor TADBService.Destroy;

@@ -47,8 +47,7 @@ implementation
 
 uses
   System.IOUtils, System.Math,
-  Container.DataSet.Debugger,
-  Builder.Services.Factory;
+  Container.DataSet.Debugger;
 
 {$R *.fmx}
 
@@ -57,8 +56,8 @@ uses
 constructor TTMSMemoEditorFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
-  FEnvironmentServices := TServiceSimpleFactory.CreateEnvironment();
+  FProjectServices := TBuilderService.CreateService<IProjectServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
 
   mmEditor.ActiveLineSettings.ActiveLineAtCursor := false;
 

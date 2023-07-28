@@ -60,7 +60,7 @@ implementation
 function TTabControl.Delete(const Index: Integer): Boolean;
 begin
   if not Assigned(ActiveTab) then
-    Exit;
+    Exit(inherited Delete(Index));
   //There's a bug in the TabEditor preventing the OnChange event
   //on deleting the first tab
   var LOldIndex := ActiveTab.Index;

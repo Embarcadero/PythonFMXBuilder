@@ -37,15 +37,12 @@ type
 
 implementation
 
-uses
-  Builder.Services.Factory;
-
 { TEditorService }
 
 procedure TEditorService.AfterConstruction;
 begin
   inherited;
-  FProjectServices := TServiceSimpleFactory.CreateProject();
+  FProjectServices := TBuilderService.CreateService<IProjectServices>;
 end;
 
 function TEditorService.GetActiveTextEditor: ITextEditor;
