@@ -169,12 +169,18 @@ type
 
   IEditorServices = interface
     ['{33AE075A-E004-4196-98B0-A24F567539F3}']
+    procedure SetEditorControl(AEditorControl: IEditorControl);
+    function GetEditorControl(): IEditorControl;
     procedure SetActiveTextEditor(ATextEditor: ITextEditor);
     function GetActiveTextEditor(): ITextEditor;
 
-    procedure SaveEditor(const ATextEditor: ITextEditor;
-      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
+    procedure OpenEditor(const AFilePath: string;
+      const AEditing: boolean = false);
+    procedure CloseEditor(const AFilePath: string;
+      const ACheckEditing: boolean = true);
+    procedure CloseAll(const ACheckEditing: boolean = true);
 
+    property EditorControl: IEditorControl read GetEditorControl write SetEditorControl;
     property ActiveTextEditor: ITextEditor read GetActiveTextEditor write SetActiveTextEditor;
   end;
 

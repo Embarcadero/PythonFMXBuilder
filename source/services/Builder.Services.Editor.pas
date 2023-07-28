@@ -8,23 +8,31 @@ uses
   System.SysUtils,
   System.Types,
   Builder.Types,
+  Builder.Chain,
   Builder.Services;
 
 type
   TEditorService = class(TInterfacedObject, IEditorServices)
   private
     [weak]
+    class var FEditorControl: IEditorControl;
+    [weak]
     class var FActiveTextEditor: ITextEditor;
   private
     //Services
     FProjectServices: IProjectServices;
+    procedure SetEditorControl(AEditorControl: IEditorControl);
+    function GetEditorControl(): IEditorControl;
     procedure SetActiveTextEditor(ATextEditor: ITextEditor);
     function GetActiveTextEditor(): ITextEditor;
   public
     procedure AfterConstruction(); override;
 
-    procedure SaveEditor(const ATextEditor: ITextEditor;
-      const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
+    procedure OpenEditor(const AFilePath: string;
+      const AEditing: boolean = false);
+    procedure CloseEditor(const AFilePath: string;
+      const ACheckEditing: boolean = true);
+    procedure CloseAll(const ACheckEditing: boolean = true);
   end;
 
 implementation
@@ -45,26 +53,48 @@ begin
   Result := FActiveTextEditor;
 end;
 
-procedure TEditorService.SaveEditor(const ATextEditor: ITextEditor;
-  const ASaveRequest: TSaveRequest; const ACheckUntracked: boolean = true);
+function TEditorService.GetEditorControl: IEditorControl;
 begin
-  Assert(Assigned(ATextEditor), 'Argument "ATextEditor" not assigned.');
-  Assert(Assigned(ASaveRequest), 'Argument "ASaveRequest" not assigned.');
-
-  var LProject := FProjectServices.GetActiveProject();
-  if not Assigned(LProject) then
-    Exit;
-
-  for var LModule in LProject.Files.Modules do begin
-    if LModule.Path = ATextEditor.FileName then
-      FProjectServices.SaveModule(
-        LProject, LModule, ASaveRequest, ACheckUntracked);
-  end;
+  Result := FEditorControl;
 end;
 
 procedure TEditorService.SetActiveTextEditor(ATextEditor: ITextEditor);
 begin
   FActiveTextEditor := ATextEditor;
+end;
+
+procedure TEditorService.SetEditorControl(AEditorControl: IEditorControl);
+begin
+  FEditorControl := AEditorControl;
+end;
+
+procedure TEditorService.OpenEditor(const AFilePath: string;
+  const AEditing: boolean);
+begin
+  Assert(Assigned(FEditorControl), 'Field "FEditorControl" not assigned.');
+
+  FEditorControl.OpenEditor(AFilePath, AEditing);
+
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TOpenFileEvent.Create(AFilePath));
+end;
+
+procedure TEditorService.CloseEditor(const AFilePath: string;
+  const ACheckEditing: boolean);
+begin
+  Assert(Assigned(FEditorControl), 'Field "FEditorControl" not assigned.');
+
+  FEditorControl.CloseEditor(AFilePath);
+
+  TGlobalBuilderChain.BroadcastEventAsync(
+    TCloseFileEvent.Create(AFilePath));
+end;
+
+procedure TEditorService.CloseAll(const ACheckEditing: boolean);
+begin
+  Assert(Assigned(FEditorControl), 'Field "FEditorControl" not assigned.');
+
+  FEditorControl.CloseAllEditors();
 end;
 
 end.
