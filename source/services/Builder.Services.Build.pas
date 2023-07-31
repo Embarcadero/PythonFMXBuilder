@@ -6,8 +6,8 @@ uses
   System.Types,
   System.SysUtils,
   System.Classes,
-  Builder.Chain,
   Builder.Types,
+  Builder.Messagery,
   Builder.Model.Project,
   Builder.Model.Environment,
   Builder.Services,
@@ -87,7 +87,7 @@ begin
   FProjectServices := TBuilderService.CreateService<IProjectServices>;
   FAppServices := TBuilderService.CreateService<IAppServices>;
   FAdbServices := TBuilderService.CreateService<IADBServices>;
-  FDebugSessionEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionEndedEvent := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       FAdbServices.StopDebugSession(FEnvironmentModel.RemoteDebuggerPort);
@@ -142,7 +142,7 @@ begin
   except
     on E: exception do begin
       FBuilding := false;
-      TGlobalBuilderChain.BroadcastEventAsync(
+      TMessagery.BroadcastEventAsync(
         TAsyncExceptionEvent.Create());
       Abort;
     end;
@@ -158,17 +158,17 @@ end;
 procedure TBuildService.DoRunAsync(const AAsyncOperation: TAsyncOperation;
   const AProc: TProc);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TAsyncOperationStartedEvent.Create(AAsyncOperation));
   try
     AProc();
-    TGlobalBuilderChain.BroadcastEventAsync(
+    TMessagery.BroadcastEventAsync(
       TAsyncOperationEndedEvent.Create(AAsyncOperation));
   except
     on E: exception do begin
-      TGlobalBuilderChain.BroadcastEventAsync(
+      TMessagery.BroadcastEventAsync(
         TAsyncOperationEndedEvent.Create(AAsyncOperation));
-      TGlobalBuilderChain.BroadcastEventAsync(
+      TMessagery.BroadcastEventAsync(
         TAsyncExceptionEvent.Create());
     end;
   end;
@@ -176,32 +176,32 @@ end;
 
 procedure TBuildService.DoBuildProject;
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create('Build process has started.'));
   //Generates the project necessary files and settings
   FAppServices.BuildProject(FProjectServices.GetActiveProject());
   //Creates and signs the APK file
   if not FAppServices.BuildApk(FProjectModel, FEnvironmentModel) then
     raise EBuildFailed.Create('Build process failed. Check log for details.');
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create('Build process finished.'));
 end;
 
 procedure TBuildService.DoDeployProject(const AUninstall: boolean);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create('Deployment process has started.'));
   if AUninstall and FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
     FAppServices.UnInstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice);
   if not FAppServices.InstallApk(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then
     raise EInstallFailed.Create('Install process failed. Check log for details.');
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create('Deployment process finished.'));
 end;
 
 procedure TBuildService.DoRunProject();
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create('Launch process has started.'));
 
   FAdbServices.ForceStopApp(FProjectModel.PackageName);
@@ -209,7 +209,7 @@ begin
   //Launch app on device
   FAdbServices.RunApp(FProjectModel.PackageName);
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create('Launch process finished.'));
 end;
 
@@ -232,7 +232,7 @@ begin
   try
     ADebugger.Start(
       FEnvironmentModel.RemoteDebuggerHost, FEnvironmentModel.RemoteDebuggerPort);
-    TGlobalBuilderChain.BroadcastEventAsync(
+    TMessagery.BroadcastEventAsync(
       TMessageEvent.Create('Debug process has started.'));
   except
     on E: Exception do begin

@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.ListBox, FMX.Layouts, System.Threading,
-  Builder.Services, Builder.Chain;
+  Builder.Services, Builder.Messagery;
 
 type
   TDeviceFrame = class(TFrame)
@@ -51,7 +51,7 @@ begin
   FAdbServices := TBuilderService.CreateService<IADBServices>;
   StartDevicesMonitor();
 
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       TThread.Queue(TThread.Current,
@@ -62,7 +62,7 @@ begin
         end);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       TThread.Queue(TThread.Current,

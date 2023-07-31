@@ -14,7 +14,7 @@ uses
   FMX.Menus,
   Form.Slider,
   Form.SelectProject,
-  Builder.Chain,
+  Builder.Messagery,
   Builder.Types,
   Builder.Model.Project,
   Builder.Model.Environment,
@@ -137,7 +137,7 @@ begin
   FDebuggerServices := TBuilderService.CreateService<IDebugServices>;
   FEditorServices := TBuilderService.CreateService<IEditorServices>;
 
-  FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
+  FAsyncOperationStartedEvent := TMessagery.SubscribeToEvent<TAsyncOperationStartedEvent>(
     procedure(const AEventNotification: TAsyncOperationStartedEvent)
     begin
       case AEventNotification.Body.Operation of
@@ -145,7 +145,7 @@ begin
       end;
     end);
 
-  FAsyncOperationEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationEndedEvent>(
+  FAsyncOperationEndedEvent := TMessagery.SubscribeToEvent<TAsyncOperationEndedEvent>(
     procedure(const AEventNotification: TAsyncOperationEndedEvent)
     begin
       case AEventNotification.Body.Operation of
@@ -153,8 +153,8 @@ begin
       end;
     end);
 
-  FEditorSaveRequest := TGlobalBuilderChain.SubscribeToReverseRequest<TEditorSaveRequest>(
-    function(const AReverseRequest: TEditorSaveRequest; var AHandled: boolean): TChainResponse
+  FEditorSaveRequest := TMessagery.SubscribeToReverseRequest<TEditorSaveRequest>(
+    function(const AReverseRequest: TEditorSaveRequest; var AHandled: boolean): TResponse
     begin
       var LSavedTo := String.Empty;
       if Assigned(AReverseRequest.Arguments.TextEditor) then
@@ -164,7 +164,7 @@ begin
       if TFile.Exists(LSavedTo) then
         Result := TEditorSaveResponse.Create(LSavedTo)
       else
-        Result := TErrorResponse.Create('File not saved.');
+        Result := TResponseError.Create('File not saved.');
     end);
 end;
 
@@ -178,7 +178,7 @@ end;
 procedure TMenuActionsContainer.actBuildCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
@@ -187,7 +187,7 @@ end;
 
 procedure TMenuActionsContainer.actBuildCurrentProjectExecute(Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
@@ -196,7 +196,7 @@ end;
 
 procedure TMenuActionsContainer.actDebugCurrentProjectAsyncExecute(Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
     AProxy.BuildActiveProject();
@@ -208,7 +208,7 @@ end;
 procedure TMenuActionsContainer.actDeployCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
@@ -218,7 +218,7 @@ end;
 
 procedure TMenuActionsContainer.actDeployCurrentProjectExecute(Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
@@ -270,7 +270,7 @@ end;
 procedure TMenuActionsContainer.actRunCurrentProjectAsyncExecute(
   Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
     AProxy.BuildActiveProject();
@@ -281,7 +281,7 @@ end;
 
 procedure TMenuActionsContainer.actRunCurrentProjectExecute(Sender: TObject);
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(TMessageEvent.Create(true));
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
   FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
     FProjectServices.GetActiveProject().Debugger := TDebugger.None;
     AProxy.BuildActiveProject();
@@ -305,7 +305,7 @@ begin
   SaveProjectAndModules();
   SaveEditor();
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TSaveStateEvent.Create(TSaveState.SaveAll));
 end;
 
@@ -313,7 +313,7 @@ procedure TMenuActionsContainer.actSaveStateExecute(Sender: TObject);
 begin
   SaveEditor();
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TSaveStateEvent.Create(TSaveState.Save));
 end;
 

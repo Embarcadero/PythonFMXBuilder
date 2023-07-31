@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
-  FMX.Objects, FMX.Menus, Form.Base, Builder.Chain,
+  FMX.Objects, FMX.Menus, Form.Base, Builder.Messagery,
   Frame.Loading, Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
   Frame.Editor.Control, FMX.TreeView, Frame.Device, Frame.LeftMenu,
   Frame.EntityButtons, Frame.BuildButtons, Frame.DebugButtons, Frame.LeftPanel,
@@ -119,13 +119,13 @@ begin
   loLeftPanel.Visible := false;
   spLeftPanel.Visible := false;
 
-  FAsyncExcpetionEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncExceptionEvent>(
+  FAsyncExcpetionEvent := TMessagery.SubscribeToEvent<TAsyncExceptionEvent>(
     procedure(const AEventNotification: TAsyncExceptionEvent)
     begin
       Application.ShowException(AEventNotification.Body.Exception);
     end);
 
-  FAsyncOperationStartedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationStartedEvent>(
+  FAsyncOperationStartedEvent := TMessagery.SubscribeToEvent<TAsyncOperationStartedEvent>(
     procedure(const AEventNotification: TAsyncOperationStartedEvent)
     begin
       TInterlocked.Add(FBackgroundOperationCount, 1);
@@ -135,7 +135,7 @@ begin
         end);
     end);
 
-  FAsyncOperationEndedEvent := TGlobalBuilderChain.SubscribeToEvent<TAsyncOperationEndedEvent>(
+  FAsyncOperationEndedEvent := TMessagery.SubscribeToEvent<TAsyncOperationEndedEvent>(
     procedure(const AEventNotification: TAsyncOperationEndedEvent)
     begin
       TInterlocked.Add(FBackgroundOperationCount, -1);
@@ -145,7 +145,7 @@ begin
         end);
     end);
 
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       TThread.Queue(TThread.Current,
@@ -156,7 +156,7 @@ begin
         end);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       TThread.Queue(TThread.Current,
@@ -167,8 +167,8 @@ begin
         end);
     end);
 
-  FDebuggerConnectionFrozen := TGlobalBuilderChain.SubscribeToReverseRequest<TDebuggerConnectionFrozenActionRequest>(
-    function(const AReverseRequest: TDebuggerConnectionFrozenActionRequest; var AHandled: boolean): TChainResponse
+  FDebuggerConnectionFrozen := TMessagery.SubscribeToReverseRequest<TDebuggerConnectionFrozenActionRequest>(
+    function(const AReverseRequest: TDebuggerConnectionFrozenActionRequest; var AHandled: boolean): TResponse
     begin
       var LResult := TDebuggerConnectionFrozenAction.ForceDisconnection;
       TThread.Synchronize(nil,

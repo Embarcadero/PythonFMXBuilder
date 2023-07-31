@@ -8,7 +8,7 @@ uses
   FMX.Graphics, FMX.Menus, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Layouts, FMX.TreeView, FMX.ImgList, FMX.ActnList,
   Container.Images,
-  Builder.Services, Builder.Types, Builder.Chain,
+  Builder.Services, Builder.Types, Builder.Messagery,
   Builder.Model.Project, Builder.Model.Project.Files,
   Builder.TreeView;
 
@@ -175,10 +175,10 @@ constructor TProjectFilesFrame.Create(AOwner: TComponent);
 begin
   inherited;
   FEditorServices := TBuilderService.CreateService<IEditorServices>;
-  FOpenProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TOpenProjectEvent>(
+  FOpenProjectEvent := TMessagery.SubscribeToEvent<TOpenProjectEvent>(
     procedure(const AEventNotification: TOpenProjectEvent)
     begin
-      TGlobalBuilderChain.BroadcastEventAsync(
+      TMessagery.BroadcastEventAsync(
         TAsyncOperationStartedEvent.Create(TAsyncOperation.OpenProject));
 
       var LProject := AEventNotification.Body.Project;
@@ -191,13 +191,13 @@ begin
             if not LDefaultProjectFilePath.IsEmpty() then
               FEditorServices.OpenEditor(LDefaultProjectFilePath);
           finally
-            TGlobalBuilderChain.BroadcastEventAsync(
+            TMessagery.BroadcastEventAsync(
               TAsyncOperationEndedEvent.Create(TAsyncOperation.OpenProject));
           end;
         end);
     end);
 
-  FCloseProjectEvent := TGlobalBuilderChain.SubscribeToEvent<TCloseProjectEvent>(
+  FCloseProjectEvent := TMessagery.SubscribeToEvent<TCloseProjectEvent>(
     procedure(const AEventNotification: TCloseProjectEvent)
     begin
       var LProject := AEventNotification.Body.Project;
@@ -208,7 +208,7 @@ begin
         end);
     end);
 
-  FRenameFileEvent := TGlobalBuilderChain.SubscribeToEvent<TRenameFileEvent>(
+  FRenameFileEvent := TMessagery.SubscribeToEvent<TRenameFileEvent>(
     procedure(const AEventNotification: TRenameFileEvent)
     begin
       var LOldFilePath := AEventNotification.Body.OldFilePath;

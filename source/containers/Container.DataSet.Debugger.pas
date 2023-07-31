@@ -3,7 +3,7 @@ unit Container.DataSet.Debugger;
 interface
 
 uses
-  System.SysUtils, System.Classes, Builder.Chain,
+  System.SysUtils, System.Classes, Builder.Messagery,
   BaseProtocol, BaseProtocol.Types, BaseProtocol.Events,
   BaseProtocol.Requests, BaseProtocol.Client,
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Param,
@@ -131,33 +131,33 @@ begin
   fdmtVariable.CreateDataSet();
   fdmtActiveSource.CreateDataSet();
 
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       FDebugger := AEventNotification.Body.Debugger;
       DebugSessionStarted(AEventNotification.Body.Debugger);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       FDebugger := nil;
       DebugSessionEnded();
     end);
 
-  FSetupDebugger := TGlobalBuilderChain.SubscribeToEvent<TSetupDebuggerEvent>(
+  FSetupDebugger := TMessagery.SubscribeToEvent<TSetupDebuggerEvent>(
     procedure(const AEventNotification: TSetupDebuggerEvent)
     begin
       SetupDebugger(AEventNotification.Body.Debugger);
     end);
 
-  FSetupDebuggerDone := TGlobalBuilderChain.SubscribeToEvent<TSetupDebuggerDoneEvent>(
+  FSetupDebuggerDone := TMessagery.SubscribeToEvent<TSetupDebuggerDoneEvent>(
     procedure(const AEventNotification: TSetupDebuggerDoneEvent)
     begin
       SetupDebuggerDone(AEventNotification.Body.Debugger);
     end);
 
-  FDebugAction := TGlobalBuilderChain.SubscribeToEvent<TDebugActionEvent>(
+  FDebugAction := TMessagery.SubscribeToEvent<TDebugActionEvent>(
     procedure(const AEventNotification: TDebugActionEvent)
     const
       DANGLE_INDICATOR_STATES = [

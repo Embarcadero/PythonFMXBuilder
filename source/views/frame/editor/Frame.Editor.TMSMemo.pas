@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   System.Generics.Collections, FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms,
   FMX.Dialogs, FMX.StdCtrls, FMX.TMSBaseControl, FMX.TMSMemo, FMX.Controls.Presentation,
-  Frame.Editor.TabItem, Builder.Chain, BaseProtocol, BaseProtocol.Types,
+  Frame.Editor.TabItem, Builder.Messagery, BaseProtocol, BaseProtocol.Types,
   BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client,
   Builder.Types, Builder.Model.Environment, Builder.Services;
 
@@ -61,7 +61,7 @@ begin
 
   mmEditor.ActiveLineSettings.ActiveLineAtCursor := false;
 
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       var LDebugger := AEventNotification.Body.Debugger;
@@ -72,7 +72,7 @@ begin
       end);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       mmEditor.ActiveLineSettings.ShowActiveLine := false;
@@ -80,7 +80,7 @@ begin
       FStoppedEvent.Unsubscribe();
     end);
 
-  FSetupDebugger := TGlobalBuilderChain.SubscribeToEvent<TSetupDebuggerEvent>(
+  FSetupDebugger := TMessagery.SubscribeToEvent<TSetupDebuggerEvent>(
     procedure(const AEventNotification: TSetupDebuggerEvent)
     begin
 
@@ -148,7 +148,7 @@ procedure TTMSMemoEditorFrame.SetModified(const AModified: boolean);
 begin
   if (FModified <> AModified) then begin
     FModified := AModified;
-    TGlobalBuilderChain.BroadcastEventAsync(
+    TMessagery.BroadcastEventAsync(
       TEditorChangedEvent.Create(Self, AModified));
   end;
 end;

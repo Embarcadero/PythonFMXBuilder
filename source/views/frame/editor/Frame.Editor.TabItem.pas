@@ -4,7 +4,7 @@ interface
 
 uses
   System.Rtti, System.Classes, System.Types, FMX.Types, FMX.Controls, FMX.TabControl,
-  Builder.Types, Builder.Chain, Builder.TabControl;
+  Builder.Types, Builder.Messagery, Builder.TabControl;
 
 type
   TControlClass = class of TControl;
@@ -54,7 +54,7 @@ constructor TEditorTabItem.Create(AOwner: TComponent);
 begin
   inherited;
   CreateEditor();
-  FRenameFile := TGlobalBuilderChain.SubscribeToEvent<TRenameFileEvent>(
+  FRenameFile := TMessagery.SubscribeToEvent<TRenameFileEvent>(
     procedure(const AEventNotification: TRenameFileEvent)
     begin
       if (GetFileName() = AEventNotification.Body.OldFilePath) then begin
@@ -64,7 +64,7 @@ begin
         end);
       end;
     end);
-  FEditorChanged := TGlobalBuilderChain.SubscribeToEvent<TEditorChangedEvent>(
+  FEditorChanged := TMessagery.SubscribeToEvent<TEditorChangedEvent>(
     procedure(const AEventNotification: TEditorChangedEvent)
     begin
       if (AEventNotification.Body.TextEditor = FDelegator) then begin
@@ -107,7 +107,7 @@ begin
       if (AResult = mrYes) then begin
         Save();
         //Ask someone to tell us what to do
-        TGlobalBuilderChain.SendRequest<TEditorSaveResponse>(
+        TMessagery.SendRequest<TEditorSaveResponse>(
           TEditorSaveRequest.Create(Self as ITextEditor),
           procedure(const AArg: TEditorSaveResponse)
           begin

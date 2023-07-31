@@ -7,8 +7,8 @@ uses
   System.SysUtils,
   System.Threading,
   System.SyncObjs,
-  Builder.Chain,
   Builder.Types,
+  Builder.Messagery,
   Builder.Services,
   Builder.Model.Project,
   Builder.Model.Environment,
@@ -205,7 +205,7 @@ begin
 
   //No refire on reconnection
   if (FConnectionStatus <> TDebuggerConnectionStatus.Connecting) then
-    TGlobalBuilderChain.BroadcastEvent(TDebugSessionStartedEvent.Create(FDebugger));
+    TMessagery.BroadcastEvent(TDebugSessionStartedEvent.Create(FDebugger));
 
   FConnectionStatus := TDebuggerConnectionStatus.Connecting;
   try
@@ -224,7 +224,7 @@ begin
     raise EDebuggerStillConnected.Create('Debugger is still connected.');
 
   FConnectionStatus := TDebuggerConnectionStatus.Stopped;
-  TGlobalBuilderChain.BroadcastEventAsync(TDebugSessionStoppedEvent.Create(FDebugger));
+  TMessagery.BroadcastEventAsync(TDebugSessionStoppedEvent.Create(FDebugger));
   FDebugger.Active := false;
 end;
 
@@ -271,7 +271,7 @@ end;
 
 procedure TDebugService.Start(const AHost: string; const APort: integer; const ATimeOut: Int64);
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Start));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Start));
 
   if not (FConnectionStatus in [TDebuggerConnectionStatus.OutOfWork, TDebuggerConnectionStatus.Stopped]) then
     raise EDebuggerIsBusy.Create('Debugger is busy');
@@ -284,7 +284,7 @@ end;
 
 procedure TDebugService.Stop;
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Stop));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Stop));
 
   if (FConnectionStatus <> TDebuggerConnectionStatus.Started) then
     raise EDebuggerNotStarted.Create('Debugger is not started.');
@@ -311,7 +311,7 @@ end;
 
 procedure TDebugService.Continue;
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Continue));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Continue));
 
   var LContinue := TContinueRequest.Create();
   try
@@ -335,7 +335,7 @@ end;
 
 procedure TDebugService.Pause;
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Pause));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Pause));
 
   var LPause := TPauseRequest.Create();
   try
@@ -357,7 +357,7 @@ end;
 
 procedure TDebugService.StepIn;
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepIn));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepIn));
 
   var LStepIn := TStepInRequest.Create();
   try
@@ -387,7 +387,7 @@ end;
 
 procedure TDebugService.StepOver;
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepOver));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepOver));
 
   var LNext := TNextRequest.Create();
   try
@@ -418,7 +418,7 @@ end;
 
 procedure TDebugService.StepOut;
 begin
-  TGlobalBuilderChain.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepOut));
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.StepOut));
 
   var LStepOut := TStepOutRequest.Create();
   try
@@ -467,7 +467,7 @@ function TDebugService.AskForFrozenDebuggerAction: TDebuggerConnectionFrozenActi
 begin
   var LResult := TDebuggerConnectionFrozenAction.ForceDisconnection;
   //Ask someone to tell us what to do
-  TGlobalBuilderChain.SendRequest<TDebuggerConnectionFrozenActionResponse>(
+  TMessagery.SendRequest<TDebuggerConnectionFrozenActionResponse>(
     TDebuggerConnectionFrozenActionRequest.Create(),
     procedure(const AArg: TDebuggerConnectionFrozenActionResponse)
     begin
@@ -561,7 +561,7 @@ begin
             CheckForGhostDebugger();
           except
             on E: Exception do
-              TGlobalBuilderChain.BroadcastEventAsync(TAsyncExceptionEvent.Create());
+              TMessagery.BroadcastEventAsync(TAsyncExceptionEvent.Create());
           end;
 
           Sleep(100);
@@ -670,7 +670,7 @@ end;
 procedure TDebugService.OnInitializedEvent();
 begin
   try
-    TGlobalBuilderChain.BroadcastEvent(TSetupDebuggerEvent.Create(FDebugger));
+    TMessagery.BroadcastEvent(TSetupDebuggerEvent.Create(FDebugger));
   finally
     OnLastConfiguration();
   end;
@@ -725,7 +725,7 @@ end;
 
 procedure TDebugService.OnConfigurationDoneResponse();
 begin
-  TGlobalBuilderChain.BroadcastEvent(TSetupDebuggerDoneEvent.Create(FDebugger));
+  TMessagery.BroadcastEvent(TSetupDebuggerDoneEvent.Create(FDebugger));
 end;
 
 end.

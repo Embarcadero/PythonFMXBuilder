@@ -8,7 +8,7 @@ uses
   System.SysUtils,
   System.Types,
   Builder.Types,
-  Builder.Chain,
+  Builder.Messagery,
   Builder.Services;
 
 type
@@ -72,7 +72,7 @@ begin
 
   FEditorControl.OpenEditor(AFilePath, AEditing);
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TOpenFileEvent.Create(AFilePath));
 end;
 
@@ -83,7 +83,7 @@ begin
 
   FEditorControl.CloseEditor(AFilePath);
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TCloseFileEvent.Create(AFilePath));
 end;
 
