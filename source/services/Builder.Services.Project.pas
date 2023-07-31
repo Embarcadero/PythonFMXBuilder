@@ -521,6 +521,8 @@ begin
   if AFilePath.IsEmpty() then
     Exit;
 
+  CheckModuleExists(AProject, AFilePath);
+
   var LOldFilePath := AModule.Path;
   var LNewModule := TProjectFilesModule.Create(AFilePath);
   try
