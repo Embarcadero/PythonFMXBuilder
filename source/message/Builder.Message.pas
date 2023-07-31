@@ -75,9 +75,11 @@ type
   TEventNotification<T: TEvent> = reference to procedure(const AEvent: T);
   TEventNotification = TEventNotification<TEvent>;
 
-  TEmptyBody = class;
+  TEmptyBody = class
+  end;
 
-  TEmptyArguments = class;
+  TEmptyArguments = class
+  end;
 
   TMessage = class
   protected

@@ -122,8 +122,6 @@ begin
   FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
   FAppServices := TBuilderService.CreateService<IAppServices>;
   FAdbServices := TBuilderService.CreateService<IADBServices>;
-  TEventsRegistration.RegisterAll();
-  TRequestsRegistration.RegisterAll();
   FDebugger := TBaseProtocolClientSocket.Create();
   StartFrozenDebuggerMonitor();
   SubscribeToEvents();
@@ -132,10 +130,8 @@ end;
 destructor TDebugService.Destroy;
 begin
   UnsubscribeAll();
-  StopFrozenDebuggerMonitor;
+  StopFrozenDebuggerMonitor();
   FDebugger.Free();
-  TEventsRegistration.UnregisterAll();
-  TRequestsRegistration.UnregisterAll();
   inherited;
 end;
 
@@ -271,10 +267,10 @@ end;
 
 procedure TDebugService.Start(const AHost: string; const APort: integer; const ATimeOut: Int64);
 begin
-  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Start));
-
   if not (FConnectionStatus in [TDebuggerConnectionStatus.OutOfWork, TDebuggerConnectionStatus.Stopped]) then
     raise EDebuggerIsBusy.Create('Debugger is busy');
+
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Start));
 
   FProjectModel := FProjectServices.GetActiveProject();
   FEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
@@ -284,10 +280,10 @@ end;
 
 procedure TDebugService.Stop;
 begin
-  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Stop));
-
   if (FConnectionStatus <> TDebuggerConnectionStatus.Started) then
     raise EDebuggerNotStarted.Create('Debugger is not started.');
+
+  TMessagery.BroadcastEvent(TDebugActionEvent.Create(TDebugAction.Stop));
 
   FConnectionStatus := TDebuggerConnectionStatus.Disconnecting;
 
@@ -727,5 +723,13 @@ procedure TDebugService.OnConfigurationDoneResponse();
 begin
   TMessagery.BroadcastEvent(TSetupDebuggerDoneEvent.Create(FDebugger));
 end;
+
+initialization
+  TEventsRegistration.RegisterAll();
+  TRequestsRegistration.RegisterAll();
+
+finalization
+  TEventsRegistration.UnregisterAll();
+  TRequestsRegistration.UnregisterAll();
 
 end.
