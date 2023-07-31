@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.TabControl, Frame.Debug.LeftPanel, Builder.Chain;
+  FMX.TabControl, Frame.Debug.LeftPanel, Builder.Messagery;
 
 type
   TLeftPanelFrame = class(TFrame)
@@ -31,7 +31,7 @@ constructor TLeftPanelFrame.Create(AOwner: TComponent);
 begin
   inherited;
   tcLeftPanelControls.TabPosition := TTabPosition.None;
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       TThread.Queue(TThread.Current,
@@ -41,7 +41,7 @@ begin
         end);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       TThread.Queue(TThread.Current,

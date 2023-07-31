@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Memo.Types, FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo,
-  Builder.Chain;
+  Builder.Messagery;
 
 type
   TLogFrame = class(TFrame)
@@ -34,7 +34,7 @@ const
 constructor TLogFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FMessageEvent := TGlobalBuilderChain.SubscribeToEvent<TMessageEvent>(
+  FMessageEvent := TMessagery.SubscribeToEvent<TMessageEvent>(
     procedure(const AEventNotification: TMessageEvent)
     begin
       var LClear := AEventNotification.Body.Clear;

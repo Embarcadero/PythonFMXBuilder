@@ -86,8 +86,8 @@ implementation
 
 uses
   Builder.Consts,
+  Builder.Messagery,
   Builder.Exception,
-  Builder.Chain,
   Builder.Storage.Default;
 
 { TProjectService }
@@ -220,7 +220,7 @@ begin
 
   CloseProject();
   FActiveProject := AProject;
-  TGlobalBuilderChain.BroadcastEvent(TOpenProjectEvent.Create(AProject));
+  TMessagery.BroadcastEvent(TOpenProjectEvent.Create(AProject));
 end;
 
 function TProjectService.OpenProject(const AProjectPath: string): TProjectModel;
@@ -235,7 +235,7 @@ end;
 procedure TProjectService.CloseProject;
 begin
   if Assigned(FActiveProject) then
-    TGlobalBuilderChain.BroadcastEvent(TCloseProjectEvent.Create(FActiveProject));
+    TMessagery.BroadcastEvent(TCloseProjectEvent.Create(FActiveProject));
   FreeAndNil(FActiveProject);
 end;
 
@@ -443,7 +443,7 @@ begin
     LNewProject.Free();
   end;
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TRenameFileEvent.Create(LOldFilePath, LNewFilePath));
 end;
 
@@ -554,7 +554,7 @@ begin
     LNewModule.Free();
   end;
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TRenameFileEvent.Create(LOldFilePath, AFilePath));
 end;
 

@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  BaseProtocol.Client, FMX.Controls.Presentation, Builder.Chain;
+  BaseProtocol.Client, FMX.Controls.Presentation, Builder.Messagery;
 
 type
   TDebugFrame = class(TFrame)
@@ -31,13 +31,13 @@ implementation
 constructor TDebugFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       DebugSessionStarted(AEventNotification.Body.Debugger);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       DebugSessionEnded();

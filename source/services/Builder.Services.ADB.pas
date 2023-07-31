@@ -7,6 +7,7 @@ uses
   System.SysUtils,
   System.IOUtils,
   PyTools.ExecCmd,
+  Builder.Messagery,
   Builder.Services,
   Builder.Model.Environment;
 
@@ -70,7 +71,6 @@ implementation
 
 uses
   System.SyncObjs,
-  Builder.Chain,
   Builder.Exception;
 
 { TADBService }
@@ -166,7 +166,7 @@ end;
 function TADBService.ExecCmd(const ACmd: string; const AArgs,
   AEnv: TArray<string>; out AOutput: string): integer;
 begin
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create(
       'ExecCmd: ' + ACmd + ' ' + String.Join(' ', AArgs),
       TMessageLevel.Explanatory));
@@ -180,7 +180,7 @@ begin
 
   AOutput := AOutput.Trim();
 
-  TGlobalBuilderChain.BroadcastEventAsync(
+  TMessagery.BroadcastEventAsync(
     TMessageEvent.Create(AOutput, TMessageLevel.Explanatory));
 end;
 

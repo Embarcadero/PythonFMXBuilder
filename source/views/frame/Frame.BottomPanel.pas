@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.TabControl, Frame.Debug.BottomPanel, Frame.Log, Builder.Chain;
+  FMX.TabControl, Frame.Debug.BottomPanel, Frame.Log, Builder.Messagery;
 
 type
   TBottomPanelFrame = class(TFrame)
@@ -33,7 +33,7 @@ begin
   inherited;
   tcBottomPanelControls.TabPosition := TTabPosition.None;
   tcBottomPanelControls.ActiveTab := tiBottomPanelDesignSession;
-  FDebugSessionStarted := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStartedEvent>(
+  FDebugSessionStarted := TMessagery.SubscribeToEvent<TDebugSessionStartedEvent>(
     procedure(const AEventNotification: TDebugSessionStartedEvent)
     begin
       TThread.Queue(TThread.Current,
@@ -43,7 +43,7 @@ begin
         end);
     end);
 
-  FDebugSessionStopped := TGlobalBuilderChain.SubscribeToEvent<TDebugSessionStoppedEvent>(
+  FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
       TThread.Queue(TThread.Current,

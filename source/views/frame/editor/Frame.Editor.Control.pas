@@ -8,7 +8,7 @@ uses
   FMX.Memo.Types, FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo,
   FMX.TabControl, FMX.Objects, System.Rtti, Data.DB,
   Frame.Editor.TabItem,
-  Builder.Services, Builder.Types, Builder.Chain, Builder.TabControl;
+  Builder.Services, Builder.Types, Builder.TabControl;
 
 type
   TEditorControlFrame = class(TFrame, IEditorControl)
