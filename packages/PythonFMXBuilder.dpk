@@ -49,7 +49,6 @@ contains
   Builder.Storage.Json in '..\source\storage\Builder.Storage.Json.pas',
   Builder.Storage in '..\source\storage\Builder.Storage.pas',
   Builder.Exception in '..\source\Builder.Exception.pas',
-  Builder.Chain in '..\source\Builder.Chain.pas',
   Builder.Services.Debug in '..\source\services\Builder.Services.Debug.pas',
   Builder.Services.Build in '..\source\services\Builder.Services.Build.pas',
   Builder.Paths in '..\source\Builder.Paths.pas',
@@ -58,7 +57,12 @@ contains
   Builder.Services.Environment in '..\source\services\Builder.Services.Environment.pas',
   Builder.Consts in '..\source\Builder.Consts.pas',
   Builder.Services.Editor in '..\source\services\Builder.Services.Editor.pas',
-  Builder.Registers in '..\source\Builder.Registers.pas';
+  Builder.Registers in '..\source\Builder.Registers.pas',
+  Builder.Message.Local in '..\source\message\Builder.Message.Local.pas',
+  Builder.Message in '..\source\message\Builder.Message.pas',
+  Builder.Messagery in '..\source\Builder.Messagery.pas',
+  Builder.Message.Event in '..\source\message\Builder.Message.Event.pas',
+  Builder.Message.Request in '..\source\message\Builder.Message.Request.pas';
 
 end.
 
