@@ -170,6 +170,7 @@ begin
         TAsyncOperationEndedEvent.Create(AAsyncOperation));
       TMessagery.BroadcastEventAsync(
         TAsyncExceptionEvent.Create());
+      Abort;
     end;
   end;
 end;

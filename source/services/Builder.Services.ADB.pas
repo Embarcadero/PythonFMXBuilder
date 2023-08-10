@@ -32,6 +32,9 @@ type
 
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
+
+    //
+    function UNCPathSign(const AAppBasePath, AApkSignerPath, AProjectName: string): boolean;
   public
     constructor Create();
     destructor Destroy(); override;
@@ -406,21 +409,25 @@ begin
   var LApkSignerPath := TPath.Combine(LApkSignerDir, ChangeFileExt(ExtractFileName(GetEnvironment().ApkSignerLocation), '.bat'));
   {$ENDIF}
 
-  if ExecCmd(LApkSignerPath, [
-    'sign',
-    '--ks-key-alias',
-    'PyApp',
-    '--ks',
-    TPath.Combine('cert', 'PyApp.keystore'),
-    '--v1-signing-enabled true',
-    '--v2-signing-enabled true',
-    '--ks-pass',
-    'pass:delphirocks',
-    '--key-pass',
-    'pass:delphirocks',
-    Format(TPath.Combine('bin', '%s.apk'), [AProjectName])],
-    []) <> EXIT_SUCCESS then
+  if TPath.IsUNCPath(AAppBasePath) then begin
+    if not UNCPathSign(AAppBasePath, LApkSignerPath, AProjectName) then
       Exit(false);
+  end else
+    if ExecCmd(LApkSignerPath, [
+      'sign',
+      '--ks-key-alias',
+      'PyApp',
+      '--ks',
+      TPath.Combine('cert', 'PyApp.keystore'),
+      '--v1-signing-enabled true',
+      '--v2-signing-enabled true',
+      '--ks-pass',
+      'pass:delphirocks',
+      '--key-pass',
+      'pass:delphirocks',
+      Format(TPath.Combine('bin', '%s.apk'), [AProjectName])],
+      []) <> EXIT_SUCCESS then
+        Exit(false);
 
   var LApkPath := TPath.Combine(LAppBinPath, ChangeFileExt(AProjectName, '.apk'));
   Result := TFile.Exists(LApkPath);
@@ -479,6 +486,62 @@ begin
       Result := false
     else
       Result := TryStrToInt(LOutput.Replace(sLineBreak, String.Empty, [rfReplaceAll]), LPid);
+end;
+
+function TADBService.UNCPathSign(const AAppBasePath, AApkSignerPath,
+  AProjectName: string): boolean;
+begin
+  var LTmpSignDir := TPath.Combine(TPath.GetTempPath(), AProjectName);
+  try
+    if TDirectory.Exists(LTmpSignDir) then
+      TDirectory.Delete(LTmpSignDir, true);
+
+    TDirectory.CreateDirectory(LTmpSignDir);
+
+    var LLastCurDir := GetCurrentDir();
+    try
+      SetCurrentDir(LTmpSignDir);
+
+      TFile.Copy(
+        TPath.Combine(AAppBasePath, TPath.Combine('cert', 'PyApp.keystore')),
+        'PyApp.keystore');
+      TFile.Copy(
+        TPath.Combine(AAppBasePath, TPath.Combine('bin', AProjectName + '.apk')),
+        AProjectName + '.apk');
+
+      if ExecCmd(AApkSignerPath, [
+        'sign',
+        '--ks-key-alias',
+        'PyApp',
+        '--ks',
+        'PyApp.keystore',
+        '--v1-signing-enabled true',
+        '--v2-signing-enabled true',
+        '--ks-pass',
+        'pass:delphirocks',
+        '--key-pass',
+        'pass:delphirocks',
+        Format('%s.apk', [AProjectName])],
+        []) <> EXIT_SUCCESS then
+          Exit(false);
+    finally
+      SetCurrentDir(LLastCurDir);
+    end;
+
+    TFile.Delete(TPath.Combine('bin', AProjectName + '.apk'));
+
+    TFile.Copy(
+      TPath.Combine(LTmpSignDir, AProjectName + '.apk'),
+      TPath.Combine('bin', AProjectName + '.apk'));
+
+    TFile.Copy(
+      TPath.Combine(LTmpSignDir, AProjectName + '.apk.idsig'),
+      TPath.Combine('bin', AProjectName + '.apk.idsig'));
+  finally
+    TDirectory.Delete(LTmpSignDir, true);
+  end;
+
+  Result := true;
 end;
 
 function TADBService.UnInstallApk(const APkgName: string): boolean;

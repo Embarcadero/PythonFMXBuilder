@@ -23,16 +23,30 @@ type
       const AArchitecture: TArchitecture): string; static;
     class function GetPythonInterpreterFiles(const APythonVersion: TPythonVersion;
       const AArchitecture: TArchitecture): TArray<string>; static;
-    
     class function GetPythonDependenciesFolder(): string; static;
     class function GetPythonScriptsFolder(): string; static;
     class function GetPreBuiltFolder(const AArchitecture: TArchitecture): string; static;
-    class function GetAppPath(const AProjectName: string): string; static;
-    class function GetApkPath(const AProjectName: string): string; static;
-    class function GetManifestPath(const AProjectName: string): string; static;
-    class function GetAppAssetsInternalFolder(const AProjectName: string): string; static;
-    class function GetAppAssetsDeployInfoFolder(const AProjectName: string): string; static;
-    class function GetAppPythonInterpreterFolder(const AArchitecture: TArchitecture): string; static;
+    //Build app files
+    class function GetAppPath(const AProjectPath: string;
+      const ABuildConfiguration: TBuildConfiguration;
+      const AArchitecture: TArchitecture): string; static;
+    class function GetApkPath(const AProjectPath, AProjectName: string;
+      const ABuildConfiguration: TBuildConfiguration;
+      const AArchitecture: TArchitecture): string; static;
+    class function GetManifestPath(const AProjectPath: string;
+      const ABuildConfiguration: TBuildConfiguration;
+      const AArchitecture: TArchitecture): string; static;
+    class function GetAppAssetsInternalFolder(const AProjectPath: string;
+      const ABuildConfiguration: TBuildConfiguration;
+      const AArchitecture: TArchitecture): string; static;
+    class function GetAppAssetsDeployInfoFolder(const AProjectPath: string;
+      const ABuildConfiguration: TBuildConfiguration;
+      const AArchitecture: TArchitecture): string; static;
+    class function GetAppResPath(const AProjectPath: string;
+      const ABuildConfiguration: TBuildConfiguration;
+      const AArchitecture: TArchitecture): string; static;
+    class function GetAppPythonInterpreterFolder(const AProjectPath: string;
+      const AArchitecture: TArchitecture): string; static;
     //Debugpy
     class function GetDebugpyPackagePath(): string; static;
     class function GetDebugpyScriptPath(): string; static;
@@ -59,7 +73,6 @@ type
   end;
 
 const
-  APPS_FOLDER = 'apps';
   APP_IMAGE_NAME = 'PyApp';
 
 implementation
@@ -70,48 +83,80 @@ uses
 
 { TBuilderPaths }
 
-class function TBuilderPaths.GetApkPath(const AProjectName: string): string;
+class function TBuilderPaths.GetApkPath(const AProjectPath, AProjectName: string;
+  const ABuildConfiguration: TBuildConfiguration;
+  const AArchitecture: TArchitecture): string;
 begin
-  Result := TPath.Combine(GetAppPath(AProjectName), 'bin');
-  Result := TPath.Combine(Result, ChangeFileExt(AProjectName, '.apk'));
+  Result :=
+    TPath.Combine(
+      TPath.Combine(
+        GetAppPath(AProjectPath, ABuildConfiguration, AArchitecture),
+        'bin'),
+      AProjectName + '.apk');
 end;
 
-class function TBuilderPaths.GetAppAssetsInternalFolder(
-  const AProjectName: string): string;
+class function TBuilderPaths.GetAppAssetsInternalFolder(const AProjectPath: string;
+  const ABuildConfiguration: TBuildConfiguration;
+  const AArchitecture: TArchitecture): string;
 begin
-  Result := TBuilderPaths.GetAppPath(AProjectName);
-  Result := TPath.Combine(Result, 'assets');
-  Result := TPath.Combine(Result, 'internal');
+  Result :=
+    TPath.Combine(
+      TPath.Combine(
+        TBuilderPaths.GetAppPath(AProjectPath, ABuildConfiguration, AArchitecture),
+        'assets'),
+      'internal');
 end;
 
-class function TBuilderPaths.GetAppAssetsDeployInfoFolder(
-  const AProjectName: string): string;
+class function TBuilderPaths.GetAppAssetsDeployInfoFolder(const AProjectPath: string;
+  const ABuildConfiguration: TBuildConfiguration;
+  const AArchitecture: TArchitecture): string;
 begin
-  Result := TBuilderPaths.GetAppPath(AProjectName);
-  Result := TPath.Combine(Result, 'assets');
-  Result := TPath.Combine(Result, 'deployinfo');
+  Result :=
+    TPath.Combine(
+      TPath.Combine(
+        TBuilderPaths.GetAppPath(AProjectPath, ABuildConfiguration, AArchitecture),
+        'assets'),
+      'deployinfo');
 end;
 
-class function TBuilderPaths.GetAppPath(const AProjectName: string): string;
+class function TBuilderPaths.GetAppPath(const AProjectPath: string;
+  const ABuildConfiguration: TBuildConfiguration;
+  const AArchitecture: TArchitecture): string;
 begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), APPS_FOLDER);
-  Result := TPath.Combine(Result, AProjectName);
+  Result :=
+    TPath.Combine(
+      TPath.Combine(
+        TPath.GetDirectoryName(AProjectPath),
+        ABuildConfiguration.AsString()),
+    AArchitecture.AsString());
 end;
 
 class function TBuilderPaths.GetAppPythonInterpreterFolder(
-  const AArchitecture: TArchitecture): string;
+  const AProjectPath: string; const AArchitecture: TArchitecture): string;
 begin
-  Result := TPath.Combine('library', 'lib');
+  Result := TPath.Combine(AProjectPath, TPath.Combine('library', 'lib'));
   case AArchitecture of
     TArchitecture.arm: Result := TPath.Combine(Result, 'armeabi-v7a');
     TArchitecture.aarch64: Result := TPath.Combine(Result, 'arm64-v8a');
   end;
 end;
 
-class function TBuilderPaths.GetManifestPath(
-  const AProjectName: string): string;
+class function TBuilderPaths.GetAppResPath(const AProjectPath: string;
+  const ABuildConfiguration: TBuildConfiguration;
+  const AArchitecture: TArchitecture): string;
 begin
-  Result := TPath.Combine(TBuilderPaths.GetAppPath(AProjectName), 'AndroidManifest.xml');
+  Result := TPath.Combine(
+    GetAppPath(AProjectPath, ABuildConfiguration, AArchitecture),
+    'res');
+end;
+
+class function TBuilderPaths.GetManifestPath(const AProjectPath: string;
+  const ABuildConfiguration: TBuildConfiguration;
+  const AArchitecture: TArchitecture): string;
+begin
+  Result := TPath.Combine(
+    TBuilderPaths.GetAppPath(AProjectPath, ABuildConfiguration, AArchitecture),
+    'AndroidManifest.xml');
 end;
 
 class function TBuilderPaths.GetPreBuiltFolder(
