@@ -22,11 +22,12 @@ object BuildButtonsFrame: TBuildButtonsFrame
     Images = ImageContainer.images
     ImageIndex = 12
     Margins.Left = 5.000000000000000000
+    PopupMenu = pmDeployDropDown
     Position.X = 40.000000000000000000
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttondropdown'
   end
   object sbRunCurrentProject: TSpeedButton
     Action = MenuActionsContainer.actRunCurrentProjectAsync
@@ -40,5 +41,14 @@ object BuildButtonsFrame: TBuildButtonsFrame
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'actiontoolbutton'
+  end
+  object pmDeployDropDown: TPopupMenu
+    Left = 32
+    Top = 16
+    object miSmartDeploy: TMenuItem
+      AutoCheck = True
+      Text = 'Smart Deploy'
+      OnClick = miSmartDeployClick
+    end
   end
 end
