@@ -46,9 +46,11 @@ type
     procedure RunSubprocess(const ACmd: string; const AArgs, AEnvVars: TArray<string>);
 
     //File helpers
-    function SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean;
+    function SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean; overload;
     procedure RemoveFile(const ARemoteFilePath: string);
     function ExtractZip(const ARemoteFilePath, ARemoteDir: string): boolean;
+    //File helper for apps
+    function SendFile(const APackageName, ALocalFilePath, ARemoteFilePath: string): boolean; overload;
     //Folder helpers
     function CreateDirectory(const ARemoteDir: string): boolean;
     procedure DeleteDirectory(const ARemoteDir: string);
@@ -74,7 +76,8 @@ implementation
 
 uses
   System.SyncObjs,
-  Builder.Exception;
+  Builder.Exception,
+  Builder.Paths;
 
 { TADBService }
 
@@ -92,6 +95,34 @@ end;
 function TADBService.GetActiveDevice: string;
 begin
   Result := FActiveDevice;
+end;
+
+function TADBService.SendFile(const APackageName, ALocalFilePath,
+  ARemoteFilePath: string): boolean;
+begin
+  Result := ExecCmd(GetEnvironment().AdbLocation, [
+    '-s',
+    GetActiveDevice(),
+    'push',
+    ALocalFilePath,
+    TBuilderRemotePaths.GetTmpPath()],
+    []) = EXIT_SUCCESS;
+
+  if not Result then
+    Exit;
+
+  var LTmpFilePath := TBuilderRemotePaths.GetTmpPath() + '/' + TPath.GetFileName(ALocalFilePath);
+  var LAppFilePath := TBuilderRemotePaths.GetAppFilesPath(APackageName) + '/'+ ARemoteFilePath;
+
+  Result := ExecCmd(GetEnvironment().AdbLocation, [
+    '-s',
+    GetActiveDevice(),
+    'exec-out',
+    Format('run-as %s', [APackageName]),
+    'cp',
+    LTmpFilePath,
+    LAppFilePath],
+    []) = EXIT_SUCCESS;
 end;
 
 procedure TADBService.SetActiveDevice(const ADeviceName: string);
