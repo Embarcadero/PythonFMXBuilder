@@ -272,6 +272,19 @@ type
     constructor Create(const ASaveState: TSaveState); reintroduce;
   end;
 
+  TUpdateSettingsEventBoby = class
+  private
+    FSmartDeploy: boolean;
+  public
+    property SmartDeploy: boolean read FSmartDeploy write FSmartDeploy;
+  end;
+
+  [EventType(TEventType.UpdateSettings)]
+  TUpdateSettingsEvent = class(TEvent<TUpdateSettingsEventBoby>)
+  public
+    constructor Create(const ASmartDeploy: boolean); reintroduce;
+  end;
+
 implementation
 
 { TMessageEvent }
@@ -467,6 +480,14 @@ end;
 constructor TEditorChangedEvent.Create(const ATextEditor: ITextEditor);
 begin
   Create(ATextEditor, false);
+end;
+
+{ TUpdateSettingsEvent }
+
+constructor TUpdateSettingsEvent.Create(const ASmartDeploy: boolean);
+begin
+  inherited Create();
+  Body.SmartDeploy := ASmartDeploy;
 end;
 
 end.
