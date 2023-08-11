@@ -1,12 +1,12 @@
 object MenuActionsContainer: TMenuActionsContainer
-  Height = 305
-  Width = 656
-  PixelsPerInch = 144
+  Height = 407
+  Width = 875
+  PixelsPerInch = 192
   object actlMenu: TActionList
     Images = ImageContainer.images
     OnUpdate = actlMenuUpdate
-    Left = 78
-    Top = 12
+    Left = 104
+    Top = 16
     object actUpdateEnvironment: TAction
       Tag = 1
       Category = 'Entities'
@@ -212,53 +212,98 @@ object MenuActionsContainer: TMenuActionsContainer
       OnExecute = actNewProjectExecute
       ImageIndex = 35
     end
+    object actSmartDeployProject: TAction
+      Tag = 2
+      Category = 'Build'
+      Text = 'Smart Deploy Project'
+      Hint = 'Smart Deploy Project'
+      ImageIndex = 12
+      OnExecute = actSmartDeployProjectExecute
+      ImageIndex = 12
+    end
+    object actSmartRunCurrentProject: TAction
+      Tag = 2
+      Category = 'Build'
+      Text = 'Smart Run Project'
+      Hint = 'Smart Run Project'
+      ImageIndex = 13
+      OnExecute = actSmartRunCurrentProjectExecute
+      ImageIndex = 13
+    end
+    object actSmartDeployCurrentProjectAsync: TAction
+      Tag = 2
+      Category = 'BuildAsync'
+      Text = 'Smart Deploy Project'
+      Hint = 'Smart Deploy Project'
+      ImageIndex = 12
+      OnExecute = actSmartDeployCurrentProjectAsyncExecute
+      ImageIndex = 12
+    end
+    object actSmartRunCurrentProjectAsync: TAction
+      Tag = 2
+      Category = 'BuildAsync'
+      Text = 'Smart Run Project'
+      Hint = 'Smart Run Project'
+      ImageIndex = 13
+      OnExecute = actSmartRunCurrentProjectAsyncExecute
+      ImageIndex = 13
+    end
+    object actSmartDebugCurrentProjectAsync: TAction
+      Tag = 9
+      Category = 'Debug'
+      Text = 'Smart Debug Project'
+      Hint = 'Smart Debug Project'
+      ImageIndex = 14
+      OnExecute = actSmartDebugCurrentProjectAsyncExecute
+      ImageIndex = 14
+    end
   end
   object sdProject: TSaveDialog
     DefaultExt = '.pyfmxproj'
     Filter = 'Python FMX Project|*.pyfmxproj'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 78
-    Top = 114
+    Left = 104
+    Top = 152
   end
   object sdModule: TSaveDialog
     DefaultExt = '.py'
     Filter = 'Python Module|*.py'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 186
-    Top = 114
+    Left = 248
+    Top = 152
   end
   object odProject: TOpenDialog
     DefaultExt = '.pyfmxproj'
     Filter = 'Python FMX Project|*.pyfmxproj'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 78
-    Top = 198
+    Left = 104
+    Top = 264
   end
   object odModule: TOpenDialog
     DefaultExt = '.py'
     Filter = 'Python Module|*.py'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 186
-    Top = 198
+    Left = 248
+    Top = 264
   end
   object odPackage: TOpenDialog
     DefaultExt = '.whl'
     Filter = 'Zip imports|*.zip|PIP wheel|*.whl'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 438
-    Top = 198
+    Left = 584
+    Top = 264
   end
   object odOther: TOpenDialog
     Filter = '*.*'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 540
-    Top = 198
+    Left = 720
+    Top = 264
   end
   object odFMXModule: TOpenDialog
     DefaultExt = '.py'
     Filter = 'Python Module|*.py|Delphi FMX File|*.pyfmx'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
-    Left = 312
-    Top = 198
+    Left = 416
+    Top = 264
   end
 end
