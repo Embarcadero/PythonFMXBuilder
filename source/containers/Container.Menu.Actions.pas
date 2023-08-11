@@ -55,6 +55,11 @@ type
     odFMXModule: TOpenDialog;
     actNewBlankProject: TAction;
     actNewProject: TAction;
+    actSmartDeployProject: TAction;
+    actSmartRunCurrentProject: TAction;
+    actSmartDeployCurrentProjectAsync: TAction;
+    actSmartRunCurrentProjectAsync: TAction;
+    actSmartDebugCurrentProjectAsync: TAction;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
@@ -77,6 +82,11 @@ type
     procedure actSaveAllStateExecute(Sender: TObject);
     procedure actNewBlankProjectExecute(Sender: TObject);
     procedure actNewProjectExecute(Sender: TObject);
+    procedure actSmartDeployProjectExecute(Sender: TObject);
+    procedure actSmartRunCurrentProjectExecute(Sender: TObject);
+    procedure actSmartDeployCurrentProjectAsyncExecute(Sender: TObject);
+    procedure actSmartRunCurrentProjectAsyncExecute(Sender: TObject);
+    procedure actSmartDebugCurrentProjectAsyncExecute(Sender: TObject);
   private
     //Async control
     FLoadingProject: integer;
@@ -315,6 +325,63 @@ begin
 
   TMessagery.BroadcastEventAsync(
     TSaveStateEvent.Create(TSaveState.Save));
+end;
+
+procedure TMenuActionsContainer.actSmartDebugCurrentProjectAsyncExecute(
+  Sender: TObject);
+begin
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
+    AProxy.SmartBuildActiveProject();
+    AProxy.SmartDeployActiveProject();
+    AProxy.DebugActiveProject(FDebuggerServices);
+  end);
+end;
+
+procedure TMenuActionsContainer.actSmartDeployCurrentProjectAsyncExecute(
+  Sender: TObject);
+begin
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.SmartBuildActiveProject();
+    AProxy.SmartDeployActiveProject();
+  end);
+end;
+
+procedure TMenuActionsContainer.actSmartDeployProjectExecute(Sender: TObject);
+begin
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.SmartBuildActiveProject();
+    AProxy.SmartDeployActiveProject();
+  end);
+end;
+
+procedure TMenuActionsContainer.actSmartRunCurrentProjectAsyncExecute(
+  Sender: TObject);
+begin
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilderServices.RunAsync(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.DebugPy;
+    AProxy.SmartBuildActiveProject();
+    AProxy.SmartDeployActiveProject();
+    AProxy.RunActiveProject();
+  end);
+end;
+
+procedure TMenuActionsContainer.actSmartRunCurrentProjectExecute(
+  Sender: TObject);
+begin
+  TMessagery.BroadcastEventAsync(TMessageEvent.Create(true));
+  FBuilderServices.Run(procedure(AProxy: IBuilderTasks) begin
+    FProjectServices.GetActiveProject().Debugger := TDebugger.None;
+    AProxy.SmartBuildActiveProject();
+    AProxy.SmartDeployActiveProject();
+    AProxy.RunActiveProject();
+  end);
 end;
 
 procedure TMenuActionsContainer.actStepInExecute(Sender: TObject);
