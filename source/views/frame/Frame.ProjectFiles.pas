@@ -600,6 +600,8 @@ begin
       Result.Parent := AParent;
       Result.Data := TNodeInfo.Create(ANodeType, ANodeData);
       Result.Renamable := ANodeType in [TNodeType.ntProject, TNodeType.ntModule];
+      if not Result.Renamable then
+        Result.StyleLookup := 'treeviewitemstyle';
       Result.LazyInput := true;
       LoadStyles(Result);
       LoadIcon(Result);
