@@ -57,6 +57,12 @@ type
     class function GetRemServerScriptPath(): string; static;
   end;
 
+  TBuilderRemotePaths = record
+  public
+    class function GetTmpPath(): string; static;
+    class function GetAppFilesPath(const APackageName: string): string; static;
+  end;
+
   TBuilderUnboundPaths = record
   public
     class function GetPythonBasePath(): string; static;
@@ -378,6 +384,19 @@ end;
 class function TBuilderUnboundPaths.GetRemServerScriptPath: string;
 begin
   Result := TBuilderUnboundPaths.GetPythonBasePath() + '/remserver.py';
+end;
+
+{ TBuilderRemotePaths }
+
+class function TBuilderRemotePaths.GetTmpPath: string;
+begin
+  Result := '/data/local/tmp';
+end;
+
+class function TBuilderRemotePaths.GetAppFilesPath(
+  const APackageName: string): string;
+begin
+  Result := Format('/data/data/%s/files', [APackageName]);
 end;
 
 end.
