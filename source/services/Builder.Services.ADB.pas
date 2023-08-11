@@ -113,16 +113,26 @@ begin
 
   var LTmpFilePath := TBuilderRemotePaths.GetTmpPath() + '/' + TPath.GetFileName(ALocalFilePath);
   var LAppFilePath := TBuilderRemotePaths.GetAppFilesPath(APackageName) + '/'+ ARemoteFilePath;
-
-  Result := ExecCmd(GetEnvironment().AdbLocation, [
-    '-s',
-    GetActiveDevice(),
-    'exec-out',
-    Format('run-as %s', [APackageName]),
-    'cp',
-    LTmpFilePath,
-    LAppFilePath],
-    []) = EXIT_SUCCESS;
+  try
+    Result := ExecCmd(GetEnvironment().AdbLocation, [
+      '-s',
+      GetActiveDevice(),
+      'exec-out',
+      Format('run-as %s', [APackageName]),
+      'cp',
+      LTmpFilePath,
+      LAppFilePath],
+      []) = EXIT_SUCCESS;
+  finally
+    ExecCmd(GetEnvironment().AdbLocation, [
+      '-s',
+      GetActiveDevice(),
+      'shell',
+      'rm',
+      '-f',
+      LTmpFilePath],
+      []);
+  end;
 end;
 
 procedure TADBService.SetActiveDevice(const ADeviceName: string);
