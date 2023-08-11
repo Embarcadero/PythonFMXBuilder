@@ -23,6 +23,8 @@ type
     CloseFile,
     RenameFile,
     SaveState,
+    //Settings
+    UpdateSettings,
     //Debugger events
     DebugSessionStarted,
     DebugSessionStopped,
