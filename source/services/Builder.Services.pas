@@ -36,9 +36,11 @@ type
     //Exec subprocess
     procedure RunSubprocess(const ACmd: string; const AArgs, AEnvVars: TArray<string>);
     //File helpers
-    function SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean;
+    function SendFile(const ALocalFilePath, ARemoteFilePath: string): boolean; overload;
     procedure RemoveFile(const ARemoteFilePath: string);
     function ExtractZip(const ARemoteFilePath, ARemoteDir: string): boolean;
+    //File helper for apps
+    function SendFile(const APackageName, ALocalFilePath, ARemoteFilePath: string): boolean; overload;
     //Directory helpers
     function CreateDirectory(const ARemotePath: string): boolean;
     procedure DeleteDirectory(const ARemoteDir: string);
@@ -211,6 +213,9 @@ type
     procedure RunActiveProject();
     procedure DebugActiveProject(const ADebugger: IDebugServices);
     procedure StopActiveProject();
+    //Smart tasks
+    procedure SmartBuildActiveProject();
+    procedure SmartDeployActiveProject();
   end;
 
   IRunner<T> = interface
