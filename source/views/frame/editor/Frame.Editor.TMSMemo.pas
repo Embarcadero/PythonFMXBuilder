@@ -75,8 +75,10 @@ begin
   FDebugSessionStopped := TMessagery.SubscribeToEvent<TDebugSessionStoppedEvent>(
     procedure(const AEventNotification: TDebugSessionStoppedEvent)
     begin
-      mmEditor.ActiveLineSettings.ShowActiveLine := false;
-      mmEditor.ActiveLineSettings.ShowActiveLineIndicator := false;
+      System.Classes.TThread.Queue(System.Classes.TThread.Current, procedure() begin
+        mmEditor.ActiveLineSettings.ShowActiveLine := false;
+        mmEditor.ActiveLineSettings.ShowActiveLineIndicator := false;
+      end);
       FStoppedEvent.Unsubscribe();
     end);
 
