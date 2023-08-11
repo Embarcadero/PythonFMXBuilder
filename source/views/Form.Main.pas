@@ -192,6 +192,9 @@ begin
       Result := TDebuggerConnectionFrozenActionResponse.Create(LResult);
       AHandled := true;
     end);
+
+  //We are setting smart deploy by default
+  TMessagery.BroadcastEventAsync(TUpdateSettingsEvent.Create(true));
 end;
 
 destructor TMainForm.Destroy;
