@@ -39,7 +39,9 @@ type
     procedure BeginBuild(const AAsync: boolean = false);
     procedure EndBuild();
     procedure DoBuildProject();
+    procedure DoSmartBuildProject();
     procedure DoDeployProject(const AUninstall: boolean);
+    procedure DoSmartDeployProject();
     procedure DoRunProject();
     procedure DoStopProject();
     procedure DoDebugProject(const ADebugger: IDebugServices);
@@ -49,6 +51,9 @@ type
     procedure RunActiveProject();
     procedure DebugActiveProject(const ADebugger: IDebugServices);
     procedure StopActiveProject();
+    //IBuilderTasks smart tasks
+    procedure SmartBuildActiveProject();
+    procedure SmartDeployActiveProject();
   protected type
     TBuilderRunnerAsyncResult = class(TBaseAsyncResult)
     private
@@ -214,6 +219,45 @@ begin
     TMessageEvent.Create('Launch process finished.'));
 end;
 
+procedure TBuildService.DoSmartBuildProject;
+begin
+  TMessagery.BroadcastEventAsync(
+    TMessageEvent.Create('Smart build process has started.'));
+
+  if not FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then begin
+    TMessagery.BroadcastEventAsync(
+      TMessageEvent.Create('Application not installed. Build process fallback.'));
+    DoBuildProject();
+    Exit;
+  end;
+
+  //Generates the project necessary files and settings
+  FAppServices.BuildProject(FProjectServices.GetActiveProject());
+
+  TMessagery.BroadcastEventAsync(
+    TMessageEvent.Create('Smart build process finished.'));
+end;
+
+procedure TBuildService.DoSmartDeployProject;
+begin
+  TMessagery.BroadcastEventAsync(
+    TMessageEvent.Create('Smart deployment process has started.'));
+
+  if not FAppServices.IsAppInstalled(FProjectModel, FEnvironmentModel, FAdbServices.ActiveDevice) then begin
+    TMessagery.BroadcastEventAsync(
+      TMessageEvent.Create('Application not installed. Deployment process fallback.'));
+    DoDeployProject(false);
+    Exit;
+  end;
+
+  //Send app files
+  for var LAsset in FAppServices.GetFiles(FProjectModel) do
+    FAdbServices.SendFile(FProjectModel.PackageName, LAsset, TPath.GetFileName(LAsset));
+
+  TMessagery.BroadcastEventAsync(
+    TMessageEvent.Create('Smart deployment process finished.'));
+end;
+
 procedure TBuildService.DoStopProject;
 begin
   FAdbServices.ForceStopApp(FProjectModel.PackageName);
@@ -282,6 +326,28 @@ begin
     end);
   end else
     DoDebugProject(ADebugger);
+end;
+
+procedure TBuildService.SmartBuildActiveProject;
+begin
+  FAdbServices.CheckActiveDevice();
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.BuildProject, procedure() begin
+      DoSmartBuildProject()
+    end);
+  end else
+    DoSmartBuildProject();
+end;
+
+procedure TBuildService.SmartDeployActiveProject;
+begin
+  FAdbServices.CheckActiveDevice();
+  if FAsync then begin
+    DoRunAsync(TAsyncOperation.DeployProject, procedure() begin
+      DoSmartDeployProject()
+    end);
+  end else
+    DoSmartDeployProject();
 end;
 
 procedure TBuildService.StopActiveProject;
