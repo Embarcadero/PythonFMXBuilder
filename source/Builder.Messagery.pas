@@ -43,6 +43,7 @@ type
   TSetupDebuggerDoneEvent = Builder.Message.Event.TSetupDebuggerDoneEvent;
   TDebugActionEvent = Builder.Message.Event.TDebugActionEvent;
   TSaveStateEvent = Builder.Message.Event.TSaveStateEvent;
+  TUpdateSettingsEvent = Builder.Message.Event.TUpdateSettingsEvent;
 
   //Requests
   TDebuggerConnectionFrozenAction = Builder.Message.Request.TDebuggerConnectionFrozenAction;
