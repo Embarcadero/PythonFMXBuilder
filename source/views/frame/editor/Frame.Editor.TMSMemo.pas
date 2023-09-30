@@ -13,6 +13,7 @@ uses
 type
   TTMSMemoEditorFrame = class(TFrame, ITextEditor)
     mmEditor: TTMSFMXMemo;
+    MemoStyleBook: TStyleBook;
     procedure mmEditorGutterClick(Sender: TObject; LineNo: Integer);
     procedure mmEditorChangeTracking(Sender: TObject);
   private
@@ -56,6 +57,10 @@ uses
 constructor TTMSMemoEditorFrame.Create(AOwner: TComponent);
 begin
   inherited;
+  mmEditor.FontColor := TAlphaColorRec.Whitesmoke;
+  mmEditor.Gutter.FontColor := TAlphaColorRec.Darkgray;
+  mmEditor.CaretColor := TAlphaColorRec.Whitesmoke;
+
   FProjectServices := TBuilderService.CreateService<IProjectServices>;
   FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
 
