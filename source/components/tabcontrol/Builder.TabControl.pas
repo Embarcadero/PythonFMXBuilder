@@ -151,7 +151,7 @@ end;
 
 function TTabItem.GetDefaultStyleLookupName: string;
 begin
-  Result := 'tabitemclosebutton';
+  Result := 'tabitemeditor';
 end;
 
 procedure TTabItem.ApplyStyle;
