@@ -6,7 +6,8 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.ImgList,
   FMX.StdCtrls, FMX.Controls.Presentation, FMX.Edit, FMX.ListBox, FMX.Layouts,
-  FMX.Objects, System.Actions, FMX.ActnList, System.Rtti, FMX.Ani, Form.Base, Builder.Model;
+  FMX.Objects, System.Actions, FMX.ActnList, System.Rtti, FMX.Ani, Form.Base, Builder.Model,
+  FMX.Effects, FMX.Filter.Effects;
 
 type
   TDataForm = class(TBaseForm)
@@ -23,6 +24,7 @@ type
     actBase: TActionList;
     actSave: TAction;
     actCancel: TAction;
+    InvertEffect1: TInvertEffect;
     procedure actSaveExecute(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);

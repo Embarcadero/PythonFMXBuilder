@@ -18,7 +18,7 @@ inherited DataForm: TDataForm
     Size.Width = 640.000000000000000000
     Size.Height = 380.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 5
+    TabOrder = 7
     object lbProject: TListBox
       Align = Client
       Size.Width = 640.000000000000000000
@@ -39,7 +39,7 @@ inherited DataForm: TDataForm
     Size.Width = 640.000000000000000000
     Size.Height = 50.000000000000000000
     Size.PlatformDefault = False
-    TabOrder = 6
+    TabOrder = 8
     object loLeftActions: TLayout
       Align = Left
       Margins.Top = 10.000000000000000000
@@ -99,11 +99,16 @@ inherited DataForm: TDataForm
       TabOrder = 1
     end
     object imgHeader: TGlyph
+      Margins.Top = 2.000000000000000000
+      Margins.Bottom = 2.000000000000000000
       Align = Left
+      Position.Y = 2.000000000000000000
       Size.Width = 50.000000000000000000
-      Size.Height = 50.000000000000000000
+      Size.Height = 46.000000000000000000
       Size.PlatformDefault = False
       Images = ImageContainer.images
+      object InvertEffect1: TInvertEffect
+      end
     end
   end
   object actBase: TActionList

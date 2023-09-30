@@ -8,7 +8,8 @@ uses
   FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   FMX.ListView, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Objects,
   FMX.Layouts, FMX.Edit, FMX.ListBox, FMX.ImgList, System.Actions,
-  FMX.ActnList, Form.Data, Builder.Model.Project, FMX.Ani;
+  FMX.ActnList, Form.Data, Builder.Model.Project, FMX.Ani, FMX.Effects,
+  FMX.Filter.Effects;
 
 type
   [Entity(TProjectModel)]
