@@ -3,10 +3,6 @@ inherited ProjectForm: TProjectForm
   ClientHeight = 1106
   ClientWidth = 482
   DesignerMasterStyle = 0
-  inherited StyleBook1: TStyleBook
-    Left = 360
-    Top = 8
-  end
   inherited lnHeaderSeparator: TLine
     Size.Width = 406.000000000000000000
   end
@@ -94,7 +90,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Package Name:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object ListBoxGroupHeader2: TListBoxGroupHeader
@@ -139,7 +135,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Version Code:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiVersionName: TListBoxItem
@@ -173,7 +169,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Version Name:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lblInitScript: TListBoxGroupHeader
@@ -215,7 +211,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Select Main File:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbghAppIcons: TListBoxGroupHeader
@@ -269,7 +265,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Small (splash):'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableNormal: TListBoxItem
@@ -312,7 +308,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Normal (splash):'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableLarge: TListBoxItem
@@ -355,7 +351,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Large (splash):'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableXLarge: TListBoxItem
@@ -398,7 +394,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable XLarge (splash):'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableLDpi: TListBoxItem
@@ -441,7 +437,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Ldpi:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableMDpi: TListBoxItem
@@ -484,7 +480,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Mdpi:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableHDpi: TListBoxItem
@@ -527,7 +523,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Hdpi:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableXHdpi: TListBoxItem
@@ -570,7 +566,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Xhdpi:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableXxHdpi: TListBoxItem
@@ -613,7 +609,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Xxhdpi:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiDrawableXxxHdpi: TListBoxItem
@@ -656,7 +652,7 @@ inherited ProjectForm: TProjectForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Drawable Xxxhpdi:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
     end
@@ -684,7 +680,7 @@ inherited ProjectForm: TProjectForm
       ImageIndex = 1
     end
   end
-  object odIcon: TOpenDialog [5]
+  object odIcon: TOpenDialog [4]
     DefaultExt = '*.png'
     Filter = 'PNG images|*.png'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
