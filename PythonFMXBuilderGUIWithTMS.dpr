@@ -36,12 +36,15 @@ uses
   Frame.Editor.TabItem in 'source\views\frame\editor\Frame.Editor.TabItem.pas',
   Frame.Editor.Control in 'source\views\frame\editor\Frame.Editor.Control.pas' {EditorControlFrame: TFrame},
   Container.DataSet.Debugger in 'source\containers\Container.DataSet.Debugger.pas' {DebuggerDataSetContainer: TDataModule},
-  Frame.SaveButtons in 'source\views\frame\Frame.SaveButtons.pas' {SaveButtonsFrame: TFrame};
+  Frame.SaveButtons in 'source\views\frame\Frame.SaveButtons.pas' {SaveButtonsFrame: TFrame},
+  Container.Styles in 'source\containers\Container.Styles.pas' {StyleContainer: TDataModule};
 
 {$R *.res}
 
 begin
+  ReportMemoryLeaksOnShutdown := true;
   Application.Initialize;
+  Application.CreateForm(TStyleContainer, StyleContainer);
   Application.CreateForm(TImageContainer, ImageContainer);
   Application.CreateForm(TDebuggerDataSetContainer, DebuggerDataSetContainer);
   Application.CreateForm(TMenuActionsContainer, MenuActionsContainer);
