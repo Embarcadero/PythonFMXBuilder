@@ -1,0 +1,478 @@
+object TStyleContainer
+  object TLayout
+    StyleName = 'tabitemeditor'
+    Align = Center
+    Size.Width = 96.000000000000000000
+    Size.Height = 23.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 37
+    object TLayout
+      StyleName = 'bottom'
+      Align = Contents
+      Locked = True
+      Size.Width = 96.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      object TRectAnimation
+        Duration = 0.000009999999747379
+        PropertyName = 'Margins'
+        StartValue.Left = -1.000000000000000000
+        StartValue.Right = -1.000000000000000000
+        StartValue.Bottom = 2.000000000000000000
+        StopValue.Left = -1.000000000000000000
+        StopValue.Top = -2.000000000000000000
+        StopValue.Right = -1.000000000000000000
+        Trigger = 'IsSelected=True'
+        TriggerInverse = 'IsSelected=false'
+      end
+      object TLayout
+        StyleName = 'layoutstyle'
+        Align = HorzCenter
+        Position.X = 23.000000000000000000
+        Size.Width = 50.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        object TImage
+          StyleName = 'icon'
+          MultiResBitmap = <
+            item
+            end>
+          Align = Left
+          HitTest = False
+          Margins.Left = 4.000000000000000000
+          Margins.Right = -4.000000000000000000
+          Position.X = 4.000000000000000000
+          Size.Width = 16.000000000000000000
+          Size.Height = 23.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object TGlyph
+          StyleName = 'glyphstyle'
+          Margins.Left = 4.000000000000000000
+          Margins.Right = -4.000000000000000000
+          Align = Left
+          Size.Width = 16.000000000000000000
+          Size.Height = 16.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object TTabStyleTextObject
+          StyleName = 'text'
+          Align = Client
+          AutoSize = True
+          Locked = True
+          Margins.Left = 8.000000000000000000
+          Margins.Top = 2.000000000000000000
+          Margins.Right = 8.000000000000000000
+          Margins.Bottom = 2.000000000000000000
+          Size.Width = 24.964843750000000000
+          Size.Height = 15.960937500000000000
+          Size.PlatformDefault = False
+          Text = 'Text'
+          TextSettings.WordWrap = False
+          ShadowVisible = False
+          ActiveTrigger = Selected
+          ActiveColor = claBlack
+          HotColor = claBlack
+        end
+        object TImage
+          StyleName = 'close'
+          MultiResBitmap.Height = 16
+          MultiResBitmap = <
+            item
+              Width = 16
+              Height = 16
+              PNG = {
+                89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+                61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+                006049444154384F6360184C603AD031D2443808A406A4160388034536123044
+                82901A7C8610D40C7312364388D60C33045903C99A618680026B2B14E30C5C26
+                22429D2C251479019B9F890E077C0A091A4250013030F026368A933259A14DB1
+                2600FDD712A7564049900000000049454E44AE426082}
+              FileName = 
+                'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\clo' +
+                'se-16.png'
+            end>
+          Align = Right
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 2.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 2.000000000000000000
+          Position.X = 3.000000000000000000
+          Position.Y = 2.000000000000000000
+          Size.Width = 16.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object TImage
+          StyleName = 'modify'
+          MultiResBitmap.Height = 16
+          MultiResBitmap = <
+            item
+              Width = 16
+              Height = 16
+              PNG = {
+                89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+                61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+                00FB49444154384F9593B10E014114452DA151D2A8C4A2130A8D4A2FC4872850
+                F8181FC13F28340A0AD129F007D412EB9E644776C72E99979C957DFBEEBC993B
+                8F97490E4FE9B6A8869F6FFA3D8AC02ECF598982DEA762218AE221A8E989B9A8
+                88837825F52D29B91283945D911E8AB5A036167446ECFF109B4FF5B0361FAD65
+                7BBF3ADBEB8E9498992486D1DD35388A87411D81615BC7151AAABF67F5A889B3
+                A39872343E0B70B71CC335D0042C70154D5775A8B9A063250C718D8F890899B0
+                B28317630C143BD395A1E02A19927F91384888CC2833246941E7D828DBEEB393
+                89E88B7DE44898DC151BB1144FD321EDFAC8B7043342E0F6497CFD9DDFAD3026
+                51FF14AFA60000000049454E44AE426082}
+              FileName = 
+                'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\act' +
+                'ive-state-16.png'
+            end>
+          Align = Right
+          HitTest = False
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 2.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 2.000000000000000000
+          Position.X = 29.000000000000000000
+          Position.Y = 2.000000000000000000
+          Size.Width = 16.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+    end
+    object TTabStyleObject
+      StyleName = 'top'
+      Align = Contents
+      ClipChildren = True
+      Locked = True
+      SourceLookup = 'Windows 10 Desktopstyle.png'
+      Size.Width = 96.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      ActiveTrigger = Selected
+      ActiveLink = <
+        item
+          CapInsets.Left = 4.000000000000000000
+          CapInsets.Top = 4.000000000000000000
+          CapInsets.Right = 4.000000000000000000
+          CapInsets.Bottom = 4.000000000000000000
+          SourceRect.Left = 55.000000000000000000
+          SourceRect.Top = 90.000000000000000000
+          SourceRect.Right = 97.000000000000000000
+          SourceRect.Bottom = 114.000000000000000000
+        end
+        item
+          CapInsets.Left = 6.000000000000000000
+          CapInsets.Top = 6.000000000000000000
+          CapInsets.Right = 6.000000000000000000
+          CapInsets.Bottom = 6.000000000000000000
+          Scale = 1.500000000000000000
+          SourceRect.Left = 82.000000000000000000
+          SourceRect.Top = 135.000000000000000000
+          SourceRect.Right = 145.000000000000000000
+          SourceRect.Bottom = 170.000000000000000000
+        end
+        item
+          CapInsets.Left = 8.000000000000000000
+          CapInsets.Top = 8.000000000000000000
+          CapInsets.Right = 8.000000000000000000
+          CapInsets.Bottom = 8.000000000000000000
+          Scale = 2.000000000000000000
+          SourceRect.Left = 110.000000000000000000
+          SourceRect.Top = 180.000000000000000000
+          SourceRect.Right = 194.000000000000000000
+          SourceRect.Bottom = 228.000000000000000000
+        end>
+      SourceLink = <
+        item
+          CapInsets.Left = 4.000000000000000000
+          CapInsets.Top = 4.000000000000000000
+          CapInsets.Right = 4.000000000000000000
+          CapInsets.Bottom = 4.000000000000000000
+          SourceRect.Left = 5.000000000000000000
+          SourceRect.Top = 90.000000000000000000
+          SourceRect.Right = 47.000000000000000000
+          SourceRect.Bottom = 113.000000000000000000
+        end
+        item
+          CapInsets.Left = 6.000000000000000000
+          CapInsets.Top = 6.000000000000000000
+          CapInsets.Right = 6.000000000000000000
+          CapInsets.Bottom = 6.000000000000000000
+          Scale = 1.500000000000000000
+          SourceRect.Left = 7.000000000000000000
+          SourceRect.Top = 135.000000000000000000
+          SourceRect.Right = 70.000000000000000000
+          SourceRect.Bottom = 169.000000000000000000
+        end
+        item
+          CapInsets.Left = 8.000000000000000000
+          CapInsets.Top = 8.000000000000000000
+          CapInsets.Right = 8.000000000000000000
+          CapInsets.Bottom = 8.000000000000000000
+          Scale = 2.000000000000000000
+          SourceRect.Left = 10.000000000000000000
+          SourceRect.Top = 180.000000000000000000
+          SourceRect.Right = 94.000000000000000000
+          SourceRect.Bottom = 226.000000000000000000
+        end>
+      HotLink = <
+        item
+          CapInsets.Left = 4.000000000000000000
+          CapInsets.Top = 4.000000000000000000
+          CapInsets.Right = 4.000000000000000000
+          CapInsets.Bottom = 4.000000000000000000
+          SourceRect.Left = 105.000000000000000000
+          SourceRect.Top = 90.000000000000000000
+          SourceRect.Right = 147.000000000000000000
+          SourceRect.Bottom = 113.000000000000000000
+        end
+        item
+          CapInsets.Left = 6.000000000000000000
+          CapInsets.Top = 6.000000000000000000
+          CapInsets.Right = 6.000000000000000000
+          CapInsets.Bottom = 6.000000000000000000
+          Scale = 1.500000000000000000
+          SourceRect.Left = 157.000000000000000000
+          SourceRect.Top = 135.000000000000000000
+          SourceRect.Right = 220.000000000000000000
+          SourceRect.Bottom = 169.000000000000000000
+        end
+        item
+          CapInsets.Left = 8.000000000000000000
+          CapInsets.Top = 8.000000000000000000
+          CapInsets.Right = 8.000000000000000000
+          CapInsets.Bottom = 8.000000000000000000
+          Scale = 2.000000000000000000
+          SourceRect.Left = 210.000000000000000000
+          SourceRect.Top = 180.000000000000000000
+          SourceRect.Right = 294.000000000000000000
+          SourceRect.Bottom = 226.000000000000000000
+        end>
+      ActiveHotLink = <
+        item
+          CapInsets.Left = 4.000000000000000000
+          CapInsets.Top = 4.000000000000000000
+          CapInsets.Right = 4.000000000000000000
+          CapInsets.Bottom = 4.000000000000000000
+          SourceRect.Left = 55.000000000000000000
+          SourceRect.Top = 90.000000000000000000
+          SourceRect.Right = 97.000000000000000000
+          SourceRect.Bottom = 114.000000000000000000
+        end
+        item
+          CapInsets.Left = 6.000000000000000000
+          CapInsets.Top = 6.000000000000000000
+          CapInsets.Right = 6.000000000000000000
+          CapInsets.Bottom = 6.000000000000000000
+          Scale = 1.500000000000000000
+          SourceRect.Left = 82.000000000000000000
+          SourceRect.Top = 135.000000000000000000
+          SourceRect.Right = 145.000000000000000000
+          SourceRect.Bottom = 170.000000000000000000
+        end
+        item
+          CapInsets.Left = 8.000000000000000000
+          CapInsets.Top = 8.000000000000000000
+          CapInsets.Right = 8.000000000000000000
+          CapInsets.Bottom = 8.000000000000000000
+          Scale = 2.000000000000000000
+          SourceRect.Left = 110.000000000000000000
+          SourceRect.Top = 180.000000000000000000
+          SourceRect.Right = 194.000000000000000000
+          SourceRect.Bottom = 228.000000000000000000
+        end>
+      FocusedLink = <
+        item
+          CapInsets.Left = 4.000000000000000000
+          CapInsets.Top = 4.000000000000000000
+          CapInsets.Right = 4.000000000000000000
+          CapInsets.Bottom = 4.000000000000000000
+          SourceRect.Left = 5.000000000000000000
+          SourceRect.Top = 90.000000000000000000
+          SourceRect.Right = 47.000000000000000000
+          SourceRect.Bottom = 113.000000000000000000
+        end
+        item
+          CapInsets.Left = 6.000000000000000000
+          CapInsets.Top = 6.000000000000000000
+          CapInsets.Right = 6.000000000000000000
+          CapInsets.Bottom = 6.000000000000000000
+          Scale = 1.500000000000000000
+          SourceRect.Left = 7.000000000000000000
+          SourceRect.Top = 135.000000000000000000
+          SourceRect.Right = 70.000000000000000000
+          SourceRect.Bottom = 169.000000000000000000
+        end
+        item
+          CapInsets.Left = 8.000000000000000000
+          CapInsets.Top = 8.000000000000000000
+          CapInsets.Right = 8.000000000000000000
+          CapInsets.Bottom = 8.000000000000000000
+          Scale = 2.000000000000000000
+          SourceRect.Left = 10.000000000000000000
+          SourceRect.Top = 180.000000000000000000
+          SourceRect.Right = 94.000000000000000000
+          SourceRect.Bottom = 226.000000000000000000
+        end>
+      ActiveFocusedLink = <
+        item
+          CapInsets.Left = 4.000000000000000000
+          CapInsets.Top = 4.000000000000000000
+          CapInsets.Right = 4.000000000000000000
+          CapInsets.Bottom = 4.000000000000000000
+          SourceRect.Left = 105.000000000000000000
+          SourceRect.Top = 118.000000000000000000
+          SourceRect.Right = 147.000000000000000000
+          SourceRect.Bottom = 142.000000000000000000
+        end
+        item
+          CapInsets.Left = 6.000000000000000000
+          CapInsets.Top = 6.000000000000000000
+          CapInsets.Right = 6.000000000000000000
+          CapInsets.Bottom = 6.000000000000000000
+          Scale = 1.500000000000000000
+          SourceRect.Left = 157.000000000000000000
+          SourceRect.Top = 177.000000000000000000
+          SourceRect.Right = 220.000000000000000000
+          SourceRect.Bottom = 212.000000000000000000
+        end
+        item
+          CapInsets.Left = 8.000000000000000000
+          CapInsets.Top = 8.000000000000000000
+          CapInsets.Right = 8.000000000000000000
+          CapInsets.Bottom = 8.000000000000000000
+          Scale = 2.000000000000000000
+          SourceRect.Left = 210.000000000000000000
+          SourceRect.Top = 236.000000000000000000
+          SourceRect.Right = 294.000000000000000000
+          SourceRect.Bottom = 284.000000000000000000
+        end>
+      object TRectAnimation
+        Duration = 0.000009999999747379
+        PropertyName = 'Margins'
+        StartValue.Left = -1.000000000000000000
+        StartValue.Top = 2.000000000000000000
+        StartValue.Right = -1.000000000000000000
+        StopValue.Left = -1.000000000000000000
+        StopValue.Right = -1.000000000000000000
+        StopValue.Bottom = -2.000000000000000000
+        Trigger = 'IsSelected=True'
+        TriggerInverse = 'IsSelected=false'
+      end
+      object TLayout
+        StyleName = 'layoutstyle'
+        Align = HorzCenter
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Size.Width = 96.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        object TImage
+          StyleName = 'icon'
+          MultiResBitmap = <
+            item
+            end>
+          Align = Left
+          HitTest = False
+          Margins.Left = 4.000000000000000000
+          Margins.Right = -4.000000000000000000
+          Position.X = 4.000000000000000000
+          Size.Width = 16.000000000000000000
+          Size.Height = 23.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object TGlyph
+          StyleName = 'glyphstyle'
+          Margins.Left = 4.000000000000000000
+          Margins.Right = -4.000000000000000000
+          Align = Left
+          Size.Width = 16.000000000000000000
+          Size.Height = 16.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object TTabStyleTextObject
+          StyleName = 'text'
+          Align = Client
+          Locked = True
+          Margins.Left = 8.000000000000000000
+          Margins.Top = 2.000000000000000000
+          Margins.Right = 8.000000000000000000
+          Margins.Bottom = 2.000000000000000000
+          Size.Width = 12.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Text'
+          TextSettings.WordWrap = False
+          ShadowVisible = False
+          ActiveTrigger = Selected
+          ActiveColor = claBlack
+          HotColor = claBlack
+        end
+        object TImage
+          StyleName = 'close'
+          MultiResBitmap.Height = 16
+          MultiResBitmap = <
+            item
+              Width = 16
+              Height = 16
+              PNG = {
+                89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+                61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+                006049444154384F6360184C603AD031D2443808A406A4160388034536123044
+                82901A7C8610D40C7312364388D60C33045903C99A618680026B2B14E30C5C26
+                22429D2C251479019B9F890E077C0A091A4250013030F026368A933259A14DB1
+                2600FDD712A7564049900000000049454E44AE426082}
+              FileName = 
+                'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\clo' +
+                'se-16.png'
+            end>
+          Align = Right
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 2.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 2.000000000000000000
+          Position.X = 75.000000000000000000
+          Position.Y = 2.000000000000000000
+          Size.Width = 16.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+        end
+        object TImage
+          StyleName = 'modify'
+          MultiResBitmap.Height = 16
+          MultiResBitmap = <
+            item
+              Width = 16
+              Height = 16
+              PNG = {
+                89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+                61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+                00FB49444154384F9593B10E014114452DA151D2A8C4A2130A8D4A2FC4872850
+                F8181FC13F28340A0AD129F007D412EB9E644776C72E99979C957DFBEEBC993B
+                8F97490E4FE9B6A8869F6FFA3D8AC02ECF598982DEA762218AE221A8E989B9A8
+                88837825F52D29B91283945D911E8AB5A036167446ECFF109B4FF5B0361FAD65
+                7BBF3ADBEB8E9498992486D1DD35388A87411D81615BC7151AAABF67F5A889B3
+                A39872343E0B70B71CC335D0042C70154D5775A8B9A063250C718D8F890899B0
+                B28317630C143BD395A1E02A19927F91384888CC2833246941E7D828DBEEB393
+                89E88B7DE44898DC151BB1144FD321EDFAC8B7043342E0F6497CFD9DDFAD3026
+                51FF14AFA60000000049454E44AE426082}
+              FileName = 
+                'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\act' +
+                'ive-state-16.png'
+            end>
+          Align = Right
+          HitTest = False
+          Margins.Left = 5.000000000000000000
+          Margins.Top = 2.000000000000000000
+          Margins.Right = 5.000000000000000000
+          Margins.Bottom = 2.000000000000000000
+          Position.X = 49.000000000000000000
+          Position.Y = 2.000000000000000000
+          Size.Width = 16.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+        end
+      end
+    end
+  end
+end
