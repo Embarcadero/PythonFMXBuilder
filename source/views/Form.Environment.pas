@@ -7,7 +7,8 @@ uses
   System.Threading, System.Generics.Collections, FMX.Types, FMX.Controls, FMX.Forms,
   FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Objects, FMX.ListBox, FMX.Ani,
   FMX.Controls.Presentation, FMX.Edit, FMX.Layouts, FMX.ImgList, System.Actions,
-  FMX.ActnList, Form.Data, Builder.Model.Environment;
+  FMX.ActnList, Form.Data, Builder.Model.Environment, FMX.Effects,
+  FMX.Filter.Effects;
 
 type
   [Entity(TEnvironmentModel)]
