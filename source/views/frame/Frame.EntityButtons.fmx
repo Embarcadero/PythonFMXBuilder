@@ -13,7 +13,7 @@ object EntityButtonsFrame: TEntityButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object sbUpdateProject: TSpeedButton
     Action = MenuActionsContainer.actUpdateCurrentProject
@@ -26,6 +26,6 @@ object EntityButtonsFrame: TEntityButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
 end

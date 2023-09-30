@@ -1,5 +1,5 @@
 object BuildButtonsFrame: TBuildButtonsFrame
-  Size.Width = 105.000000000000000000
+  Size.Width = 104.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object sbBuildCurrentProject: TSpeedButton
@@ -13,7 +13,7 @@ object BuildButtonsFrame: TBuildButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object spDeployCurrentProject: TSpeedButton
     Action = MenuActionsContainer.actDeployCurrentProjectAsync
@@ -40,7 +40,7 @@ object BuildButtonsFrame: TBuildButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object pmDeployDropDown: TPopupMenu
     Left = 32
