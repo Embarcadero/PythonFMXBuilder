@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Memo.Types,
   FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.Layouts, FMX.ListBox,
   FMX.StdCtrls, FMX.TabControl, System.Actions, FMX.ActnList, FMX.Ani,
-  FMX.Objects, FMX.Menus, Form.Base, Builder.Messagery,
+  FMX.Objects, FMX.Menus, Container.Styles, Form.Base, Builder.Messagery,
   Frame.Loading, Frame.ProjectFiles, Frame.ProjectButtons, FMX.Styles.Objects,
   Frame.Editor.Control, FMX.TreeView, Frame.Device, Frame.LeftMenu,
   Frame.EntityButtons, Frame.BuildButtons, Frame.DebugButtons, Frame.LeftPanel,
