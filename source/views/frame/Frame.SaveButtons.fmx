@@ -13,7 +13,7 @@ object SaveButtonsFrame: TSaveButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object sbSave: TSpeedButton
     Action = MenuActionsContainer.actSaveState
@@ -26,6 +26,6 @@ object SaveButtonsFrame: TSaveButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
 end

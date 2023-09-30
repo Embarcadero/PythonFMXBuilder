@@ -1,5 +1,5 @@
 object ProjectButtonsFrame: TProjectButtonsFrame
-  Size.Width = 105.000000000000000000
+  Size.Width = 104.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object btnCreate: TSpeedButton
@@ -13,7 +13,7 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
     Text = 'New Project'
     OnClick = btnCreateClick
   end
@@ -28,7 +28,7 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object btnClose: TSpeedButton
     Action = MenuActionsContainer.actCloseCurrentProject
@@ -41,7 +41,7 @@ object ProjectButtonsFrame: TProjectButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object pmCreateProject: TPopupMenu
     Images = ImageContainer.images

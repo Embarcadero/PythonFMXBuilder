@@ -1,5 +1,5 @@
 object DebugButtonsFrame: TDebugButtonsFrame
-  Size.Width = 245.000000000000000000
+  Size.Width = 244.000000000000000000
   Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   object sbDebugCurrentProject: TSpeedButton
@@ -13,7 +13,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object spStepInto: TSpeedButton
     Action = MenuActionsContainer.actStepIn
@@ -26,7 +26,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object sbStepOver: TSpeedButton
     Action = MenuActionsContainer.actStepOver
@@ -39,7 +39,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object sbStepOut: TSpeedButton
     Action = MenuActionsContainer.actStepOut
@@ -52,7 +52,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object btnStop: TSpeedButton
     Action = MenuActionsContainer.actStop
@@ -65,7 +65,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object btnPause: TSpeedButton
     Action = MenuActionsContainer.actPause
@@ -78,7 +78,7 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
   object sbContinue: TSpeedButton
     Action = MenuActionsContainer.actContinue
@@ -91,6 +91,6 @@ object DebugButtonsFrame: TDebugButtonsFrame
     Size.Width = 30.000000000000000000
     Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
-    StyleLookup = 'actiontoolbutton'
+    StyleLookup = 'actiontoolbuttonmenu'
   end
 end
