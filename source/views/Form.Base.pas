@@ -8,7 +8,6 @@ uses
 
 type
   TBaseForm = class(TForm)
-    StyleBook1: TStyleBook;
   end;
 
 var

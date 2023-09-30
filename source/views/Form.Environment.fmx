@@ -5,17 +5,12 @@ inherited EnvironmentForm: TEnvironmentForm
   OnCreate = FormCreate
   OnCloseQuery = FormCloseQuery
   DesignerMasterStyle = 0
-  inherited StyleBook1: TStyleBook
-    Left = 400
-    Top = 0
-  end
   inherited lnHeaderSeparator: TLine
     Size.Width = 449.000000000000000000
   end
   inherited loBody: TLayout
     Size.Width = 450.000000000000000000
     Size.Height = 798.000000000000000000
-    TabOrder = 7
     inherited lbProject: TListBox
       Size.Width = 450.000000000000000000
       Size.Height = 798.000000000000000000
@@ -472,7 +467,6 @@ inherited EnvironmentForm: TEnvironmentForm
   inherited loFooter: TLayout
     Position.Y = 848.000000000000000000
     Size.Width = 450.000000000000000000
-    TabOrder = 8
     inherited loLeftActions: TLayout
       inherited btnSave: TButton
         TabOrder = 0
