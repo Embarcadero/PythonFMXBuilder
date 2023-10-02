@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Classes, FMX.Types, FMX.Controls,
   //MaterialOxforBlueSB make uses of TInvertEffect - The effects unit must be used here!
-  FMX.Effects, FMX.Filter.Effects, REST.Backend.KinveyProvider;
+  FMX.Effects, FMX.Filter.Effects;
 
 type
   TStyleContainer = class(TDataModule)
