@@ -3,8 +3,8 @@ unit Builder.TabControl;
 interface
 
 uses
-  System.Classes, System.Types, System.Rtti,
-  FMX.Types, FMX.Controls, FMX.TabControl;
+  System.Classes, System.Types, System.UITypes, System.Rtti,
+  FMX.Types, FMX.Objects, FMX.Controls, FMX.TabControl;
 
 type
   TTabItem = class;
@@ -34,7 +34,6 @@ type
     procedure UpdateControls();
     procedure OnMouseEnterTab(Sender: TObject);
     procedure OnMouseLeaveTab(Sender: TObject);
-    procedure OnCloseClick(Sender: TObject);
   protected
     procedure SetText(const Value: string); override;
     function GetData: TValue; override;
@@ -43,6 +42,7 @@ type
     procedure ApplyStyle; override;
     procedure FreeStyle; override;
     procedure DoClose(); virtual;
+    procedure MouseClick(Button: TMouseButton; Shift: TShiftState; X, Y: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -154,6 +154,14 @@ begin
   Result := 'tabitemeditor';
 end;
 
+procedure TTabItem.MouseClick(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Single);
+begin
+  inherited;
+  if Assigned(FClose) and FClose.ParentedRect.Contains(TPointF.Create(X, Y)) then
+    DoClose();
+end;
+
 procedure TTabItem.ApplyStyle;
 begin
   inherited;
@@ -174,7 +182,7 @@ begin
 
     FClose := LItemStyle.FindStyleResource('close') as TControl;
     if Assigned(FClose) then begin
-      FClose.OnClick := OnCloseClick;
+      FClose.HitTest := false;
       FClose.OnMouseEnter := OnMouseEnterTab;
       FClose.OnMouseLeave := OnMouseLeaveTab;
     end;    
@@ -192,7 +200,6 @@ begin
   end;
 
   if Assigned(FClose) then begin
-    FClose.OnClick := nil;
     FClose.OnMouseEnter := nil;
     FClose.OnMouseLeave := nil;
     FClose := nil;
@@ -206,11 +213,6 @@ begin
 
   if Assigned(TabControl) then
     TTabControl(TabControl).Delete(Self.Index);
-end;
-
-procedure TTabItem.OnCloseClick(Sender: TObject);
-begin
-  DoClose();
 end;
 
 procedure TTabItem.OnMouseEnterTab(Sender: TObject);
