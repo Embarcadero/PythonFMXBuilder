@@ -11,6 +11,7 @@ inherited EnvironmentForm: TEnvironmentForm
   inherited loBody: TLayout
     Size.Width = 450.000000000000000000
     Size.Height = 798.000000000000000000
+    TabOrder = 9
     inherited lbProject: TListBox
       Size.Width = 450.000000000000000000
       Size.Height = 798.000000000000000000
@@ -59,7 +60,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'SDK base path:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiApkSignerLocation: TListBoxItem
@@ -93,7 +94,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'APKSigner location:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiAdbLocation: TListBoxItem
@@ -127,7 +128,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'ADB location:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiAaptLocation: TListBoxItem
@@ -161,7 +162,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'AAPT location:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiSdkApiLocation: TListBoxItem
@@ -229,7 +230,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'ZipAlign location:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbghJdkSettings: TListBoxGroupHeader
@@ -276,7 +277,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'JDK base path:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiKeytoolLocation: TListBoxItem
@@ -310,7 +311,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'KeyTool location:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiJarSigner: TListBoxItem
@@ -344,7 +345,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'JARSigner location:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbghDebuggerSettings: TListBoxGroupHeader
@@ -391,7 +392,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Remote debugger host:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiRemoteDebuggerPort: TListBoxItem
@@ -425,7 +426,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Remote debugger port:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
       object lbiRemoteDebuggerRoot: TListBoxItem
@@ -459,7 +460,7 @@ inherited EnvironmentForm: TEnvironmentForm
           Size.Height = 17.000000000000000000
           Size.PlatformDefault = False
           Text = 'Remote root:'
-          TabOrder = 40
+          TabOrder = 39
         end
       end
     end
@@ -467,6 +468,7 @@ inherited EnvironmentForm: TEnvironmentForm
   inherited loFooter: TLayout
     Position.Y = 848.000000000000000000
     Size.Width = 450.000000000000000000
+    TabOrder = 10
     inherited loLeftActions: TLayout
       inherited btnSave: TButton
         TabOrder = 0

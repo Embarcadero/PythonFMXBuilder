@@ -41,7 +41,7 @@ implementation
 
 uses
   System.SysUtils, System.IOUtils, System.JSON, System.Rtti,
-  Builder.Exception;
+  Builder.Exception, Builder.Paths;
 
 { TJsonStorage<Model> }
 
@@ -58,7 +58,7 @@ end;
 
 function TJsonStorage<ModelType>.GetBasePath: string;
 begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'data');
+  Result := TBuilderPaths.GetStorageBasePath();
 end;
 
 function TJsonStorage<ModelType>.GetEntityPath(const AEntity: string): string;

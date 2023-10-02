@@ -26,6 +26,8 @@ type
     class function GetPythonDependenciesFolder(): string; static;
     class function GetPythonScriptsFolder(): string; static;
     class function GetPreBuiltFolder(const AArchitecture: TArchitecture): string; static;
+    //Storage
+    class function GetStorageBasePath(): string; static;
     //Build app files
     class function GetAppPath(const AProjectPath: string;
       const ABuildConfiguration: TBuildConfiguration;
@@ -280,6 +282,14 @@ end;
 class function TBuilderPaths.GetRpycScriptPath: string;
 begin
   Result := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'rpyc.py');
+end;
+
+class function TBuilderPaths.GetStorageBasePath: string;
+begin
+  Result := TPath.Combine(
+    TPath.Combine(
+      TPath.GetDocumentsPath(), 'PythonFMXBuilder'),
+    'data');
 end;
 
 class function TBuilderPaths.UntitledProject(

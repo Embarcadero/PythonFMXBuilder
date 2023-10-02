@@ -32,7 +32,7 @@ type
   private
     FModel: TModel;
     FModelOwned: boolean;
-    FHasLoaded: boolean;
+    FModelReady: boolean;
     FStorage: string;
     function GetModel: TModel;
   protected
@@ -45,7 +45,8 @@ type
     //Model validation
     procedure ModelValidate(); virtual;
 
-    procedure Load(); virtual;
+    procedure Load(); overload; virtual;
+    procedure Load(const AModel: TModel); overload; virtual;
     procedure Save(); virtual;
     procedure Cancel(); virtual;
 
@@ -55,7 +56,7 @@ type
     //Model storage details for autoload
     property Storage: string read FStorage write FStorage;
     //Loading status
-    property HasLoaded: boolean read FHasLoaded;
+    property ModelReady: boolean read FModelReady;
   end;
 
   EntityAttribute = class(TCustomAttribute)
@@ -89,7 +90,7 @@ end;
 
 procedure TDataForm.FormShow(Sender: TObject);
 begin
-  if not FHasLoaded then
+  if not FModelReady then
     Load();
 end;
 
@@ -144,14 +145,20 @@ begin
 end;
 
 procedure TDataForm.Load;
+var
+  LModel: TObject;
 begin
   var LStorage: IStorage := TDefaultStorage<TObject>.Make();
   if LStorage.LoadModel(
-    PTypeInfo(GetEntityType().ClassInfo), TObject(FModel), FStorage) then
-  begin
-    FormUpdate();
-    FHasLoaded := true;
-  end;
+    PTypeInfo(GetEntityType().ClassInfo), LModel, FStorage) then
+      Load(TModel(LModel));
+end;
+
+procedure TDataForm.Load(const AModel: TModel);
+begin
+  FModel := AModel;
+  FModelReady := true;
+  FormUpdate();
 end;
 
 procedure TDataForm.LoadModel(const AModel: TModel; const AOwned: boolean);
@@ -159,11 +166,9 @@ begin
   if Assigned(FModel) and FModelOwned then
     FModel.Free();
 
-  FModel := AModel;
   FModelOwned := AOwned;
 
-  FormUpdate();
-  FHasLoaded := true;
+  Load(AModel);
 end;
 
 procedure TDataForm.ModelValidate;
