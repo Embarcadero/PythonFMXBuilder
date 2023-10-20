@@ -70,11 +70,13 @@ type
     miFilesSep1: TMenuItem;
     miSave: TMenuItem;
     miSaveAll: TMenuItem;
+    miInstallItToolsManager: TMenuItem;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     const
       ANI_OPS = [
@@ -108,7 +110,8 @@ uses
   System.Zip,
   FMX.DialogService,
   Container.Images,
-  Container.Menu.Actions;
+  Container.Menu.Actions,
+  Form.Environment;
 
 {$R *.fmx}
 
@@ -220,6 +223,15 @@ procedure TMainForm.FormCreate(Sender: TObject);
 begin
   inherited;
   miApp.Visible := (TOSVersion.Platform = TOSVersion.TPlatform.pfMacOS);
+end;
+
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+  inherited;
+  TThread.ForceQueue(nil,
+    procedure() begin
+      TEnvironmentForm.CheckAndUpdateAndroidEnvironment()
+    end, 2000);
 end;
 
 procedure TMainForm.AboutClick(Sender: TObject);

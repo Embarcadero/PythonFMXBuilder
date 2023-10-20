@@ -1,0 +1,98 @@
+object InstallItForm: TInstallItForm
+  Left = 0
+  Top = 0
+  Caption = 'InstallIt Tools Manager'
+  ClientHeight = 404
+  ClientWidth = 442
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCloseQuery = FormCloseQuery
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object loBottom: TLayout
+    Align = Bottom
+    Position.Y = 346.000000000000000000
+    Size.Width = 442.000000000000000000
+    Size.Height = 58.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object loActions: TLayout
+      Align = Top
+      Position.Y = 24.000000000000000000
+      Size.Width = 442.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object btnInstallSelectedTools: TCornerButton
+        Align = Right
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 2.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Position.X = 154.000000000000000000
+        Position.Y = 4.000000000000000000
+        Sides = [Top, Left, Bottom, Right]
+        Size.Width = 286.000000000000000000
+        Size.Height = 25.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Install Selected Tools'
+        XRadius = 4.000000000000000000
+        YRadius = 4.000000000000000000
+        OnClick = btnInstallSelectedToolsClick
+      end
+    end
+    object loAgreement: TLayout
+      Align = Top
+      Size.Width = 442.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object lblReadTerms: TLabel
+        Align = Left
+        StyledSettings = [Family, Size, FontColor]
+        HitTest = True
+        Margins.Left = 2.000000000000000000
+        Position.X = 2.000000000000000000
+        Size.Width = 66.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Read terms'
+        TabOrder = 0
+        OnClick = lblReadTermsClick
+        OnMouseEnter = lblReadTermsMouseEnter
+        OnMouseLeave = lblReadTermsMouseLeave
+      end
+      object cbAgree: TCheckBox
+        Align = Right
+        Margins.Right = 2.000000000000000000
+        Position.X = 154.000000000000000000
+        Size.Width = 286.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = ' I have read and agree with terms and conditions.'
+        OnChange = cbAgreeChange
+      end
+    end
+  end
+  object lbPackages: TListBox
+    Align = Client
+    Size.Width = 442.000000000000000000
+    Size.Height = 346.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    ParentShowHint = False
+    ShowHint = True
+    ShowSizeGrip = True
+    DisableFocusEffect = True
+    DefaultItemStyles.ItemStyle = ''
+    DefaultItemStyles.GroupHeaderStyle = ''
+    DefaultItemStyles.GroupFooterStyle = ''
+    ShowCheckboxes = True
+    OnChangeCheck = lbPackagesChangeCheck
+    Viewport.Width = 438.000000000000000000
+    Viewport.Height = 342.000000000000000000
+  end
+end
