@@ -10,6 +10,10 @@ uses
 type
   TBuilderPaths = record
   public
+    //PythonFMXBuilder
+    class function GetPythonFMXBuilderDir(): string; static;
+    //Storage
+    class function GetStorageBasePath(): string; static;
     //Workspace
     class function WorkspaceFolder(): string; static;
     class function RecommendProjectName(const AWorkspace: string): string; static;
@@ -26,9 +30,10 @@ type
     class function GetPythonDependenciesFolder(): string; static;
     class function GetPythonScriptsFolder(): string; static;
     class function GetPreBuiltFolder(const AArchitecture: TArchitecture): string; static;
-    //Storage
-    class function GetStorageBasePath(): string; static;
-    //Build app files
+    //Tools
+    class function GetToolsInstallationBaseFolder(): string; static;
+    class function GetToolInstallationFolder(const AToolInfo: TToolInfo): string; static;
+    //Build app files --> Move to TAndroidBuilderPaths <--
     class function GetAppPath(const AProjectPath: string;
       const ABuildConfiguration: TBuildConfiguration;
       const AArchitecture: TArchitecture): string; static;
@@ -65,6 +70,7 @@ type
     class function GetAppFilesPath(const APackageName: string): string; static;
   end;
 
+  //Runs out of an app
   TBuilderUnboundPaths = record
   public
     class function GetPythonBasePath(): string; static;
@@ -78,6 +84,12 @@ type
     class function GetRpycScriptPath(): string; static;
     //RemServer
     class function GetRemServerScriptPath(): string; static;
+  end;
+
+  TAndroidToolsPathLocator = class
+  public
+    class function FindToolPath(const ABasePath, ATool: string): string; static;
+    class function FindSdkApiLocation(const ABasePath: string): string; static;
   end;
 
 const
@@ -170,8 +182,9 @@ end;
 class function TBuilderPaths.GetPreBuiltFolder(
   const AArchitecture: TArchitecture): string;
 begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'android');
-  Result := TPath.Combine(Result, 'pre-built');
+  Result := TPath.Combine(
+    TPath.Combine(TBuilderPaths.GetPythonFMXBuilderDir(), 'android'),
+    'pre-built');
   case AArchitecture of
     TArchitecture.arm: Result := TPath.Combine(Result, 'arm');
     TArchitecture.aarch64: Result := TPath.Combine(Result, 'aarch64');
@@ -181,7 +194,7 @@ end;
 
 class function TBuilderPaths.GetPythonFolder: string;
 begin
-  Result := TPath.Combine(ExtractFilePath(ParamStr(0)), 'python');
+  Result := TPath.Combine(GetPythonFMXBuilderDir(), 'python');
 end;
 
 class function TBuilderPaths.GetPythonInterpreterFiles(
@@ -274,6 +287,11 @@ begin
   Result := TPath.Combine(TBuilderPaths.GetPythonFolder(), 'distributions');
 end;
 
+class function TBuilderPaths.GetPythonFMXBuilderDir: string;
+begin
+  Result := ExtractFilePath(ParamStr(0));
+end;
+
 class function TBuilderPaths.GetRpycPackagePath: string;
 begin
   Result := TPath.Combine(TBuilderPaths.GetPythonDependenciesFolder(), 'rpyc.zip');
@@ -290,6 +308,16 @@ begin
     TPath.Combine(
       TPath.GetDocumentsPath(), 'PythonFMXBuilder'),
     'data');
+end;
+
+class function TBuilderPaths.GetToolInstallationFolder(
+  const AToolInfo: TToolInfo): string;
+begin
+  Result := TPath.Combine(
+    TBuilderPaths.GetToolsInstallationBaseFolder(),
+    AToolInfo.Name
+      + '-'
+      + AToolInfo.Version);
 end;
 
 class function TBuilderPaths.UntitledProject(
@@ -344,6 +372,11 @@ end;
 class function TBuilderPaths.GetRemServerScriptPath: string;
 begin
   Result := TPath.Combine(TBuilderPaths.GetPythonScriptsFolder(), 'remserver.py');
+end;
+
+class function TBuilderPaths.GetToolsInstallationBaseFolder: string;
+begin
+  Result := TPath.Combine(TBuilderPaths.GetPythonFMXBuilderDir(), 'tools');
 end;
 
 { TBuilderUnboundPaths }
@@ -407,6 +440,43 @@ class function TBuilderRemotePaths.GetAppFilesPath(
   const APackageName: string): string;
 begin
   Result := Format('/data/data/%s/files', [APackageName]);
+end;
+
+{ TAndroidToolsPathLocator }
+
+class function TAndroidToolsPathLocator.FindSdkApiLocation(
+  const ABasePath: string): string;
+begin
+  var LPlatforms := TPath.Combine(ABasePath, 'platforms');
+  var LFolders := TDirectory.GetDirectories(
+    LPlatforms, 'android-*', TSearchOption.soTopDirectoryOnly, nil);
+
+  Result := String.Empty;
+  if Length(LFolders) > 0 then begin
+    var LGreater := 0;
+    for var LFolder in LFolders do begin
+      var LAndroid :=
+        TPath.GetFileName(ExcludeTrailingPathDelimiter(LFolder))
+          .Replace('android-', String.Empty, []);
+
+      var LApi := 0;
+      if TryStrToInt(LAndroid, LApi) then
+        if (LApi > LGreater) then begin
+          LGreater := LApi;
+          Result := LFolder;
+        end;
+    end;
+  end;
+end;
+
+class function TAndroidToolsPathLocator.FindToolPath(const ABasePath,
+  ATool: string): string;
+begin
+  var LFiles := TDirectory.GetFiles(ABasePath, ATool, TSearchOption.soAllDirectories, nil);
+  if Length(LFiles) > 0 then
+    Result := LFiles[0]
+  else
+    Result := String.Empty;
 end;
 
 end.

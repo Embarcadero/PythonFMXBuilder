@@ -64,6 +64,21 @@ type
 
   EPythonDistributionNotFound = class(EBuilderError);
 
+  EOperationCancelled = class(EBuilderError);
+
+  EOperationFailed = class(EBuilderError);
+
+  // Tools intaller
+  EToolInsaller = class(EBuilderError);
+
+  EUnknownTool = class(EToolInsaller);
+
+  EDownloadToolFailed = class(EToolInsaller);
+
+  EMissingTool = class(EToolInsaller);
+
+  EInstallInProgress = class(EToolInsaller);
+
 implementation
 
 end.

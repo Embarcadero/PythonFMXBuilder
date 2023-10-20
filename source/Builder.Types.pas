@@ -3,10 +3,14 @@ unit Builder.Types;
 interface
 
 uses
-  System.SysUtils, System.Rtti;
+  System.SysUtils, System.Rtti, System.Types, System.Generics.Collections;
 
 type
   {$SCOPEDENUMS ON}
+  TEnvironmentType = (
+    Android
+  );
+
   TPythonVersion = (
     cp38,
     cp39,
@@ -96,6 +100,36 @@ type
     property ActiveLine: integer read GetActiveLine write SetActiveLine;
     property ShowActiveLine: boolean read GetShowActiveLine write SetShowActiveLine;
   end;
+
+  //Tools
+  PToolInfo = ^TToolInfo;
+  TToolInfo = record
+    Name: string;
+    Description: string;
+    Version: string;
+    // The download URL
+    Url: string;
+    // Terms of use (License Agreement)
+    TermsOfUse: string;
+    // Installation arguments
+    Args: TArray<string>;
+    // Dependencies
+    Requires: array of PToolInfo;
+    // Installer class name
+    Installer: string
+  end;
+
+  TToolInstallationProgressInfo = record
+    ToolInfo: PToolInfo;
+    CurrentAction: string;
+    Size: Int64;
+    Step: Int64;
+  end;
+
+  TToolInstallationProgress = reference to procedure(const ATool: PToolInfo;
+    const ACurrentAction: string; const ATotal, AStep: Int64);
+
+  TInstallingTools = TArray<TPair<PToolInfo, IAsyncResult>>;
 
 implementation
 

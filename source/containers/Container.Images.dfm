@@ -1314,6 +1314,32 @@ object ImageContainer: TImageContainer
               'led-file-32.png'
           end>
         Name = 'filled-file'
+      end
+      item
+        MultiResBitmap.Height = 32
+        MultiResBitmap.Width = 32
+        MultiResBitmap = <
+          item
+            Width = 32
+            Height = 32
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000020000000200806000000737A7A
+              F4000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              0126494441545847ED963DAA02311485D5DECE9F25682516DA59298ABD566EE0
+              35362EE4E12E6CC405082AD8DB2816766EC0DF4E9E88EF1CB9B110A7C85C2223
+              24F01148B8E79CDC0C616231DDE8A3FC572391D014A33605321A0D6D008DF7A3
+              D607F01DF01DF01DF01D8844073678920FC20E734BFDC0070BB4B1450FE3B764
+              07BAE0473863CE3B0C9083363D8C5F8F012660281C1D9A1B697A18BF5924BE81
+              0F1C3AD8C277E0EB3A50C46D8E41F6CDAD726D0E2A361F956D07B6104F83E94B
+              089A732D09D62E03F011A983AB18F2979CD09C6BDC3BB90C40ED3DA8820B6808
+              3731E79ED5B0BD0223CED7AC0956420D33DF78EB1136008D6858164299534413
+              80F57F82F5C94D813640686353187F5158C89D0ED4CAEF053A582E805290FE08
+              1B77C7D0E339FE014D5A490C51D3AAB50000000049454E44AE426082}
+            FileName = 
+              'C:\Development\Projects\GitHub\Delphi\PythonFMXBuilder\icons\ins' +
+              'tall-32.png'
+          end>
+        Name = 'install'
       end>
     Destination = <
       item
@@ -1594,6 +1620,14 @@ object ImageContainer: TImageContainer
         Layers = <
           item
             Name = 'filled-file'
+            SourceRect.Right = 32.000000000000000000
+            SourceRect.Bottom = 32.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'install'
             SourceRect.Right = 32.000000000000000000
             SourceRect.Bottom = 32.000000000000000000
           end>
