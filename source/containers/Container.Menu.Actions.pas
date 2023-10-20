@@ -17,7 +17,7 @@ uses
   Builder.Messagery,
   Builder.Types,
   Builder.Model.Project,
-  Builder.Model.Environment,
+  Builder.Model.Environment.Android,
   Builder.Services,
   Builder.Model;
 
@@ -60,6 +60,7 @@ type
     actSmartDeployCurrentProjectAsync: TAction;
     actSmartRunCurrentProjectAsync: TAction;
     actSmartDebugCurrentProjectAsync: TAction;
+    actInstallItToolsManager: TAction;
     procedure actUpdateEnvironmentExecute(Sender: TObject);
     procedure actUpdateCurrentProjectExecute(Sender: TObject);
     procedure actBuildCurrentProjectExecute(Sender: TObject);
@@ -87,6 +88,7 @@ type
     procedure actSmartDeployCurrentProjectAsyncExecute(Sender: TObject);
     procedure actSmartRunCurrentProjectAsyncExecute(Sender: TObject);
     procedure actSmartDebugCurrentProjectAsyncExecute(Sender: TObject);
+    procedure actInstallItToolsManagerExecute(Sender: TObject);
   private
     //Async control
     FLoadingProject: integer;
@@ -97,7 +99,7 @@ type
     //Models
     FProjectModel: TProjectModel;
     //Services
-    FEnvironmentServices: IEnvironmentServices;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
     FProjectServices: IProjectServices;
     FAppServices: IAppServices;
     FEditorServices: IEditorServices;
@@ -142,7 +144,7 @@ begin
   inherited;
   FProjectServices := TBuilderService.CreateService<IProjectServices>;
   FAppServices := TBuilderService.CreateService<IAppServices>;
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
   FBuilderServices := TBuilderService.CreateService<IBuildServices>;
   FDebuggerServices := TBuilderService.CreateService<IDebugServices>;
   FEditorServices := TBuilderService.CreateService<IEditorServices>;
@@ -234,6 +236,17 @@ begin
     AProxy.BuildActiveProject();
     AProxy.DeployActiveProject();
   end);
+end;
+
+procedure TMenuActionsContainer.actInstallItToolsManagerExecute(
+  Sender: TObject);
+begin
+  var LForm := TFormSimpleFactory.CreateInstallIt();
+  try
+    LForm.ShowModal();
+  finally
+    LForm.Free();
+  end;
 end;
 
 procedure TMenuActionsContainer.actlMenuUpdate(Action: TBasicAction;

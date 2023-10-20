@@ -9,7 +9,7 @@ uses
   Builder.Types,
   Builder.Messagery,
   Builder.Model.Project,
-  Builder.Model.Environment,
+  Builder.Model.Environment.Android,
   Builder.Services,
   Builder.Model;
 
@@ -21,10 +21,10 @@ type
     FAsync: boolean;
     //Models
     FProjectModel: TProjectModel;
-    FEnvironmentModel: TEnvironmentModel;
+    FEnvironmentModel: TAndroidEnvironmentModel;
     //Services
     FProjectServices: IProjectServices;
-    FEnvironmentServices: IEnvironmentServices;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
     FAppServices: IAppServices;
     FAdbServices: IAdbServices;
     //Events
@@ -88,7 +88,7 @@ uses
 constructor TBuildService.Create;
 begin
   inherited;
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
   FProjectServices := TBuilderService.CreateService<IProjectServices>;
   FAppServices := TBuilderService.CreateService<IAppServices>;
   FAdbServices := TBuilderService.CreateService<IADBServices>;

@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.ListBox, FMX.Layouts, System.Threading,
-  Builder.Services, Builder.Messagery;
+  Builder.Services, Builder.Messagery, Builder.Model.Environment.Android;
 
 type
   TDeviceFrame = class(TFrame)
@@ -20,7 +20,7 @@ type
     FRunning: boolean;
     FUpdate: boolean;
     FDevices: TStrings;
-    FEnvironmentServices: IEnvironmentServices;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
     FAdbServices: IAdbServices;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
@@ -47,7 +47,7 @@ begin
   inherited;
   FUpdate := true;
   FDevices := TStringList.Create();
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
   FAdbServices := TBuilderService.CreateService<IADBServices>;
   StartDevicesMonitor();
 

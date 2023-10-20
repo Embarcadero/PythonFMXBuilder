@@ -14,8 +14,10 @@ type
     function GetBasePath(): string; //Internal models path
     function GetEntityPath(const AEntity: string): string; //Internal entity path
     function GetModelName(const ATypeInfo: PTypeInfo): string;
+    function GetModelId(const ATypeInfo: PTypeInfo): string;
     function GetModelPath(const AEntity, AModel: string): string;
     function MakeModelName(const ATypeInfo: PTypeInfo): string;
+    function MakeModelId(const ATypeInfo: PTypeInfo): string;
 
     function GetModelFileName(const ATypeInfo: PTypeInfo;
       const AModel: TObject; const AFileName: string = ''): string;
@@ -73,7 +75,22 @@ begin
     var LRttiType := LRttiCtx.GetType(ATypeInfo);
     var LAttrib := LRttiType.GetAttribute<ModelAttribute>();
     if Assigned(LAttrib) then
-      Result := LAttrib.ModelName
+      Result := LAttrib.Name
+    else
+      Result := String.Empty;
+  finally
+    LRttiCtx.Free();
+  end;
+end;
+
+function TJsonStorage<ModelType>.GetModelId(const ATypeInfo: PTypeInfo): string;
+begin
+  var LRttiCtx := TRttiContext.Create();
+  try
+    var LRttiType := LRttiCtx.GetType(ATypeInfo);
+    var LAttrib := LRttiType.GetAttribute<ModelAttribute>();
+    if Assigned(LAttrib) then
+      Result := LAttrib.Id
     else
       Result := String.Empty;
   finally
@@ -83,7 +100,15 @@ end;
 
 function TJsonStorage<ModelType>.GetModelPath(const AEntity, AModel: string): string;
 begin
-  Result := ChangeFileExt(TPath.Combine(GetEntityPath(AEntity), AModel), '.json');
+  Result := TPath.Combine(GetEntityPath(AEntity), AModel + '.json');
+end;
+
+function TJsonStorage<ModelType>.MakeModelId(
+  const ATypeInfo: PTypeInfo): string;
+begin
+  Result := GetModelId(ATypeInfo);
+  if Result.IsEmpty then
+    Result := ATypeInfo^.TypeData^.ClassType.ClassName;
 end;
 
 function TJsonStorage<ModelType>.MakeModelName(const ATypeInfo: PTypeInfo): string;
@@ -122,8 +147,7 @@ begin
   end;
 
   //By internal path
-  Result := MakeModelName(ATypeInfo);
-  Result := GetModelPath(Result, Result);
+  Result := GetModelPath(MakeModelName(ATypeInfo), MakeModelId(ATypeInfo));
 end;
 
 procedure TJsonStorage<ModelType>.SetModelFileName(const ATypeInfo: PTypeInfo;

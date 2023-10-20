@@ -9,14 +9,14 @@ uses
   PyTools.ExecCmd,
   Builder.Messagery,
   Builder.Services,
-  Builder.Model.Environment;
+  Builder.Model.Environment.Android;
 
 type
   TADBService = class(TInterfacedObject, IADBServices)
   private
     class var FActiveDevice: string;
   private
-    FEnvironmentServices: IEnvironmentServices;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
 
     function ExecCmd(const ACmd: string; const AArgs, AEnv: TArray<string>; out AOutput: string): integer; overload;
     function ExecCmd(const ACmd: string; const AArgs, AEnv: TArray<string>): integer; overload;
@@ -28,7 +28,7 @@ type
     procedure EnumDevices(const ADeviceList: TStrings; const AProc: TProc<string>);
     function FindDeviceVendorModel(const AAdbPath, ADevice: string): string;
 
-    function GetEnvironment(): TEnvironmentModel;
+    function GetEnvironment(): TAndroidEnvironmentModel;
 
     procedure SetActiveDevice(const ADeviceName: string);
     function GetActiveDevice(): string;
@@ -84,7 +84,7 @@ uses
 constructor TADBService.Create;
 begin
   inherited;
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
 end;
 
 destructor TADBService.Destroy;
@@ -337,7 +337,7 @@ begin
   Result := Result.Replace(sLineBreak, String.Empty, [rfReplaceAll]);
 end;
 
-function TADBService.GetEnvironment: TEnvironmentModel;
+function TADBService.GetEnvironment: TAndroidEnvironmentModel;
 begin
   FEnvironmentServices.CheckActiveEnvironment();
   Result := FEnvironmentServices.GetActiveEnvironment();
