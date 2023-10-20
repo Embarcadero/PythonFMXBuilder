@@ -11,7 +11,7 @@ uses
   Builder.Messagery,
   Builder.Services,
   Builder.Model.Project,
-  Builder.Model.Environment,
+  Builder.Model.Environment.Android,
   BaseProtocol,
   BaseProtocol.Json,
   BaseProtocol.Types,
@@ -25,10 +25,10 @@ type
   private
     //Models
     FProjectModel: TProjectModel;
-    FEnvironmentModel: TEnvironmentModel;
+    FEnvironmentModel: TAndroidEnvironmentModel;
     //Services
     FProjectServices: IProjectServices;
-    FEnvironmentServices: IEnvironmentServices;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
     FAppServices: IAppServices;
     FAdbServices: IAdbServices;
     //DAP Debugger
@@ -119,7 +119,7 @@ begin
   FCurrentStoppedThreadId := 0;
   FConnectionStatus := TDebuggerConnectionStatus.OutOfWork;
   FProjectServices := TBuilderService.CreateService<IProjectServices>;
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
   FAppServices := TBuilderService.CreateService<IAppServices>;
   FAdbServices := TBuilderService.CreateService<IADBServices>;
   FDebugger := TBaseProtocolClientSocket.Create();

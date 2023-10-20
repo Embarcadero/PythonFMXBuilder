@@ -6,14 +6,14 @@ uses
   System.SysUtils,
   Builder.Types,
   Builder.Services,
-  Builder.Model.Environment;
+  Builder.Model.Environment.Android;
 
 type
   TUnboundPythonService = class(TInterfacedObject, IUnboundPythonServices)
   private
     FAdbServices: IAdbServices;
-    FEnvironmentServices: IEnvironmentServices;
-    FEnvironmentModel: TEnvironmentModel;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
+    FEnvironmentModel: TAndroidEnvironmentModel;
   public
     constructor Create();
     destructor Destroy(); override;
@@ -42,7 +42,7 @@ constructor TUnboundPythonService.Create;
 begin
   inherited;
   FAdbServices := TBuilderService.CreateService<IADBServices>;
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
   FEnvironmentModel := FEnvironmentServices.GetActiveEnvironment();
 end;
 

@@ -40,11 +40,14 @@ type
 
   ModelAttribute = class(TCustomAttribute)
   private
-    FModelName: string;
+    FName: string;
+    FId: string;
   public
-    constructor Create(const AModelName: string); overload;
+    constructor Create(const AName: string); overload;
+    constructor Create(const AName, AId: string); overload;
 
-    property ModelName: string read FModelName write FModelName;
+    property Name: string read FName write FName;
+    property Id: string read FId write FId;
   end;
 
   JSONOwnedReflectAttribute = class(JsonReflectAttribute)
@@ -75,10 +78,16 @@ end;
 
 { ModelAttribute }
 
-constructor ModelAttribute.Create(const AModelName: string);
+constructor ModelAttribute.Create(const AName, AId: string);
 begin
   inherited Create();
-  FModelName := AModelName;
+  FName := AName;
+  FId := AId;
+end;
+
+constructor ModelAttribute.Create(const AName: string);
+begin
+  Create(AName, AName);
 end;
 
 { JSONOwnedReflectAttribute }

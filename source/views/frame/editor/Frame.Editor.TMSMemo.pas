@@ -8,7 +8,7 @@ uses
   FMX.Dialogs, FMX.StdCtrls, FMX.TMSBaseControl, FMX.TMSMemo, FMX.Controls.Presentation,
   Frame.Editor.TabItem, Builder.Messagery, BaseProtocol, BaseProtocol.Types,
   BaseProtocol.Events, BaseProtocol.Requests, BaseProtocol.Client,
-  Builder.Types, Builder.Model.Environment, Builder.Services;
+  Builder.Types, Builder.Model.Environment.Android, Builder.Services;
 
 type
   TTMSMemoEditorFrame = class(TFrame, ITextEditor)
@@ -19,7 +19,7 @@ type
   private
     FFileName: string;
     FModified: boolean;
-    FEnvironmentServices: IEnvironmentServices;
+    FEnvironmentServices: IEnvironmentServices<TAndroidEnvironmentModel>;
     FProjectServices: IProjectServices;
     FDebugSessionStarted: IDisconnectable;
     FDebugSessionStopped: IDisconnectable;
@@ -62,7 +62,7 @@ begin
   mmEditor.CaretColor := TAlphaColorRec.Whitesmoke;
 
   FProjectServices := TBuilderService.CreateService<IProjectServices>;
-  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices>;
+  FEnvironmentServices := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
 
   mmEditor.ActiveLineSettings.ActiveLineAtCursor := false;
 

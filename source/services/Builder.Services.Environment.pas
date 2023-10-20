@@ -9,22 +9,25 @@ uses
   System.Types,
   Builder.Types,
   Builder.Services,
-  Builder.Model.Environment;
+  Builder.Model.Environment,
+  Builder.Model.Environment.Android;
 
 type
-  TEnvironmentService = class(TInterfacedObject, IEnvironmentServices)
+  TEnvironmentService<T: TEnvironmentModel> = class(TInterfacedObject, IEnvironmentServices<T>)
   private
-    class var FActiveEnvironment: TEnvironmentModel;
+    class var FActiveEnvironment: T; //Android only by now
   private
     class destructor Destroy();
   public
-    procedure SaveEnvironment(const AEnvironment: TEnvironmentModel);
-    function LoadEnvironment(): TEnvironmentModel;
+    function CreateEnvironment(): T;
+
+    procedure SaveEnvironment(const AEnvironment: T);
+    function LoadEnvironment(): T;
     procedure UnLoadEnvironment();
 
     function HasActiveEnvironment(): boolean;
-    function GetActiveEnvironment(): TEnvironmentModel;
     procedure CheckActiveEnvironment();
+    function GetActiveEnvironment(): T;
   end;
 
 implementation
@@ -33,49 +36,56 @@ uses
   Builder.Exception,
   Builder.Storage.Default;
 
-{ TEnvironmentService }
+{ TEnvironmentService<T> }
 
-procedure TEnvironmentService.CheckActiveEnvironment;
+class destructor TEnvironmentService<T>.Destroy;
+begin
+  FActiveEnvironment.Free();
+end;
+
+function TEnvironmentService<T>.CreateEnvironment: T;
+begin
+  Result := TEnvironmentModelClass(T).Create() as T;
+end;
+
+procedure TEnvironmentService<T>.SaveEnvironment(
+  const AEnvironment: T);
+begin
+  var LStorage := TDefaultStorage<T>.Make();
+  LStorage.SaveModel(AEnvironment);
+end;
+
+function TEnvironmentService<T>.LoadEnvironment: T;
+begin
+  UnLoadEnvironment();
+  var LStorage := TDefaultStorage<T>.Make();
+  LStorage.LoadModel(FActiveEnvironment);
+  if not Assigned(FActiveEnvironment) then
+    FActiveEnvironment := CreateEnvironment();
+  Result := FActiveEnvironment;
+end;
+
+procedure TEnvironmentService<T>.UnLoadEnvironment;
+begin
+  FreeAndNil(FActiveEnvironment);
+end;
+
+function TEnvironmentService<T>.HasActiveEnvironment: boolean;
+begin
+  Result := Assigned(FActiveEnvironment);
+end;
+
+procedure TEnvironmentService<T>.CheckActiveEnvironment;
 begin
   if not Assigned(FActiveEnvironment) then
     raise EInvalidEnvironment.Create('No active environment.');
 end;
 
-class destructor TEnvironmentService.Destroy;
-begin
-  FActiveEnvironment.Free();
-end;
-
-function TEnvironmentService.GetActiveEnvironment: TEnvironmentModel;
+function TEnvironmentService<T>.GetActiveEnvironment: T;
 begin
   if not Assigned(FActiveEnvironment) then
     LoadEnvironment();
   Result := FActiveEnvironment;
-end;
-
-function TEnvironmentService.HasActiveEnvironment: boolean;
-begin
-  Result := Assigned(FActiveEnvironment);
-end;
-
-function TEnvironmentService.LoadEnvironment: TEnvironmentModel;
-begin
-  UnLoadEnvironment();
-  var LStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  LStorage.LoadModel(FActiveEnvironment);
-  Result := FActiveEnvironment;
-end;
-
-procedure TEnvironmentService.SaveEnvironment(
-  const AEnvironment: TEnvironmentModel);
-begin
-  var LStorage := TDefaultStorage<TEnvironmentModel>.Make();
-  LStorage.SaveModel(AEnvironment);
-end;
-
-procedure TEnvironmentService.UnLoadEnvironment;
-begin
-  FreeAndNil(FActiveEnvironment);
 end;
 
 end.

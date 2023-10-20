@@ -1,13 +1,17 @@
-unit Builder.Model.Environment;
+unit Builder.Model.Environment.Android;
 
 interface
 
 uses
-  System.SysUtils, System.Classes, REST.Json.Types, Builder.Model;
+  System.SysUtils,
+  System.Classes,
+  REST.Json.Types,
+  Builder.Model,
+  Builder.Model.Environment;
 
 type
-  [Model('environment'), JSONOwned, JSONOwnedReflect]
-  TEnvironmentModel = class(TModel)
+  [Model('environment', 'environment.android'), JSONOwned, JSONOwnedReflect]
+  TAndroidEnvironmentModel = class(TEnvironmentModel)
   private
     [JSONName('sdk_base_path')]
     FSdkBasePath: string;
@@ -35,7 +39,11 @@ type
     FRemoteDebuggerRoot: string;
   public
     function Validate(const AErrors: TStrings): boolean; override;
+
+    procedure UpdateJDKPaths(const AJDKBasePath: string);
+    procedure UpdateSDKPaths(const ASDKBasePath: string);
   public
+    constructor Create(); override;
     //SDK
     property SdkBasePath: string read FSdkBasePath write FSdkBasePath;
     property ApkSignerLocation: string read FApkSignerLocation write FApkSignerLocation;
@@ -53,26 +61,65 @@ type
     property RemoteDebuggerRoot: string read FRemoteDebuggerRoot write FRemoteDebuggerRoot;
   end;
 
-  TPathLocator = class
-  public
-    class function LoadToolPath(const ABasePath, ATool: string): string; static;
-    class function FindSdkApiLocation(const ABasePath: string): string; static;
-  end;
-
 implementation
 
 uses
-  System.IOUtils;
+  System.IOUtils,
+  Builder.Paths;
 
-{ TEnvironmentModel }
+{ TAndroidEnvironmentModel }
 
-function TEnvironmentModel.Validate(const AErrors: TStrings): boolean;
+constructor TAndroidEnvironmentModel.Create;
+begin
+  inherited;
+  FRemoteDebuggerHost := '127.0.0.1';
+  FRemoteDebuggerPort := 5678;
+  FRemoteDebuggerRoot := '/data/data/$(package_name)/files/';
+end;
+
+procedure TAndroidEnvironmentModel.UpdateJDKPaths(const AJDKBasePath: string);
+begin
+  FJdkBasePath := AJDKBasePath;
+  FKeyToolLocation := TAndroidToolsPathLocator.FindToolPath(AJDKBasePath,
+    {$IFDEF POSIX}'keytool'{$ELSE}'keytool.exe'{$ENDIF});
+  FJarSignerLocation := TAndroidToolsPathLocator.FindToolPath(AJDKBasePath,
+    {$IFDEF POSIX}'jarsigner'{$ELSE}'jarsigner.exe'{$ENDIF});
+end;
+
+procedure TAndroidEnvironmentModel.UpdateSDKPaths(const ASDKBasePath: string);
+begin
+  FSdkBasePath := ASDKBasePath;
+  FSdkApiLocation := TAndroidToolsPathLocator.FindSdkApiLocation(ASDKBasePath);
+  FApkSignerLocation := TAndroidToolsPathLocator.FindToolPath(ASDKBasePath,
+      'apksigner.jar');
+  FAdbLocation := TAndroidToolsPathLocator.FindToolPath(ASDKBasePath,
+      {$IFDEF POSIX}'adb'{$ELSE}'adb.exe'{$ENDIF});
+  FAAptLocation := TAndroidToolsPathLocator.FindToolPath(ASDKBasePath,
+      {$IFDEF POSIX}'aapt'{$ELSE}'aapt.exe'{$ENDIF});
+  FZipAlignLocation := TAndroidToolsPathLocator.FindToolPath(ASDKBasePath,
+      {$IFDEF POSIX}'zipalign'{$ELSE}'zipalign.exe'{$ENDIF});
+end;
+
+function TAndroidEnvironmentModel.Validate(const AErrors: TStrings): boolean;
 begin
   AErrors.Clear();
 
   {|||||| CHECK FOR PATHS |||||||}
+
+  if FJdkBasePath.Trim().IsEmpty() then
+    AErrors.Add('* The JDK base location can not be empty.');
+
+  if FKeyToolLocation.Trim().IsEmpty() then
+    AErrors.Add('* The KeyTool location can not be empty.');
+
+  if FJarSignerLocation.Trim().IsEmpty() then
+    AErrors.Add('* The JAR signer location can not be empty.');
+
   if FSdkBasePath.Trim().IsEmpty() then
     AErrors.Add('* The SDK base location can not be empty.');
+
+  if FSdkApiLocation.Trim().IsEmpty() then
+    AErrors.Add('* The SDK API location can not be empty.');
 
   if FApkSignerLocation.Trim().IsEmpty() then
     AErrors.Add('* The APK signer location can not be empty.');
@@ -83,20 +130,8 @@ begin
   if FAAptLocation.Trim().IsEmpty() then
     AErrors.Add('* The AAPT location can not be empty.');
 
-  if FSdkApiLocation.Trim().IsEmpty() then
-    AErrors.Add('* The SDK API location can not be empty.');
-
   if FZipAlignLocation.Trim().IsEmpty() then
     AErrors.Add('* The ZipAlign location can not be empty.');
-
-  if FJdkBasePath.Trim().IsEmpty() then
-    AErrors.Add('* The JDK base location can not be empty.');
-
-  if FKeyToolLocation.Trim().IsEmpty() then
-    AErrors.Add('* The KeyTool location can not be empty.');
-
-  if FJarSignerLocation.Trim().IsEmpty() then
-    AErrors.Add('* The JAR signer location can not be empty.');
 
 
   {|||||| CHECK FOR VALID FILES |||||||}
@@ -120,6 +155,7 @@ begin
     AErrors.Add('* JARSigner tool not found.');
 
   {|||||| CHECK FOR DEBUGGER SETTINGS |||||||}
+
   if FRemoteDebuggerHost.Trim().IsEmpty() then
     AErrors.Add('* The remote debugger host can not be empty.');
 
@@ -130,42 +166,6 @@ begin
     AErrors.Add('* The remote debugger root path can not be empty.');
 
   Result := (AErrors.Count = 0);
-end;
-
-{ TPathLocator }
-
-class function TPathLocator.FindSdkApiLocation(const ABasePath: string): string;
-begin
-  var LPlatforms := TPath.Combine(ABasePath, 'platforms');
-  var LFolders := TDirectory.GetDirectories(
-    LPlatforms, 'android-*', TSearchOption.soTopDirectoryOnly, nil);
-
-  Result := String.Empty;
-  if Length(LFolders) > 0 then begin
-    var LGreater := 0;
-    for var LFolder in LFolders do begin
-      var LAndroid :=
-        TPath.GetFileName(ExcludeTrailingPathDelimiter(LFolder))
-          .Replace('android-', String.Empty, []);
-
-      var LApi := 0;
-      if TryStrToInt(LAndroid, LApi) then
-        if (LApi > LGreater) then begin
-          LGreater := LApi;
-          Result := LFolder;
-        end;
-    end;
-  end;
-end;
-
-class function TPathLocator.LoadToolPath(const ABasePath,
-  ATool: string): string;
-begin
-  var LFiles := TDirectory.GetFiles(ABasePath, ATool, TSearchOption.soAllDirectories, nil);
-  if Length(LFiles) > 0 then
-    Result := LFiles[0]
-  else
-    Result := String.Empty;
 end;
 
 end.

@@ -7,11 +7,11 @@ uses
   System.Threading, System.Generics.Collections, FMX.Types, FMX.Controls, FMX.Forms,
   FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Objects, FMX.ListBox, FMX.Ani,
   FMX.Controls.Presentation, FMX.Edit, FMX.Layouts, FMX.ImgList, System.Actions,
-  FMX.ActnList, Form.Data, Builder.Model.Environment, FMX.Effects,
+  FMX.ActnList, Form.Data, Builder.Model.Environment.Android, FMX.Effects,
   FMX.Filter.Effects;
 
 type
-  [Entity(TEnvironmentModel)]
+  [Entity(TAndroidEnvironmentModel)]
   TEnvironmentForm = class(TDataForm)
     lbghSdkttings: TListBoxGroupHeader;
     lbiSdkBasePath: TListBoxItem;
@@ -68,6 +68,8 @@ type
   protected
     procedure FormUpdate(); override;
     procedure ModelUpdate(); override;
+  public
+    class procedure CheckAndUpdateAndroidEnvironment();
   end;
 
 var
@@ -77,7 +79,11 @@ implementation
 
 uses
   System.IOUtils,
-  Container.Images;
+  FMX.DialogService,
+  Container.Images,
+  Builder.Paths,
+  Builder.Services,
+  Form.Factory;
 
 {$R *.fmx}
 
@@ -192,7 +198,7 @@ begin
     Exit;
 
   LoadEditContent(AEdit, function(): string begin
-    Result := TPathLocator.LoadToolPath(ABasePath, ATool);
+    Result := TAndroidToolsPathLocator.FindToolPath(ABasePath, ATool);
   end);
 end;
 
@@ -208,7 +214,7 @@ begin
 
   if edtSdkApiLocation.Text.IsEmpty() then
     LoadEditContent(edtSdkAPILocation, function(): string begin
-      Result := TPathLocator.FindSdkApiLocation(ABasePath);
+      Result := TAndroidToolsPathLocator.FindSdkApiLocation(ABasePath);
     end);
 end;
 
@@ -227,7 +233,7 @@ end;
 
 procedure TEnvironmentForm.FormUpdate;
 begin
-  with Model as TEnvironmentModel do begin
+  with Model as TAndroidEnvironmentModel do begin
     edtSdkBasePath.Text := SdkBasePath;
     edtApkSigner.Text := ApkSignerLocation;
     edtAdbLocation.Text := AdbLocation;
@@ -245,7 +251,7 @@ end;
 
 procedure TEnvironmentForm.ModelUpdate;
 begin
-  with Model as TEnvironmentModel do begin
+  with Model as TAndroidEnvironmentModel do begin
     SdkBasePath := edtSdkBasePath.Text;
     ApkSignerLocation := edtApkSigner.Text;
     AdbLocation := edtAdbLocation.Text;
@@ -266,5 +272,72 @@ begin
       RemoteDebuggerRoot := '/data/data/$(package_name)/files/';
   end;
 end;
+
+class procedure TEnvironmentForm.CheckAndUpdateAndroidEnvironment;
+begin
+  // Check if the Environment entity has been configured and is valid
+  var LEnvironmentService := TBuilderService.CreateService<IEnvironmentServices<TAndroidEnvironmentModel>>;
+  var LEnvironmentEntity := LEnvironmentService.GetActiveEnvironment();
+  var LErrors := TStringList.Create();
+  try
+    if LEnvironmentEntity.Validate(LErrors) then
+      Exit();
+  finally
+    LErrors.Free();
+  end;
+
+  // Ask user to install the Android tools
+  TDialogService.MessageDialog(
+    'It seems the Android Environment is not ready. Would you like to update it now?',
+    TMsgDlgType.mtConfirmation,
+    [TMsgDlgBtn.mbNo, TMsgDlgBtn.mbYes],
+    TMsgDlgBtn.mbYes,
+    0,
+    procedure(const AResult: TModalResult) begin
+      if not (AResult = mrYes) then
+        Exit;
+
+      // Check if tools are installed
+      var LShouldInstall := false;
+      var LMissingTools := TBuilderService.CreateService<IToolInstallServices>.GetMissingTools();
+      for var LTool in LMissingTools do begin
+        if (LTool.Name = 'jdk') or (LTool.Name = 'sdk') then
+          LShouldInstall := true;
+      end;
+
+      // Show user the available tools
+      if LShouldInstall then begin
+        var LInstallIt := TFormSimpleFactory.CreateInstallIt();
+        try
+          LInstallIt.ShowModal();
+        finally
+          LInstallIt.Free();
+        end;
+      end;
+
+      // Check if the JDK and SDK has been installed
+      var LAllInstalled := true;
+      LMissingTools := TBuilderService.CreateService<IToolInstallServices>.GetMissingTools();
+      for var LTool in LMissingTools do begin
+        if (LTool.Name = 'jdk') or (LTool.Name = 'sdk') then
+          LAllInstalled := false;
+      end;
+
+      if not LAllInstalled then
+        raise Exception.Create('The required tools have not been installed.');
+
+      // Update the Environment entity
+      var LTools := TBuilderService.CreateService<IToolInstallServices>.GetTools();
+      for var LTool in LTools do
+        if (LTool.Name = 'jdk') then
+          LEnvironmentEntity.UpdateJDKPaths(TBuilderPaths.GetToolInstallationFolder(LTool^))
+        else if (LTool.Name = 'sdk') then
+          LEnvironmentEntity.UpdateSDKPaths(TBuilderPaths.GetToolInstallationFolder(LTool^));
+      LEnvironmentService.SaveEnvironment(LEnvironmentEntity);
+
+      ShowMessage('The Android environment has been updated!');
+    end);
+end;
+
 
 end.

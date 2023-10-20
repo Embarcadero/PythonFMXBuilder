@@ -15,15 +15,29 @@ uses
   Builder.Model.Environment;
 
 type
-  IEnvironmentServices = interface
+  IEnvironmentServices<T: TEnvironmentModel> = interface
     ['{2E79F36D-7BD5-4141-A567-066B80BEF012}']
-    procedure SaveEnvironment(const AEnvironment: TEnvironmentModel);
-    function LoadEnvironment(): TEnvironmentModel;
+    function CreateEnvironment(): T;
+    procedure SaveEnvironment(const AEnvironment: T);
+
+    function LoadEnvironment(): T;
     procedure UnLoadEnvironment();
 
     function HasActiveEnvironment(): boolean;
-    function GetActiveEnvironment(): TEnvironmentModel;
     procedure CheckActiveEnvironment();
+    function GetActiveEnvironment(): T;
+  end;
+
+  IToolInstallServices = interface
+    ['{9B79DC11-1A78-4421-90A7-47A693C0CAB2}']
+    function GetTools(): TArray<PToolInfo>;
+    function GetMissingTools(): TArray<PToolInfo>;
+    function GetInstallingTools(): TInstallingTools;
+
+    function IsInstalled(const ATool: PToolInfo): boolean;
+    function Install(const ATool: PToolInfo;
+      const AProgress: TToolInstallationProgress = nil;
+      const ACallback: TAsyncCallback = nil): IAsyncResult;
   end;
 
   IAdbServices = interface
