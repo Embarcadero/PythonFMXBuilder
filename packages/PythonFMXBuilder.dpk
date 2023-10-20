@@ -36,7 +36,7 @@ requires
   p4dtools;
 
 contains
-  Builder.Model.Environment in '..\source\models\Builder.Model.Environment.pas',
+  Builder.Model.Environment in '..\source\models\environment\Builder.Model.Environment.pas',
   Builder.Model in '..\source\models\Builder.Model.pas',
   Builder.Model.Project.Files in '..\source\models\project\Builder.Model.Project.Files.pas',
   Builder.Model.Project.Icon in '..\source\models\project\Builder.Model.Project.Icon.pas',
@@ -62,7 +62,15 @@ contains
   Builder.Message in '..\source\message\Builder.Message.pas',
   Builder.Messagery in '..\source\Builder.Messagery.pas',
   Builder.Message.Event in '..\source\message\Builder.Message.Event.pas',
-  Builder.Message.Request in '..\source\message\Builder.Message.Request.pas';
+  Builder.Message.Request in '..\source\message\Builder.Message.Request.pas',
+  Builder.Services.Tools.Install in '..\source\services\tools\Builder.Services.Tools.Install.pas',
+  Builder.Services.Tools.Installer in '..\source\services\tools\installer\Builder.Services.Tools.Installer.pas',
+  Builder.Services.Tools.Installer.DownloadAndExtract in '..\source\services\tools\installer\Builder.Services.Tools.Installer.DownloadAndExtract.pas',
+  Builder.Services.Tools.Installer.JDK in '..\source\services\tools\installer\Builder.Services.Tools.Installer.JDK.pas',
+  Builder.Services.Tools.Installer.SDK in '..\source\services\tools\installer\Builder.Services.Tools.Installer.SDK.pas',
+  Builder.Services.Tools.Installer.Factory in '..\source\services\tools\installer\Builder.Services.Tools.Installer.Factory.pas',
+  Builder.Model.Environment.Android in '..\source\models\environment\Builder.Model.Environment.Android.pas';
 
 end.
+
 
