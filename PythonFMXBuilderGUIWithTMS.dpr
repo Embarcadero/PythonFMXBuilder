@@ -37,7 +37,9 @@ uses
   Frame.Editor.Control in 'source\views\frame\editor\Frame.Editor.Control.pas' {EditorControlFrame: TFrame},
   Container.DataSet.Debugger in 'source\containers\Container.DataSet.Debugger.pas' {DebuggerDataSetContainer: TDataModule},
   Frame.SaveButtons in 'source\views\frame\Frame.SaveButtons.pas' {SaveButtonsFrame: TFrame},
-  Container.Styles in 'source\containers\Container.Styles.pas' {StyleContainer: TDataModule};
+  Container.Styles in 'source\containers\Container.Styles.pas' {StyleContainer: TDataModule},
+  Form.Installit in 'source\views\Form.Installit.pas' {InstallItForm},
+  Builder.Model.Environment.Android in 'source\models\environment\Builder.Model.Environment.Android.pas';
 
 {$R *.res}
 
