@@ -126,6 +126,7 @@ end;
 
 procedure TDeviceFrame.StartDevicesMonitor;
 begin
+  aiDevice.Visible := false;
   FRunning := true;
   FDevicesMonitor := TThread.CreateAnonymousThread(procedure begin
     try
