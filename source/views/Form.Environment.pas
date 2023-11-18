@@ -294,13 +294,13 @@ begin
     TMsgDlgBtn.mbYes,
     0,
     procedure(const AResult: TModalResult) begin
-      if not (AResult = mrYes) then
+      if (AResult <> mrYes) then
         Exit;
 
       // Check if tools are installed
       var LShouldInstall := false;
-      var LMissingTools := TBuilderService.CreateService<IToolInstallServices>.GetMissingTools();
-      for var LTool in LMissingTools do begin
+      var LInstallItService := TBuilderService.CreateService<IInstallItServices>;
+      for var LTool in LInstallItService.GetMissingTools() do begin
         if (LTool.Name = 'jdk') or (LTool.Name = 'sdk') then
           LShouldInstall := true;
       end;
@@ -317,8 +317,7 @@ begin
 
       // Check if the JDK and SDK has been installed
       var LAllInstalled := true;
-      LMissingTools := TBuilderService.CreateService<IToolInstallServices>.GetMissingTools();
-      for var LTool in LMissingTools do begin
+      for var LTool in LInstallItService.GetMissingTools() do begin
         if (LTool.Name = 'jdk') or (LTool.Name = 'sdk') then
           LAllInstalled := false;
       end;
@@ -327,8 +326,7 @@ begin
         raise Exception.Create('The required tools have not been installed.');
 
       // Update the Environment entity
-      var LTools := TBuilderService.CreateService<IToolInstallServices>.GetTools();
-      for var LTool in LTools do
+      for var LTool in LInstallItService.GetTools() do
         if (LTool.Name = 'jdk') then
           LEnvironmentEntity.UpdateJDKPaths(TBuilderPaths.GetToolInstallationFolder(LTool^))
         else if (LTool.Name = 'sdk') then

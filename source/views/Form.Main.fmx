@@ -73,6 +73,7 @@ inherited MainForm: TMainForm
                 1402s
                 161s)
               inherited tiBottomPanelDebugEvents: TTabItem
+                Size.Width = 55.000000000000000000
                 Size.Height = 24.000000000000000000
                 ExplicitSize.cx = 62.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
@@ -88,8 +89,8 @@ inherited MainForm: TMainForm
                   inherited grdEvents: TGrid
                     Size.Width = 1402.000000000000000000
                     Size.Height = 121.000000000000000000
-                    Viewport.Width = 1382.000000000000000000
-                    Viewport.Height = 80.000000000000000000
+                    Viewport.Width = 1398.000000000000000000
+                    Viewport.Height = 96.000000000000000000
                   end
                   inherited bsdbEvents: TBindSourceDB
                     Left = 24
@@ -102,6 +103,7 @@ inherited MainForm: TMainForm
                 end
               end
               inherited tiBottomPanelDebugBreakpoints: TTabItem
+                Size.Width = 83.000000000000000000
                 Size.Height = 24.000000000000000000
                 ExplicitSize.cx = 83.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
@@ -131,6 +133,7 @@ inherited MainForm: TMainForm
                 end
               end
               inherited tiBottomPanelDebugThreads: TTabItem
+                Size.Width = 62.000000000000000000
                 Size.Height = 24.000000000000000000
                 ExplicitSize.cx = 62.000000000000000000
                 ExplicitSize.cy = 26.000000000000000000
@@ -774,5 +777,12 @@ inherited MainForm: TMainForm
         ImageIndex = 36
       end
     end
+  end
+  object tmCheckTools: TTimer
+    Enabled = False
+    Interval = 2000
+    OnTimer = tmCheckToolsTimer
+    Left = 56
+    Top = 336
   end
 end

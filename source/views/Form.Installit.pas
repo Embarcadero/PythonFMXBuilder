@@ -7,7 +7,7 @@ uses
   System.Generics.Collections,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.ListBox, FMX.Layouts, FMX.Controls.Presentation,
-  Builder.Services;
+  Builder.Services, Builder.Message, Builder.Messagery;
 
 type
   TInstallItListBoxItem = class(TListBoxItem)
@@ -37,10 +37,16 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure cbAgreeChange(Sender: TObject);
     procedure lbPackagesChangeCheck(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
-    FToolsInstaller: IToolInstallServices;
+    FInstallItService: IInstallItServices;
+    FInstalling: TArray<IAsyncResult>;
     procedure UpdateComponents();
     procedure Install(const AItem: TListBoxItem);
+    function IsInstalling(): boolean;
+    procedure CancellAll();
+    procedure WaitForAll();
+    function AskUserToCancelAll(): boolean;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -53,6 +59,7 @@ var
 implementation
 
 uses
+  System.SyncObjs,
   System.Threading,
   FMX.DialogService,
   {$IFDEF MSWINDOWS}
@@ -69,7 +76,7 @@ type
   end;
 
 const
-  ITEM_REGULAR_HEIGHT = 50;
+  ITEM_REGULAR_HEIGHT = 60;
   ITEM_INSTALLING_HEIGHT = 90;
 
 {$R *.fmx}
@@ -79,6 +86,7 @@ const
 constructor TInstallItListBoxItem.Create(AOwner: TComponent);
 begin
   inherited;
+  // TODO: MUST MAKE THIS A STYLE
   FText := TLabel.Create(Self);
   FDetail := TLabel.Create(Self);
   FProgressLayout := TLayout.Create(Self);
@@ -156,7 +164,58 @@ end;
 constructor TInstallItForm.Create(AOwner: TComponent);
 begin
   inherited;
-  FToolsInstaller := TBuilderService.CreateService<IToolInstallServices>();
+  FInstallItService := TBuilderService.CreateService<IInstallItServices>();
+end;
+
+function TInstallItForm.IsInstalling: boolean;
+begin
+  Result := false;
+  for var LTool in FInstalling do
+    if not (LTool.IsCancelled or LTool.IsCompleted) then
+      Exit(true);
+end;
+
+procedure TInstallItForm.CancellAll;
+begin
+  for var LTask in FInstalling do
+    if not (LTask.IsCancelled or LTask.IsCompleted) then
+      LTask.Cancel();
+end;
+
+procedure TInstallItForm.WaitForAll;
+begin
+  // TODO: SHOW ANI HERE
+  for var LTask in FInstalling do
+    try
+      FInstallItService.EndInstall(LTask);
+    except
+      //
+    end;
+
+  TThread.RemoveQueuedEvents(Pointer(Self));
+end;
+
+function TInstallItForm.AskUserToCancelAll: boolean;
+begin
+  var LResult := false;
+  TDialogService.MessageDialog('Do you want to cancel all running tasks?',
+    TMsgDlgType.mtConfirmation,
+    [TMsgDlgBtn.mbNo, TMsgDlgBtn.mbYes],
+    TMsgDlgBtn.mbNo,
+    0,
+    procedure(const AResult: TModalResult) begin
+      if AResult <> mrYes then
+        Exit;
+
+      ShowMessage('Cancelling operations. It can take a while...');
+
+      CancellAll();
+      WaitForAll();
+
+      LResult := true;
+    end);
+
+  Result := LResult;
 end;
 
 procedure TInstallItForm.cbAgreeChange(Sender: TObject);
@@ -166,40 +225,16 @@ end;
 
 procedure TInstallItForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  var LInstallingList: TArray<IAsyncResult> := [];
-  for var LItem in FToolsInstaller.GetInstallingTools() do
-    if not (LItem.Value.IsCancelled or LItem.Value.IsCompleted) then
-      LInstallingList := LInstallingList + [LItem.Value];
+  if IsInstalling() then
+    CanClose := AskUserToCancelAll();
+end;
 
-  if not Assigned(LInstallingList) then
-    Exit;
-
-  var LCanClose := false;
-  TDialogService.MessageDialog('Do you want to cancel all running tasks?', 
-    TMsgDlgType.mtConfirmation, 
-    [TMsgDlgBtn.mbNo, TMsgDlgBtn.mbYes], 
-    TMsgDlgBtn.mbNo, 
-    0, 
-    procedure(const AResult: TModalResult) begin
-      if AResult <> mrYes then
-        Exit;
-
-      for var LTask in LInstallingList do
-        if not (LTask.IsCancelled or LTask.IsCompleted) then
-          LTask.Cancel();
-
-      ShowMessage('Cancelling operations. It can take a while.');
-
-      for var LTask in LInstallingList do
-        LTask.AsyncWaitEvent.WaitFor();
-
-      // Clear queue
-      Application.ProcessMessages();
-
-      LCanClose := true;
-    end);
-
-  CanClose := LCanClose;
+procedure TInstallItForm.FormDestroy(Sender: TObject);
+begin
+  // There's a very old bug in MacOS preventing modal forms
+  // to call the OnClose and onCloseQuery events
+  CancellAll();
+  WaitForAll();
 end;
 
 procedure TInstallItForm.FormShow(Sender: TObject);
@@ -220,28 +255,49 @@ begin
 end;
 
 procedure TInstallItForm.Install(const AItem: TListBoxItem);
+var
+  LItem: TInstallItListBoxItem absolute AItem;
+  LTool: IAsyncResult;
 begin
-  TInstallItListBoxItem(AItem).FProgressLayout.Visible := true;
-  AItem.Height := ITEM_INSTALLING_HEIGHT;
-  AItem.Enabled := false;
+  LItem.FProgressLayout.Visible := true;
+  LItem.Height := ITEM_INSTALLING_HEIGHT;
+  LItem.Enabled := false;
 
-  FToolsInstaller.Install(
+  // DO NOT SYNCHRONIZE HERE
+  // It can cause a deadlock with WaitForAll
+
+  LTool := FInstallItService.BeginInstall(
     Pointer(AItem.Data),
     procedure(const ATool: PToolInfo;
       const ACurrentAction: string; const ATotal, AStep: Int64)
     begin
-      TThread.Queue(TThread.Current, procedure() begin
-        TInstallItListBoxItem(AItem).FProgressText.Text := ACurrentAction;
-        TInstallItListBoxItem(AItem).FProgressBar.Max := ATotal;
-        TInstallItListBoxItem(AItem).FProgressBar.Value := AStep;
+      if (LItem.FProgressText.Text = ACurrentAction)
+         and
+         (LItem.FProgressBar.Value = AStep)
+      then
+        Exit;
+
+      TThread.Queue(Pointer(Self), procedure() begin
+        LItem.FProgressText.Text := ACurrentAction;
+        LItem.FProgressBar.Max := ATotal;
+        LItem.FProgressBar.Value := AStep;
       end);
     end,
-    procedure(const ACallback: IAsyncResult) begin 
-      TThread.Queue(TThread.Current, procedure() begin 
-        AItem.Enabled := not FToolsInstaller.IsInstalled(Pointer(AItem.Data));
+    procedure(const ACallback: IAsyncResult) begin
+      if ACallback.IsCancelled then
+        Exit;
+
+      TThread.Queue(Pointer(Self), procedure() begin
+        AItem.Enabled := not FInstallItService.IsInstalled(Pointer(LItem.Data));
         UpdateComponents();
-      end);      
+
+        // Show errors
+        if not ACallback.IsCancelled then
+          FInstallItService.EndInstall(ACallback);
+      end);
     end);
+  
+  FInstalling := FInstalling + [LTool];
 end;
 
 procedure TInstallItForm.lblReadTermsClick(Sender: TObject);
@@ -274,14 +330,14 @@ end;
 procedure TInstallItForm.ListTools;
 begin
   lbPackages.Clear();
-  for var LTool in FToolsInstaller.GetTools() do begin
+  for var LTool in FInstallItService.GetTools() do begin
     var LItem := TInstallItListBoxItem.Create(lbPackages);
     LItem.Height := ITEM_REGULAR_HEIGHT;
     LItem.FText.Text := LTool^.Description;
     LItem.FDetail.Text := 'Version: ' + LTool^.Version;
     LItem.Data := Pointer(LTool);
 
-    if FToolsInstaller.IsInstalled(LTool) then begin
+    if FInstallItService.IsInstalled(LTool) then begin
       LItem.ItemData.Accessory := TListBoxItemData.TAccessory.aCheckmark;
       LItem.IsChecked := true;
       LItem.Enabled := false;
@@ -307,8 +363,8 @@ begin
       LHasSelection := true;
 
   var LIsInstalling := false;
-  for var LItem in FToolsInstaller.GetInstallingTools() do
-    if not (LItem.Value.IsCancelled or LItem.Value.IsCompleted) then
+  for var LItem in FInstalling do
+    if not (LItem.IsCancelled or LItem.IsCompleted) then
       LIsInstalling := true;
     
   btnInstallSelectedTools.Enabled := cbAgree.IsChecked
