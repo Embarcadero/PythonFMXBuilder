@@ -12,6 +12,8 @@ type
   public
     //PythonFMXBuilder
     class function GetPythonFMXBuilderDir(): string; static;
+    class function GetPythonFMXBuilderHomePath(): string; static;
+    class function GetPythonFMXBuilderDocumentsPath(): string; static;
     //Storage
     class function GetStorageBasePath(): string; static;
     //Workspace
@@ -33,6 +35,7 @@ type
     //Tools
     class function GetToolsInstallationBaseFolder(): string; static;
     class function GetToolInstallationFolder(const AToolInfo: TToolInfo): string; static;
+    class function GetJDKToolInstallationFolder(const AToolInfo: TToolInfo): string; static;
     //Build app files --> Move to TAndroidBuilderPaths <--
     class function GetAppPath(const AProjectPath: string;
       const ABuildConfiguration: TBuildConfiguration;
@@ -287,9 +290,30 @@ begin
   Result := TPath.Combine(TBuilderPaths.GetPythonFolder(), 'distributions');
 end;
 
+class function TBuilderPaths.GetJDKToolInstallationFolder(
+  const AToolInfo: TToolInfo): string;
+begin
+  Result := GetToolInstallationFolder(AToolInfo);
+  {$IFDEF POSIX}
+  var LDirs := TDirectory.GetDirectories(Result, 'Home', TSearchOption.soAllDirectories);
+  if Assigned(LDirs) then
+    Result := LDirs[0];
+  {$ENDIF POSIX}
+end;
+
 class function TBuilderPaths.GetPythonFMXBuilderDir: string;
 begin
   Result := ExtractFilePath(ParamStr(0));
+end;
+
+class function TBuilderPaths.GetPythonFMXBuilderDocumentsPath: string;
+begin
+  Result := TPath.Combine(TPath.GetDocumentsPath(), 'PythonFMXBuilder');
+end;
+
+class function TBuilderPaths.GetPythonFMXBuilderHomePath: string;
+begin
+  Result := TPath.Combine(TPath.GetHomePath(), 'PythonFMXBuilder');
 end;
 
 class function TBuilderPaths.GetRpycPackagePath: string;
@@ -304,10 +328,7 @@ end;
 
 class function TBuilderPaths.GetStorageBasePath: string;
 begin
-  Result := TPath.Combine(
-    TPath.Combine(
-      TPath.GetDocumentsPath(), 'PythonFMXBuilder'),
-    'data');
+  Result := TPath.Combine(TBuilderPaths.GetPythonFMXBuilderHomePath, 'data');
 end;
 
 class function TBuilderPaths.GetToolInstallationFolder(
@@ -376,7 +397,7 @@ end;
 
 class function TBuilderPaths.GetToolsInstallationBaseFolder: string;
 begin
-  Result := TPath.Combine(TBuilderPaths.GetPythonFMXBuilderDir(), 'tools');
+  Result := TPath.Combine(TBuilderPaths.GetPythonFMXBuilderHomePath(), 'tools');
 end;
 
 { TBuilderUnboundPaths }

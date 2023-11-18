@@ -6,7 +6,7 @@ REQUIRED_TOOLS : TToolsInfo = (
   (Name: 'sdk'; Description: 'Android Software Development Kit'; Version: '32';
     Url: 'https://dl.google.com/android/repository/commandlinetools-mac-10406996_latest.zip';
     TermsOfUse: 'https://developer.android.com/studio/terms';
-    Args: ['"platforms;android-32"', '"build-tools;32.0.0"', 'platform-tools'{, 'tools'}];
+    Args: ['platforms;android-32', 'build-tools;32.0.0', 'platform-tools'];
     Requires: [
       @REQUIRED_TOOLS[INDEX_JDK_21_35]
     ];

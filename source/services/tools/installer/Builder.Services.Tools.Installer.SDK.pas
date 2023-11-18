@@ -31,59 +31,90 @@ procedure TSDKToolInstaller.InternalInstall(const AInstallationDirectory: string
 begin
   inherited;
   var LOutput := String.Empty;
-  var LJDKPath := TBuilderPaths.GetToolInstallationFolder(ToolInfo^.Requires[0]^);
-  var LTmpYes := TPath.GetTempFileName();
-  var LYes := TArray<string>.Create();
+  var LJDKPath := TBuilderPaths.GetJDKToolInstallationFolder(ToolInfo^.Requires[0]^);
+  var LAgreementFile := TPath.GetTempFileName();
   var LCmd := TAndroidToolsPathLocator.FindToolPath(AInstallationDirectory,
     {$IFDEF POSIX}'sdkmanager'{$ELSE}'sdkmanager.bat'{$ENDIF});
 
-  for var I := 1 to 20 do
-    LYes := LYes + ['y'];
-  TFile.WriteAllLines(LTmpYes, LYes);
-
   if Assigned(AProgress) then
-    AProgress(ToolInfo, 'Installing tool', 3, 1);
+    AProgress(ToolInfo, 'Installing tool 1/3', 3, 1);
 
   if TExecCmdService
     .Cmd(
       LCmd,
-      {$IFDEF POSIX}[LCmd] + {$ENDIF} [
-      '--licenses',
-      '--sdk_root=' + AInstallationDirectory,
-      '< ' + LTmpYes],
-      ['JAVA_HOME=' + LJDKPath])
-    .Run(LOutput)
-    .Wait() = EXIT_FAILURE then
-      raise EOperationFailed.Create(LOutput);
-
-  if Assigned(AProgress) then
-    AProgress(ToolInfo, 'Installing tool', 3, 2);
-
-  if AAbort then
-    raise EOperationCancelled.Create('The operation has been cancelled.');
-
-  if TExecCmdService
-    .Cmd(
-      LCmd,
-      {$IFDEF POSIX}[LCmd] + {$ENDIF} ['--sdk_root=' + AInstallationDirectory]
-      + ToolInfo^.Args,
-      ['JAVA_HOME=' + LJDKPath])
-    .Run(LOutput)
-    .Wait() = EXIT_FAILURE then
-      raise EOperationFailed.Create(LOutput);
-
-  if Assigned(AProgress) then
-    AProgress(ToolInfo, 'Installing tool', 3, 3);
-
-  if AAbort then
-    raise EOperationCancelled.Create('The operation has been cancelled.');
-
-  if TExecCmdService
-    .Cmd(
-      LCmd,
-      {$IFDEF POSIX}[LCmd] + {$ENDIF} [
+      {$IFDEF POSIX}[LCmd] + {$ENDIF POSIX} [
       '--update',
       '--sdk_root=' + AInstallationDirectory],
+      ['JAVA_HOME=' + LJDKPath])
+    .Run(LOutput)
+    .Wait() = EXIT_FAILURE then
+      raise EOperationFailed.Create(LOutput);
+
+  if AAbort then
+    raise EOperationCancelled.Create('The operation has been cancelled.');
+
+  if Assigned(AProgress) then
+    AProgress(ToolInfo, 'Installing tool 2/3', 3, 2);
+
+  try
+    {$IFDEF POSIX}
+    TFile.WriteAllLines(LAgreementFile, [
+      'export JAVA_HOME=' + LJDKPath,
+      Format('yes | %s --licenses --sdk_root=%s', [LCmd, AInstallationDirectory])
+    ]);
+    var LExec := String.Empty;
+    var LArgV: TArray<string> := nil;
+    {$IFDEF MACOS}
+    LExec := '/bin/zsh';
+    LArgV := ['zsh', LAgreementFile];
+    {$ENDIF MACOS}
+
+    {$IFDEF LINUX}
+    LExec := '/usr/bin/bash';
+    LArgV := ['bash', LAgreementFile];
+    {$ENDIF LINUX}
+    if TExecCmdService
+      .Cmd(LExec, LArgV, [])
+      .Run(LOutput)
+      .Wait() = EXIT_FAILURE then
+        raise Exception.Create(LOutput);
+    {$ENDIF POSIX}
+
+    {$IFDEF MSWINDOWS}
+    var LYes := TArray<string>.Create();
+    for var I := 1 to 10 do
+      LYes := LYes + ['y'];
+    TFile.WriteAllLines(LAgreementFile, LYes);
+
+    if TExecCmdService
+      .Cmd(
+        LCmd,
+        {$IFDEF POSIX}[LCmd] + {$ENDIF POSIX} [
+        '--licenses',
+        '--sdk_root=' + AInstallationDirectory
+        {$IFDEF MSWINDOWS}, '< ' + LAgreementFile{$ENDIF MSWINDOWS}
+        ],
+        ['JAVA_HOME=' + LJDKPath])
+      .Run(LOutput)
+      .Wait() = EXIT_FAILURE then
+        raise EOperationFailed.Create(LOutput);
+    {$ENDIF MSWINDOWS}
+  finally
+    TFile.Delete(LAgreementFile);
+  end;
+
+  if AAbort then
+    raise EOperationCancelled.Create('The operation has been cancelled.');
+
+  if Assigned(AProgress) then
+    AProgress(ToolInfo, 'Installing tool 3/3', 3, 3);
+
+  if TExecCmdService
+    .Cmd(
+      LCmd,
+      {$IFDEF POSIX}[LCmd] + {$ENDIF POSIX}
+      ToolInfo^.Args
+      + ['--sdk_root=' + AInstallationDirectory],
       ['JAVA_HOME=' + LJDKPath])
     .Run(LOutput)
     .Wait() = EXIT_FAILURE then

@@ -64,7 +64,10 @@ begin
   except
     on E: Exception do begin
       if Assigned(AProgress) then
-        AProgress(ToolInfo, 'Failed', 1, 1);
+        if AAbort then
+          AProgress(ToolInfo, 'Cancelled', 1, 1)
+        else
+          AProgress(ToolInfo, 'Failed', 1, 1);
       raise;
     end;
   end;

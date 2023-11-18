@@ -34,7 +34,7 @@ begin
   TBuilderService.Instance.RegisterService<IUnboundPythonServices>(TUnboundPythonService);
   TBuilderService.Instance.RegisterService<IEnvironmentServices<TAndroidEnvironmentModel>>(TEnvironmentService<TAndroidEnvironmentModel>);
   TBuilderService.Instance.RegisterService<IEditorServices>(TEditorService);
-  TBuilderService.Instance.RegisterService<IToolInstallServices>(TToolInstallService);
+  TBuilderService.Instance.RegisterService<IInstallItServices>(TToolInstallService);
 end;
 
 procedure UnregisterServices();
@@ -47,7 +47,7 @@ begin
   TBuilderService.Instance.UnregisterService<IUnboundPythonServices>();
   TBuilderService.Instance.UnregisterService<IEnvironmentServices<TAndroidEnvironmentModel>>();
   TBuilderService.Instance.UnregisterService<IEditorServices>();
-  TBuilderService.Instance.UnregisterService<IToolInstallServices>();
+  TBuilderService.Instance.UnregisterService<IInstallItServices>();
 end;
 
 end.

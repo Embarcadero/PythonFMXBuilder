@@ -11,7 +11,7 @@ uses
   Builder.Services;
 
 type
-  TToolInstallService = class(TInterfacedObject, IToolInstallServices)
+  TToolInstallService = class(TInterfacedObject, IInstallItServices)
   public type
     TWaitList = TArray<TPair<PToolInfo, IAsyncResult>>;
     TWaitListCallback = reference to procedure(const AWaitList: TWaitList;
@@ -29,19 +29,23 @@ type
     procedure ResolveDependencies(const ATool: PToolInfo;
       const AWaitList: TWaitList; const AProgress: TToolInstallationProgress;
       var AAbort: boolean);
+    // Internal install
+    function Install(const ATool: PToolInfo;
+      const AProgress: TToolInstallationProgress = nil;
+      const ACallback: TAsyncCallback = nil): IAsyncResult;
   public
     constructor Create();
     destructor Destroy(); override;
 
     function GetTools(): TArray<PToolInfo>;
     function GetMissingTools(): TArray<PToolInfo>;
-    function GetInstallingTools(): TInstallingTools;
 
     function IsInstalled(const ATool: PToolInfo): boolean;
 
-    function Install(const ATool: PToolInfo;
+    function BeginInstall(const ATool: PToolInfo;
       const AProgress: TToolInstallationProgress = nil;
-      const ACallback: TAsyncCallback = nil): IAsyncResult;
+      const ACompletition: TAsyncCallback = nil): IAsyncResult;
+    procedure EndInstall(const AAsyncResult: IAsyncResult);
   end;
 
 implementation
@@ -49,6 +53,7 @@ implementation
 uses
   System.IOutils,
   System.Threading,
+  System.SyncObjs,
   Builder.Paths,
   Builder.Exception,
   Builder.Services.Tools.Installer.Factory;
@@ -138,7 +143,7 @@ begin
     // Notify we are waiting for this tool
     AWaitListCallback(AWaitList, I);
     // Wait for completition
-    AWaitList[I].Value.AsyncWaitEvent.WaitFor();
+    EndInstall(AWaitList[I].Value);
   end;
 end;
 
@@ -189,11 +194,6 @@ begin
     Result := Result + [@REQUIRED_TOOLS[I]];
 end;
 
-function TToolInstallService.GetInstallingTools: TInstallingTools;
-begin
-  Result := FInstalling.ToArray();
-end;
-
 function TToolInstallService.GetMissingTools: TArray<PToolInfo>;
 begin
   Result := nil;
@@ -240,17 +240,22 @@ begin
     procedure() begin
       LAbort := true;
     end,
-    // Async callback
-    procedure(const AResult: IAsyncResult) begin
-      if Assigned(ACallback) then
-        ACallback(AResult);
-
-      TThread.Queue(TThread.Current, procedure() begin
-        FInstalling.Remove(ATool);
-      end);
-    end).Invoke();
+    // Completition callback
+    ACallback).Invoke();
 
   FInstalling.Add(ATool, Result);
+end;
+
+function TToolInstallService.BeginInstall(const ATool: PToolInfo;
+  const AProgress: TToolInstallationProgress;
+  const ACompletition: TAsyncCallback): IAsyncResult;
+begin
+  Result := Install(ATool, AProgress, ACompletition);
+end;
+
+procedure TToolInstallService.EndInstall(const AAsyncResult: IAsyncResult);
+begin
+  (AAsyncResult as TBaseAsyncResult).WaitForCompletion;
 end;
 
 { TToolInstallAsyncResult }
@@ -272,16 +277,17 @@ end;
 
 procedure TToolInstallAsyncResult.Complete;
 begin
-  inherited;
   if Assigned(FCallback) then
     FCallback(Self);
+  inherited;
 end;
 
 function TToolInstallAsyncResult.DoCancel: Boolean;
 begin
-  Result := inherited DoCancel();
+  inherited DoCancel();
   if Assigned(FCancellation) then
     FCancellation();
+  Result := true;
 end;
 
 procedure TToolInstallAsyncResult.Schedule;

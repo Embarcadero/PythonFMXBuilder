@@ -71,12 +71,14 @@ type
     miSave: TMenuItem;
     miSaveAll: TMenuItem;
     miInstallItToolsManager: TMenuItem;
+    tmCheckTools: TTimer;
     procedure AboutClick(Sender: TObject);
     procedure loProjectOptionsResized(Sender: TObject);
     procedure loLeftPanelResize(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure tmCheckToolsTimer(Sender: TObject);
   private
     const
       ANI_OPS = [
@@ -228,10 +230,7 @@ end;
 procedure TMainForm.FormShow(Sender: TObject);
 begin
   inherited;
-  TThread.ForceQueue(nil,
-    procedure() begin
-      TEnvironmentForm.CheckAndUpdateAndroidEnvironment()
-    end, 2000);
+  tmCheckTools.Enabled := true;
 end;
 
 procedure TMainForm.AboutClick(Sender: TObject);
@@ -252,6 +251,22 @@ begin
   inherited;
   if TControl(Sender).Width < 276 then
     TControl(Sender).Width := 276;
+end;
+
+procedure TMainForm.tmCheckToolsTimer(Sender: TObject);
+begin
+  inherited;
+  tmCheckTools.Enabled := false;
+
+  // MUST HAVE THIS EXCEPTION HANDLING HERE!
+  // Delphi Linux is unable to wind up exceptions inside timers
+
+  try
+    TEnvironmentForm.CheckAndUpdateAndroidEnvironment();
+  except
+    on E: Exception do
+      Application.ShowException(E);
+  end;
 end;
 
 end.
